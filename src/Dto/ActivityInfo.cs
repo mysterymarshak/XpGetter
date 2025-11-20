@@ -2,7 +2,7 @@ namespace XpGetter.Dto;
 
 public record ActivityInfo
 {
-    public required string AccountName { get; set; }
+    public required Account Account { get; set; }
     public required DateTimeOffset LastDropDateTime { get; set; }
     public string? LastKnownIpAddress { get; set; }
     public bool EarnedServiceMedal { get; set; }

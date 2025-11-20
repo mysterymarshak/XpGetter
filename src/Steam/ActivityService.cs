@@ -7,7 +7,7 @@ namespace XpGetter.Steam;
 
 public interface IActivityService
 {
-    Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfo(Account account);
+    Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfoAsync(Account account);
 }
 
 public class ActivityServiceError
@@ -20,7 +20,7 @@ public class ActivityService : IActivityService
 {
     private const string BaseAddress = "https://steamcommunity.com/";
 
-    public async Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfo(Account account)
+    public async Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfoAsync(Account account)
     {
         var tasks = new List<Task>
         {
@@ -42,7 +42,7 @@ public class ActivityService : IActivityService
             return error;
         }
 
-        return ParseActivityInfoFromHtml(account.Username, document, lastDropDateTime);
+        return ParseActivityInfoFromHtml(account, document, lastDropDateTime);
     }
 
     private async Task<OneOf<DateTimeOffset, ActivityServiceError>> GetLastRankDropDateTime(Account account)
@@ -117,7 +117,7 @@ public class ActivityService : IActivityService
         }
     }
 
-    private OneOf<ActivityInfo, ActivityServiceError> ParseActivityInfoFromHtml(string accountName, HtmlDocument document, DateTimeOffset lastDropDateTime)
+    private OneOf<ActivityInfo, ActivityServiceError> ParseActivityInfoFromHtml(Account account, HtmlDocument document, DateTimeOffset lastDropDateTime)
     {
         var tables = document.DocumentNode
             .QuerySelectorAll("table.generic_kv_table");
@@ -127,7 +127,7 @@ public class ActivityService : IActivityService
             return new ActivityServiceError { Message = "Table with class 'generic_kv_table' not found." };
         }
 
-        var activityInfo = new ActivityInfo { AccountName = accountName, LastDropDateTime = lastDropDateTime };
+        var activityInfo = new ActivityInfo { Account = account, LastDropDateTime = lastDropDateTime };
         var lines = tables
             .Select(x => x.QuerySelectorAll(".generic_kv_line").Select(n => n.InnerText.Trim()))
             .SelectMany(x => x);

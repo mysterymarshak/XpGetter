@@ -1,6 +1,5 @@
 using Autofac;
 using Serilog;
-using Serilog.Extensions.Autofac.DependencyInjection;
 using XpGetter.Steam;
 
 namespace XpGetter;
@@ -9,9 +8,14 @@ public class MainModule : Autofac.Module
 {
     protected override void Load(ContainerBuilder builder)
     {
-        builder.RegisterSerilog(new LoggerConfiguration()
+        var logger = new LoggerConfiguration()
             .WriteTo.Console()
-            .MinimumLevel.Debug());
+            .MinimumLevel.Debug()
+            .CreateLogger();
+
+        builder.RegisterInstance(logger)
+            .As<ILogger>()
+            .SingleInstance();
 
         builder.RegisterType<AuthorizationService>()
             .As<IAuthorizationService>()
@@ -19,6 +23,10 @@ public class MainModule : Autofac.Module
 
         builder.RegisterType<ActivityService>()
             .As<IActivityService>()
+            .SingleInstance();
+        
+        builder.RegisterType<SessionService>()
+            .As<ISessionService>()
             .SingleInstance();
 
         builder.RegisterType<SettingsProvider>()

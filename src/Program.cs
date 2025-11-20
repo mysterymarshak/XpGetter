@@ -1,9 +1,8 @@
-﻿using Fizzler.Systems.HtmlAgilityPack;
-using HtmlAgilityPack;
-using Spectre.Console;
+﻿using Spectre.Console;
 using System.Text;
 using Autofac;
 using OneOf;
+using Serilog;
 using XpGetter;
 using XpGetter.Steam;
 using XpGetter.Utils;
@@ -15,6 +14,7 @@ var container = containerBuilder.Build();
 var authorizationService = container.Resolve<IAuthorizationService>();
 var activityService = container.Resolve<IActivityService>();
 var settingsProvider = container.Resolve<SettingsProvider>();
+var logger = container.Resolve<ILogger>();
 var settings = settingsProvider.Import();
 
 if (args.Contains("--add-account"))
@@ -22,11 +22,15 @@ if (args.Contains("--add-account"))
     await ShowMenu();
 }
 
+await SyncAccounts();
+
 while (!settings.Accounts.Any())
 {
     Console.WriteLine("No accounts found.");
     await ShowMenu();
 }
+
+await PrintInfo();
 
 async Task ShowMenu()
 {
@@ -108,49 +112,106 @@ async Task AddNewAccountQr()
     TryExtractAccount(authorizationResult);
 }
 
-void TryExtractAccount(OneOf<Account, AuthorizationServiceError> authorizationResult)
+void TryExtractAccount(OneOf<Account, SessionServiceError, AuthorizationServiceError> authorizationResult)
 {
     if (authorizationResult.TryPickT0(out var account, out _))
     {
         settingsProvider.AddAccount(account, settings);
         settingsProvider.Sync(settings);
     }
-    else
+    else if (authorizationResult.TryPickT1(out var sessionServiceError, out _))
     {
-        var error = authorizationResult.AsT1;
         Console.WriteLine("An error occured while adding new account.");
-        Console.WriteLine(error.Message);
-        if (error.Exception is not null)
+        Console.WriteLine(sessionServiceError.Message);
+        if (sessionServiceError.Exception is not null)
         {
-            Console.WriteLine(error.Exception.ToString());
+            Console.WriteLine(sessionServiceError.Exception.ToString());
         }
     }
-}
-
-var accounts = settings.Accounts;
-var tasks = accounts.Select(activityService.GetActivityInfo);
-
-var results = await Task.WhenAll(tasks);
-foreach (var (i, result) in results.Index())
-{
-    if (result.TryPickT0(out var info, out var error))
-    {
-        var isDropAvailable = info.IsDropAvailable();
-        var isDropAvailableFormatted = isDropAvailable ? "Yes" : "No";
-        AnsiConsole.MarkupLine($"[blue]{info.AccountName}[/]");
-        AnsiConsole.MarkupLine($"Rank: {info.CsgoProfileRank}");
-        AnsiConsole.MarkupLine($"Last drop: {info.LastDropDateTime}");
-        AnsiConsole.MarkupLine($"Drop is available: [{(isDropAvailable ? "green" : "red")}]{isDropAvailableFormatted}[/]");
-        ProgressBar.Print(info.ExperiencePointsToNextRank, 5000);
-    }
     else
     {
-        Console.WriteLine("An error occured while retrieving activity info.");
-        Console.WriteLine(error.Message);
+        var authServiceError = authorizationResult.AsT2;
+        Console.WriteLine("An error occured while adding new account.");
+        Console.WriteLine(authServiceError.Message);
+        if (authServiceError.Exception is not null)
+        {
+            Console.WriteLine(authServiceError.Exception.ToString());
+        }
     }
 
-    if (i != results.Length - 1)
+    // TODO: improve
+}
+
+async Task SyncAccounts()
+{
+    var accounts = settings.Accounts.ToList();
+    if (accounts.Count == 0)
+        return;
+    
+    var tasks = accounts.Select(authorizationService.AuthorizeAccountAsync);
+    
+    var results = await Task.WhenAll(tasks);
+    foreach (var (i, result) in results.Index())
     {
-        Console.WriteLine();
+        var account = accounts[i];
+        
+        if (result.TryPickT2(out _, out _))
+        {
+            settingsProvider.RemoveAccount(account, settings);
+            logger.Warning("Session for '{Username}' is expired. You need to log in into account again.", account.Username);
+        }
+        else if (result.TryPickT3(out var sessionServiceError, out _))
+        {
+            Console.WriteLine($"An error occured while logging in into account '{account.Username}'.");
+            Console.WriteLine(sessionServiceError.Message);
+            if (sessionServiceError.Exception is not null)
+            {
+                Console.WriteLine(sessionServiceError.Exception.ToString());
+            }
+        }
+        else if (result.TryPickT4(out var authServiceError, out _))
+        {
+            Console.WriteLine($"An error occured while logging in into account '{account.Username}'.");
+            Console.WriteLine(authServiceError.Message);
+            if (authServiceError.Exception is not null)
+            {
+                Console.WriteLine(authServiceError.Exception.ToString());
+            }
+        }
+
+        // TODO: improve
+    }
+    
+    settingsProvider.Sync(settings);
+}
+
+async Task PrintInfo()
+{
+    var accounts = settings.Accounts;
+    var tasks = accounts.Select(activityService.GetActivityInfoAsync);
+    
+    var results = await Task.WhenAll(tasks);
+    foreach (var (i, result) in results.Index())
+    {
+        if (result.TryPickT0(out var info, out var error))
+        {
+            var isDropAvailable = info.IsDropAvailable();
+            var isDropAvailableFormatted = isDropAvailable ? "Yes" : "No";
+            AnsiConsole.MarkupLine($"[blue]{info.Account.PersonalName}[/]");
+            AnsiConsole.MarkupLine($"Rank: {info.CsgoProfileRank}");
+            AnsiConsole.MarkupLine($"Last drop: {info.LastDropDateTime}");
+            AnsiConsole.MarkupLine($"Drop is available: [{(isDropAvailable ? "green" : "red")}]{isDropAvailableFormatted}[/]");
+            ProgressBar.Print(info.ExperiencePointsToNextRank, 5000);
+        }
+        else
+        {
+            Console.WriteLine("An error occured while retrieving activity info.");
+            Console.WriteLine(error.Message);
+        }
+
+        if (i != results.Length - 1)
+        {
+            Console.WriteLine();
+        }
     }
 }
