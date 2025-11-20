@@ -1,11 +1,13 @@
 using Newtonsoft.Json;
 using Serilog;
+using System.Reflection;
 
 namespace XpGetter;
 
 public class SettingsProvider
 {
-    private string SettingsPath => Path.Combine(Directory.GetCurrentDirectory(), FileName);
+    private string SettingsPath => Path.Combine(
+        Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, FileName);
 
     private readonly ILogger _logger;
 
@@ -41,7 +43,7 @@ public class SettingsProvider
             .Append(account)
             .ToList();
     }
-    
+
     public void RemoveAccount(Account account, SettingsRoot settings)
     {
         settings.Accounts = settings.Accounts
