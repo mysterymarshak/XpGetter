@@ -394,7 +394,7 @@ public class AuthorizationService : IAuthorizationService
 
         if (DateTimeOffset.Now > refreshTokenExpirationDate)
         {
-            _logger.Information("Client '{UserName}': Refresh token is expired.", account.Username);
+            _logger.Debug("Client '{UserName}': Refresh token is expired.", account.Username);
             return new RefreshTokenExpired();
         }
 
@@ -420,6 +420,8 @@ public class AuthorizationService : IAuthorizationService
                     OneOf<Success, RefreshTokenExpired, AuthorizationServiceError>.FromT1,
                     OneOf<Success, RefreshTokenExpired, AuthorizationServiceError>.FromT2);
             }
+
+            _logger.Debug("Client '{UserName}': Access token successfully renewed", account.Username);
         }
 
         return new Success();
