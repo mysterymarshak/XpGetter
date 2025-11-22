@@ -236,6 +236,7 @@ async Task PrintInfo()
                 AnsiConsole.MarkupLine($"[yellow]{info.AdditionalMessage}[/]");
             }
             ProgressBar.Print(info.ExperiencePointsToNextRank, 5000);
+            // TODO: implement formatting config
         }
         else
         {
