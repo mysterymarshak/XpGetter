@@ -3,4 +3,4 @@ using XpGetter.Responses;
 
 namespace XpGetter.Results;
 
-public record MispagedDrop(DateTimeOffset DateTime, DropItem FirstItem, CursorInfo Cursor);
+public record MispagedDrop(DateTimeOffset DateTime, DropItem FirstItem, CursorInfo? Cursor);

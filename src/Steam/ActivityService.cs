@@ -82,9 +82,10 @@ public class ActivityService : IActivityService
             return error;
         }
 
-        var page = previousPageResult is null ? 1 : (previousPageResult.Page + 1);
+        var page = (previousPageResult?.Page ?? 1) + 1;
+        var previousItems = previousPageResult?.ItemsScanned ?? 0;
         var parseNewRankDropResult = TryParseNewRankDropFromInventoryHistory(
-            page, result.Deserialized);
+            page, previousItems, result.Deserialized);
         
         if (parseNewRankDropResult.TryPickT0(out var newRankDrop, out _))
         {
@@ -98,6 +99,12 @@ public class ActivityService : IActivityService
 
         if (parseNewRankDropResult.TryPickT2(out var mispagedDrop, out _))
         {
+            if (mispagedDrop.Cursor is null)
+            {
+                _logger.Warning("Cannot retrieve mispaged drop if cursor is null.");
+                return new NewRankDrop(mispagedDrop.DateTime, [mispagedDrop.FirstItem]);
+            }
+            
             loadInventoryHistoryResult = await LoadInventoryHistoryAsync(account, mispagedDrop.Cursor);
             if (loadInventoryHistoryResult.TryPickT1(out error, out result))
             {
@@ -131,8 +138,16 @@ public class ActivityService : IActivityService
         return new ActivityServiceError { Message = $"Impossible case. {nameof(GetLastNewRankDropAsync)}()" };
     }
 
-    private OneOf<DropItem?, ActivityServiceError> TryParseMispagedDrop(string html)
+    private OneOf<DropItem?, ActivityServiceError> TryParseMispagedDrop(string? html)
     {
+        if (html is null)
+        {
+            return new ActivityServiceError
+            {
+                Message = $"Invalid html page retrieved for {nameof(TryParseMispagedDrop)}(). Was null"
+            };
+        }
+        
         var document = new HtmlDocument();
         document.LoadHtml(html);
  
@@ -166,8 +181,16 @@ public class ActivityService : IActivityService
     }
     
     private OneOf<NewRankDrop, NoResultsOnPage, MispagedDrop, NoDropHistoryFound, ActivityServiceError>
-        TryParseNewRankDropFromInventoryHistory(int page, InventoryHistoryResponse response)
+        TryParseNewRankDropFromInventoryHistory(int page, int previousItems, InventoryHistoryResponse response)
     {
+        if (response.Html is null)
+        {
+            return new ActivityServiceError
+            {
+                Message = $"Invalid html page retrieved for {nameof(TryParseNewRankDropFromInventoryHistory)}(). Was null"
+            };
+        }
+        
         var document = new HtmlDocument();
         document.LoadHtml(response.Html);
  
@@ -227,13 +250,14 @@ public class ActivityService : IActivityService
             return new NoDropHistoryFound();
         }
         
-        return new NoResultsOnPage(page, lastEntryDateTime.Value, response.EntriesCount, response.Cursor);
+        return new NoResultsOnPage(page, lastEntryDateTime.Value, previousItems + response.EntriesCount, response.Cursor);
     }
     
     private async Task<OneOf<(InventoryHistoryResponse Deserialized, string Raw), ActivityServiceError>>
         LoadInventoryHistoryAsync(Account account, CursorInfo? cursor = null)
     {
-        var queryString = $"l=english&ajax=1&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
+        var queryString =
+            $"l=english&ajax=1&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
         var getJsonResult = await GetJsonAsync<InventoryHistoryResponse>(
             $"/profiles/{account.Id}/inventoryhistory?{queryString}",
             GetAuthCookie(account));
@@ -253,7 +277,7 @@ public class ActivityService : IActivityService
         return result;
     }
     
-    private (DropItem? DropItem, DateTimeOffset? DateTime) TryParseDropItemFromRow(HtmlNode? row)
+    private (DropItem? DropItem, DateTimeOffset? DateTime) TryParseDropItemFromRow(HtmlNode row)
     {
         var parsedDateTime = TryParseDateTimeFromRow(row);
         if (parsedDateTime is null)
@@ -307,7 +331,7 @@ public class ActivityService : IActivityService
         var name = HtmlEntity.DeEntitize(nameNode?.InnerText ?? "<unknown>");
         var color = nameNode?.GetAttributeValue("style", string.Empty).Split("color: ")[1];
         var imgNode = node?.SelectSingleNode(".//img[@class='tradehistory_received_item_img']");
-        var imgUrl = imgNode?.GetAttributeValue("src", null) ?? null;
+        var imgUrl = imgNode?.GetAttributeValue("src", null!);
         
         return new DropItem(classId, name, imgUrl, color);
     }

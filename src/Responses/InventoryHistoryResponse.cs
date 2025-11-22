@@ -9,7 +9,7 @@ public class InventoryHistoryResponse
     public bool Success { get; set; }
    
     [JsonProperty("html")]
-    public string Html { get; set; }
+    public string? Html { get; set; }
     
     [JsonProperty("num")]
     public int EntriesCount { get; set; }
@@ -27,5 +27,5 @@ public class CursorInfo
     public int TimeFrac { get; set; }
     
     [JsonProperty("s")]
-    public string CursorId { get; set; }
+    public string? CursorId { get; set; }
 }
