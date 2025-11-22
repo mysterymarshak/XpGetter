@@ -147,14 +147,14 @@ async Task SyncAccounts()
     var accounts = settings.Accounts.ToList();
     if (accounts.Count == 0)
         return;
-    
+
     var tasks = accounts.Select(authorizationService.AuthorizeAccountAsync);
-    
+
     var results = await Task.WhenAll(tasks);
     foreach (var (i, result) in results.Index())
     {
         var account = accounts[i];
-        
+
         if (result.TryPickT2(out _, out _))
         {
             settingsProvider.RemoveAccount(account, settings);
@@ -181,7 +181,10 @@ async Task SyncAccounts()
 
         // TODO: improve
     }
-    
+
+    // TODO: properly handle state when error happend; execution shouldnt go further
+    // if there're some internet troubles/ServiceUnavailable retcode it should
+    // try fetch info a few times again
     settingsProvider.Sync(settings);
 }
 
@@ -189,7 +192,7 @@ async Task PrintInfo()
 {
     var accounts = settings.Accounts;
     var tasks = accounts.Select(activityService.GetActivityInfoAsync);
-    
+
     var results = await Task.WhenAll(tasks);
     foreach (var (i, result) in results.Index())
     {

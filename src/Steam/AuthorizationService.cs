@@ -47,7 +47,7 @@ public class AuthorizationService : IAuthorizationService
         }
 
         var tokenExpired = false;
-        var updated = true;
+        var updated = false;
         AuthorizationServiceError? authError = null;
         using var cts = new CancellationTokenSource();
         var ct = cts.Token;
@@ -58,8 +58,8 @@ public class AuthorizationService : IAuthorizationService
         {
             _logger.Information("Client '{Username}': Logging in...", account.Username);
 
-            var ensureTokensResult = await EnsureTokensAsync(account, session);
-            if (!ensureTokensResult.TryPickT0(out _, out var remainder))
+            var ensureRefreshTokenResult = EnsureRefreshToken(account);
+            if (!ensureRefreshTokenResult.TryPickT0(out _, out var remainder))
             {
                 session.Dispose();
                 return remainder.Match(
@@ -83,6 +83,21 @@ public class AuthorizationService : IAuthorizationService
                 catch (TaskCanceledException)
                 {
                 }
+            }
+
+            var ensureAccessTokenResult = await EnsureAccessTokenAsync(account, session);
+            if (ensureAccessTokenResult is { IsT0: false, IsT1: false })
+            {
+                var impossible =
+                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>.FromT4(
+                        new AuthorizationServiceError { Message = "Impossible case" });
+                
+                return ensureAccessTokenResult.Match(
+                    _ => impossible,
+                    _ => impossible,
+                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>.FromT2,
+                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>.FromT4
+                );
             }
         }
         catch (Exception exception)
@@ -376,15 +391,12 @@ public class AuthorizationService : IAuthorizationService
         return account;
     }
 
-    private async Task<OneOf<Success, RefreshTokenExpired, AuthorizationServiceError>> EnsureTokensAsync(
-        Account account,SteamSession session)
+    private OneOf<Success, RefreshTokenExpired, AuthorizationServiceError> EnsureRefreshToken(Account account)
     {
-        Error<string> error;
-
         var refreshToken = account.RefreshToken;
         var getRefreshTokenExpirationDateResult = JwtToken.GetExpirationDate(refreshToken);
 
-        if (getRefreshTokenExpirationDateResult.TryPickT1(out error, out var refreshTokenExpirationDate))
+        if (getRefreshTokenExpirationDateResult.TryPickT1(out var error, out var refreshTokenExpirationDate))
         {
             return new AuthorizationServiceError { Message = error.Value };
         }
@@ -398,10 +410,16 @@ public class AuthorizationService : IAuthorizationService
             return new RefreshTokenExpired();
         }
 
+        return new Success();
+    }
+
+    private async Task<OneOf<Success, Updated, RefreshTokenExpired, AuthorizationServiceError>> EnsureAccessTokenAsync(
+        Account account, SteamSession session)
+    {
         var accessToken = account.AccessToken;
         var getAccessTokenExpirationDateResult = JwtToken.GetExpirationDate(accessToken);
 
-        if (getAccessTokenExpirationDateResult.TryPickT1(out error, out var accessTokenExpirationDate))
+        if (getAccessTokenExpirationDateResult.TryPickT1(out var error, out var accessTokenExpirationDate))
         {
             return new AuthorizationServiceError { Message = error.Value };
         }
@@ -417,17 +435,18 @@ public class AuthorizationService : IAuthorizationService
             if (!renewAccessTokenResult.TryPickT0(out _, out var remainder))
             {
                 return remainder.Match(
-                    OneOf<Success, RefreshTokenExpired, AuthorizationServiceError>.FromT1,
-                    OneOf<Success, RefreshTokenExpired, AuthorizationServiceError>.FromT2);
+                    OneOf<Success, Updated, RefreshTokenExpired, AuthorizationServiceError>.FromT2,
+                    OneOf<Success, Updated, RefreshTokenExpired, AuthorizationServiceError>.FromT3);
             }
 
-            _logger.Debug("Client '{UserName}': Access token successfully renewed", account.Username);
+            _logger.Debug("Client '{UserName}': Access token has successfully renewed", account.Username);
+            return new Updated();
         }
 
         return new Success();
     }
 
-    private async Task<OneOf<Success, RefreshTokenExpired, AuthorizationServiceError>> RenewAccessTokenAsync(Account account, SteamSession session)
+    private async Task<OneOf<Updated, RefreshTokenExpired, AuthorizationServiceError>> RenewAccessTokenAsync(Account account, SteamSession session)
     {
         try
         {
@@ -453,6 +472,6 @@ public class AuthorizationService : IAuthorizationService
             return new AuthorizationServiceError { Message = "An error occured while renewing access token.", Exception = exception };
         }
 
-        return new Success();
+        return new Updated();
     }
 }
