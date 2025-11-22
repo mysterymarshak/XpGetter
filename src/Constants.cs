@@ -4,6 +4,7 @@ public static class Constants
 {
     public const string Version = "1.0.0";
     public const string ConfigVersion = "1.1";
+    public const int MaxInventoryHistoryPagesToLoad = 3;
 }
 
 // CONFIG VERSION CHANGES

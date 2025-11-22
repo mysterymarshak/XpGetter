@@ -17,7 +17,8 @@ public interface IAuthorizationService
     Task<OneOf<Account, SessionServiceError, AuthorizationServiceError>> AuthorizeByUsernameAndPasswordAsync(
         string username, string password);
 
-    Task<OneOf<Account, SessionServiceError, AuthorizationServiceError>> AuthorizeByQrCodeAsync();
+    Task<OneOf<Account, UserCancelledAuthByQr, SessionServiceError, AuthorizationServiceError>>
+        AuthorizeByQrCodeAsync();
 }
 
 public class AuthorizationServiceError
@@ -275,7 +276,7 @@ public class AuthorizationService : IAuthorizationService
         return account;
     }
 
-    public async Task<OneOf<Account, SessionServiceError, AuthorizationServiceError>> AuthorizeByQrCodeAsync()
+    public async Task<OneOf<Account, UserCancelledAuthByQr, SessionServiceError, AuthorizationServiceError>> AuthorizeByQrCodeAsync()
     {
         var createSessionResult = await _sessionService.CreateSessionAsync("<unnamed>");
         if (createSessionResult.TryPickT1(out var sessionError, out var session))
@@ -332,6 +333,10 @@ public class AuthorizationService : IAuthorizationService
         }
         catch (TaskCanceledException)
         {
+        }
+        catch (AuthenticationException authenticationException) when (authenticationException.Result == EResult.FileNotFound)
+        {
+            return new UserCancelledAuthByQr();
         }
         catch (Exception exception)
         {

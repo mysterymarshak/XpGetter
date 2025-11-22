@@ -4,12 +4,15 @@ using Autofac;
 using OneOf;
 using Serilog;
 using XpGetter;
+using XpGetter.Results;
 using XpGetter.Steam;
 using XpGetter.Utils;
 
 var containerBuilder = new ContainerBuilder();
 containerBuilder.RegisterModule<MainModule>();
 var container = containerBuilder.Build();
+
+// TODO: refactor that mess
 
 var authorizationService = container.Resolve<IAuthorizationService>();
 var activityService = container.Resolve<IActivityService>();
@@ -109,7 +112,7 @@ async Task AddNewAccountQr()
 {
     Console.WriteLine("Adding new account via QR...");
     var authorizationResult = await authorizationService.AuthorizeByQrCodeAsync();
-    TryExtractAccount(authorizationResult);
+    TryExtractAccountFromQrAuth(authorizationResult);
 }
 
 void TryExtractAccount(OneOf<Account, SessionServiceError, AuthorizationServiceError> authorizationResult)
@@ -118,7 +121,7 @@ void TryExtractAccount(OneOf<Account, SessionServiceError, AuthorizationServiceE
     {
         settingsProvider.AddAccount(account, settings);
         settingsProvider.Sync(settings);
-    }
+    } 
     else if (authorizationResult.TryPickT1(out var sessionServiceError, out _))
     {
         Console.WriteLine("An error occured while adding new account.");
@@ -140,6 +143,28 @@ void TryExtractAccount(OneOf<Account, SessionServiceError, AuthorizationServiceE
     }
 
     // TODO: improve
+}
+
+void TryExtractAccountFromQrAuth(
+    OneOf<Account, UserCancelledAuthByQr, SessionServiceError, AuthorizationServiceError> authorizationResult)
+{
+    if (authorizationResult.IsT1)
+    {
+        Console.WriteLine("You have probably cancelled auth by QR in steam app. Try again.");
+        return;
+    }
+
+    var loweredResult = authorizationResult.Match(
+        OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT0,
+        _ => OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT2(
+            new AuthorizationServiceError
+            {
+                Message = $"Impossible case. {nameof(TryExtractAccountFromQrAuth)}()"
+            }),
+        OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT1,
+        OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT2);
+    
+    TryExtractAccount(loweredResult);
 }
 
 async Task SyncAccounts()
@@ -199,11 +224,17 @@ async Task PrintInfo()
         if (result.TryPickT0(out var info, out var error))
         {
             var isDropAvailable = info.IsDropAvailable();
-            var isDropAvailableFormatted = isDropAvailable ? "Yes" : "No";
+            var isDropAvailableFormatted = isDropAvailable is null ? "<unknown>" : (isDropAvailable.Value ? "Yes" : "No");
+            var dropAvailableColor = isDropAvailable is null ? "yellow" : (isDropAvailable.Value ? "green" : "red");
             AnsiConsole.MarkupLine($"[blue]{info.Account.PersonalName}[/]");
             AnsiConsole.MarkupLine($"Rank: {info.CsgoProfileRank}");
-            AnsiConsole.MarkupLine($"Last drop: {info.LastDropDateTime}");
-            AnsiConsole.MarkupLine($"Drop is available: [{(isDropAvailable ? "green" : "red")}]{isDropAvailableFormatted}[/]");
+            AnsiConsole.MarkupLine($"Last drop time: {info.GetLastDropTime()}");
+            AnsiConsole.MarkupLine($"Last loot: {info.GetPreviousLoot()}");
+            AnsiConsole.MarkupLine($"Drop is available: [{dropAvailableColor}]{isDropAvailableFormatted}[/]");
+            if (info.AdditionalMessage is not null)
+            {
+                AnsiConsole.MarkupLine($"[yellow]{info.AdditionalMessage}[/]");
+            }
             ProgressBar.Print(info.ExperiencePointsToNextRank, 5000);
         }
         else
