@@ -225,7 +225,7 @@ async Task PrintInfo()
         {
             var isDropAvailable = info.IsDropAvailable();
             var isDropAvailableFormatted = isDropAvailable is null ? "<unknown>" : (isDropAvailable.Value ? "Yes" : "No");
-            var dropAvailableColor = isDropAvailable is null ? "yellow" : (isDropAvailable.Value ? "green" : "red");
+            var dropAvailableColor = isDropAvailable is null ? "white" : (isDropAvailable.Value ? "green" : "red");
             AnsiConsole.MarkupLine($"[blue]{info.Account.PersonalName}[/]");
             AnsiConsole.MarkupLine($"Rank: {info.CsgoProfileRank}");
             AnsiConsole.MarkupLine($"Last drop time: {info.GetLastDropTime()}");
