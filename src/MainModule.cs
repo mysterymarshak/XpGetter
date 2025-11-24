@@ -17,14 +17,14 @@ public class MainModule : Autofac.Module
             .As<ILogger>()
             .SingleInstance();
 
-        builder.RegisterType<AuthorizationService>()
-            .As<IAuthorizationService>()
+        builder.RegisterType<AuthenticationService>()
+            .As<IAuthenticationService>()
             .SingleInstance();
 
         builder.RegisterType<ActivityService>()
             .As<IActivityService>()
             .SingleInstance();
-        
+
         builder.RegisterType<SessionService>()
             .As<ISessionService>()
             .SingleInstance();

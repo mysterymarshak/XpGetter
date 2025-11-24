@@ -2,11 +2,13 @@
 using System.Text;
 using Autofac;
 using OneOf;
+using OneOf.Types;
 using Serilog;
 using XpGetter;
 using XpGetter.Results;
 using XpGetter.Steam;
 using XpGetter.Utils;
+using XpGetter.Dto;
 
 var containerBuilder = new ContainerBuilder();
 containerBuilder.RegisterModule<MainModule>();
@@ -14,7 +16,9 @@ var container = containerBuilder.Build();
 
 // TODO: refactor that mess
 
-var authorizationService = container.Resolve<IAuthorizationService>();
+var sessions = new Dictionary<Account, SteamSession>();
+var sessionService = container.Resolve<ISessionService>();
+var authenticationService = container.Resolve<IAuthenticationService>();
 var activityService = container.Resolve<IActivityService>();
 var settingsProvider = container.Resolve<SettingsProvider>();
 var logger = container.Resolve<ILogger>();
@@ -22,7 +26,7 @@ var settings = settingsProvider.Import();
 
 if (args.Contains("--add-account"))
 {
-    await ShowMenu();
+    await ShowAddAccountMenu();
 }
 
 await SyncAccounts();
@@ -30,12 +34,12 @@ await SyncAccounts();
 while (!settings.Accounts.Any())
 {
     Console.WriteLine("No accounts found.");
-    await ShowMenu();
+    await ShowAddAccountMenu();
 }
 
 await PrintInfo();
 
-async Task ShowMenu()
+async Task ShowAddAccountMenu()
 {
     Console.WriteLine("[1] Add account by username/password");
     Console.WriteLine("[2] Add account by qr-code");
@@ -100,101 +104,149 @@ async Task AddNewAccount()
 
     if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
     {
-        Console.WriteLine("Some of authorization fields is empty. Aborting..");
+        Console.WriteLine("Some of authentication fields is empty. Aborting..");
         return;
     }
 
-    var authorizationResult = await authorizationService.AuthorizeByUsernameAndPasswordAsync(username, password);
-    TryExtractAccount(authorizationResult);
+    var createSessionResult = await CreateSessionAsync(username);
+    if (createSessionResult.TryPickT1(out var error, out var session))
+    {
+        OnCreateSessionFailed(error);
+        return;
+    }
+
+    var authenticationResult = await authenticationService.AuthenticateByUsernameAndPasswordAsync(session, username, password);
+    TryExtractAccount(session, authenticationResult);
+}
+
+void OnCreateSessionFailed(SessionServiceError error)
+{
+    Console.WriteLine("Failed to create steam session.");
+    Console.WriteLine(error.Message);
+    if (error.Exception is not null)
+    {
+        Console.WriteLine(error.Exception.ToString());
+    }
 }
 
 async Task AddNewAccountQr()
 {
     Console.WriteLine("Adding new account via QR...");
-    var authorizationResult = await authorizationService.AuthorizeByQrCodeAsync();
-    TryExtractAccountFromQrAuth(authorizationResult);
+
+    var createSessionResult = await CreateSessionAsync("<unnamed>");
+    if (createSessionResult.TryPickT1(out var error, out var session))
+    {
+        OnCreateSessionFailed(error);
+        return;
+    }
+
+    var authenticationResult = await authenticationService.AuthenticateByQrCodeAsync(session);
+    TryExtractAccountFromQrAuth(session, authenticationResult);
 }
 
-void TryExtractAccount(OneOf<Account, SessionServiceError, AuthorizationServiceError> authorizationResult)
+void TryExtractAccount(SteamSession session, OneOf<Success, AuthenticationServiceError> authenticationResult)
 {
-    if (authorizationResult.TryPickT0(out var account, out _))
+    if (authenticationResult.TryPickT1(out var error, out _))
     {
-        settingsProvider.AddAccount(account, settings);
-        settingsProvider.Sync(settings);
-    } 
-    else if (authorizationResult.TryPickT1(out var sessionServiceError, out _))
-    {
-        Console.WriteLine("An error occured while adding new account.");
-        Console.WriteLine(sessionServiceError.Message);
-        if (sessionServiceError.Exception is not null)
-        {
-            Console.WriteLine(sessionServiceError.Exception.ToString());
-        }
-    }
-    else
-    {
-        var authServiceError = authorizationResult.AsT2;
+        var authServiceError = authenticationResult.AsT1;
         Console.WriteLine("An error occured while adding new account.");
         Console.WriteLine(authServiceError.Message);
         if (authServiceError.Exception is not null)
         {
             Console.WriteLine(authServiceError.Exception.ToString());
         }
+
+        return;
     }
 
-    // TODO: improve
+    var account = session.Account!;
+    settingsProvider.AddAccount(account, settings);
+    settingsProvider.Sync(settings);
 }
 
 void TryExtractAccountFromQrAuth(
-    OneOf<Account, UserCancelledAuthByQr, SessionServiceError, AuthorizationServiceError> authorizationResult)
+    SteamSession session, OneOf<Success, UserCancelledAuthByQr, AuthenticationServiceError> authenticationResult)
 {
-    if (authorizationResult.IsT1)
+    if (authenticationResult.IsT1)
     {
         Console.WriteLine("You have probably cancelled auth by QR in steam app. Try again.");
         return;
     }
 
-    var loweredResult = authorizationResult.Match(
-        OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT0,
-        _ => OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT2(
-            new AuthorizationServiceError
-            {
-                Message = $"Impossible case. {nameof(TryExtractAccountFromQrAuth)}()"
-            }),
-        OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT1,
-        OneOf<Account, SessionServiceError, AuthorizationServiceError>.FromT2);
-    
-    TryExtractAccount(loweredResult);
+    var impossible = OneOf<Success, AuthenticationServiceError>.FromT1(new AuthenticationServiceError
+        {
+            Message = $"Impossible case. {nameof(TryExtractAccountFromQrAuth)}()"
+        });
+    var loweredResult = authenticationResult.Match(
+        OneOf<Success, AuthenticationServiceError>.FromT0,
+        _ => impossible,
+        OneOf<Success, AuthenticationServiceError>.FromT1);
+
+    TryExtractAccount(session, loweredResult);
+}
+
+async Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(Account account)
+{
+    if (sessions.TryGetValue(account, out var session))
+    {
+        return session;
+    }
+
+    return await CreateSessionAsync(account.Username, account);
+}
+
+async Task<OneOf<SteamSession, SessionServiceError>> CreateSessionAsync(string name, Account? account = null)
+{
+    var createSessionResult = await sessionService.CreateSessionAsync(name, account);
+    if (createSessionResult.TryPickT0(out var session, out _) && account is not null)
+    {
+        sessions.Add(session.Account!, session);
+    }
+
+    return createSessionResult;
 }
 
 async Task SyncAccounts()
 {
-    var accounts = settings.Accounts.ToList();
+    // TODO: remove .Take(1) (for debug purposes)
+    var accounts = settings.Accounts.Take(1).ToList();
     if (accounts.Count == 0)
         return;
 
-    var tasks = accounts.Select(authorizationService.AuthorizeAccountAsync);
+    var createSessionTasks = accounts.Select(GetOrCreateSessionAsync);
+    var createSessionResults = await Task.WhenAll(createSessionTasks);
+    var errorResults = createSessionResults.Where(x => x.IsT1).ToList();
 
-    var results = await Task.WhenAll(tasks);
-    foreach (var (i, result) in results.Index())
+    foreach (var errorResult in errorResults)
     {
-        var account = accounts[i];
+        var error = errorResult.AsT1;
 
-        if (result.TryPickT2(out _, out _))
+        Console.WriteLine($"Error while creating session '{error.ClientName}'.");
+        Console.WriteLine(error.Message);
+        if (error.Exception is not null)
+        {
+            Console.WriteLine(error.Exception.ToString());
+        }
+    }
+
+    if (errorResults.Count > 0)
+        return;
+
+    var sessions = createSessionResults.Select(x => x.AsT0).ToList();
+    var authenticateSessionTasks = sessions.Select(authenticationService.AuthenticateSessionAsync);
+    var authenticateSessionResults = await Task.WhenAll(authenticateSessionTasks);
+
+    foreach (var (i, result) in authenticateSessionResults.Index())
+    {
+        var session = sessions[i];
+        var account = session.Account!;
+
+        if (result.TryPickT1(out _, out _))
         {
             settingsProvider.RemoveAccount(account, settings);
             logger.Warning("Session for '{Username}' is expired. You need to log in into account again.", account.Username);
         }
-        else if (result.TryPickT3(out var sessionServiceError, out _))
-        {
-            Console.WriteLine($"An error occured while logging in into account '{account.Username}'.");
-            Console.WriteLine(sessionServiceError.Message);
-            if (sessionServiceError.Exception is not null)
-            {
-                Console.WriteLine(sessionServiceError.Exception.ToString());
-            }
-        }
-        else if (result.TryPickT4(out var authServiceError, out _))
+        else if (result.TryPickT2(out var authServiceError, out _))
         {
             Console.WriteLine($"An error occured while logging in into account '{account.Username}'.");
             Console.WriteLine(authServiceError.Message);
@@ -203,19 +255,19 @@ async Task SyncAccounts()
                 Console.WriteLine(authServiceError.Exception.ToString());
             }
         }
-
-        // TODO: improve
     }
 
-    // TODO: properly handle state when error happend; execution shouldnt go further
-    // if there're some internet troubles/ServiceUnavailable retcode it should
-    // try fetch info a few times again
     settingsProvider.Sync(settings);
 }
 
 async Task PrintInfo()
 {
-    var accounts = settings.Accounts;
+    // TODO: remove .Take(1) (for debug purposes)
+    var accounts = sessions
+        .Values
+        .Where(x => x.IsAuthenticated)
+        .Select(x => x.Account!)
+        .Take(1);
     var tasks = accounts.Select(activityService.GetActivityInfoAsync);
 
     var results = await Task.WhenAll(tasks);
@@ -242,6 +294,10 @@ async Task PrintInfo()
         {
             Console.WriteLine("An error occured while retrieving activity info.");
             Console.WriteLine(error.Message);
+            if (error.Exception is not null)
+            {
+                Console.WriteLine(error.Exception.ToString());
+            }
         }
 
         if (i != results.Length - 1)

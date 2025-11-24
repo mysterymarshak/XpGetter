@@ -2,8 +2,30 @@ using SteamKit2;
 
 namespace XpGetter.Dto;
 
-public record SteamSession(SteamClient Client, CallbackManager CallbackManager, SteamUser User)
+public class SteamSession
 {
+    public bool IsAuthenticated => Client.SessionID is not null;
+
+    public string Name { get; }
+    public SteamClient Client { get; }
+    public CallbackManager CallbackManager { get; }
+    public SteamUser User { get; }
+    public Account? Account { get; private set; }
+
+    public SteamSession(string name, SteamClient client, CallbackManager callbackManager, SteamUser user, Account? account = null)
+    {
+        Name = name;
+        Client = client;
+        CallbackManager = callbackManager;
+        User = user;
+        Account = account;
+    }
+
+    public void BindAccount(Account account)
+    {
+        Account = account;
+    }
+
     public void Dispose()
     {
         Client.Disconnect();

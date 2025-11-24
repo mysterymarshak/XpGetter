@@ -3,53 +3,59 @@ using OneOf.Types;
 using Serilog;
 using SteamKit2;
 using SteamKit2.Authentication;
+using SteamKit2.GC;
+using SteamKit2.GC.CSGO.Internal;
+using SteamKit2.Internal;
 using XpGetter.Dto;
 using XpGetter.Results;
 using XpGetter.Utils;
 
 namespace XpGetter.Steam;
 
-public interface IAuthorizationService
+public interface IAuthenticationService
 {
-    Task<OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>>
-        AuthorizeAccountAsync(Account account);
+    Task<OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>> AuthenticateSessionAsync(SteamSession session);
 
-    Task<OneOf<Account, SessionServiceError, AuthorizationServiceError>> AuthorizeByUsernameAndPasswordAsync(
-        string username, string password);
+    Task<OneOf<Success, AuthenticationServiceError>> AuthenticateByUsernameAndPasswordAsync(
+        SteamSession session, string username, string password);
 
-    Task<OneOf<Account, UserCancelledAuthByQr, SessionServiceError, AuthorizationServiceError>>
-        AuthorizeByQrCodeAsync();
+    Task<OneOf<Success, UserCancelledAuthByQr, AuthenticationServiceError>>
+        AuthenticateByQrCodeAsync(SteamSession session);
 }
 
-public class AuthorizationServiceError
+public class AuthenticationServiceError
 {
     public required string Message { get; init; }
     public Exception? Exception { get; init; }
 }
 
-public class AuthorizationService : IAuthorizationService
+public class AuthenticationService : IAuthenticationService
 {
     private readonly ISessionService _sessionService;
     private readonly ILogger _logger;
 
-    public AuthorizationService(ISessionService sessionService, ILogger logger)
+    public AuthenticationService(ISessionService sessionService, ILogger logger)
     {
         _sessionService = sessionService;
         _logger = logger;
     }
 
-    public async Task<OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>>
-        AuthorizeAccountAsync(Account account)
+    public async Task<OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>> AuthenticateSessionAsync(SteamSession session)
     {
-        var createSessionResult = await _sessionService.CreateSessionAsync(account.Username);
-        if (createSessionResult.TryPickT1(out var sessionError, out var session))
+        var account = session.Account;
+        if (account is null)
         {
-            return sessionError;
+            return new AuthenticationServiceError { Message = "No account is provided." };
+        }
+
+        if (session.IsAuthenticated)
+        {
+            return new Success();
         }
 
         var tokenExpired = false;
-        var updated = false;
-        AuthorizationServiceError? authError = null;
+        AuthenticationServiceError? authError = null;
+
         using var cts = new CancellationTokenSource();
         var ct = cts.Token;
         using var logOnCallback = session.CallbackManager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
@@ -62,11 +68,9 @@ public class AuthorizationService : IAuthorizationService
             var ensureRefreshTokenResult = EnsureRefreshToken(account);
             if (!ensureRefreshTokenResult.TryPickT0(out _, out var remainder))
             {
-                session.Dispose();
                 return remainder.Match(
-                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>.FromT2,
-                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>
-                        .FromT4);
+                    OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>.FromT1,
+                    OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>.FromT2);
             }
 
             session.User.LogOn(new SteamUser.LogOnDetails
@@ -86,32 +90,32 @@ public class AuthorizationService : IAuthorizationService
                 }
             }
 
+            // var request = new CUserAccount_GetClientWalletDetails_Request();
+            // var steamUnifiedMessages = session.Client.GetHandler<SteamUnifiedMessages>()!;
+            // var steamGameCoordinator = session.Client.GetHandler<SteamGameCoordinator>()!;
+            // var userAccountService = steamUnifiedMessages.CreateService<UserAccount>();
+            // var response = await userAccountService.GetClientWalletDetails(request);
+
             var ensureAccessTokenResult = await EnsureAccessTokenAsync(account, session);
-            if (ensureAccessTokenResult is { IsT0: false, IsT1: false })
+            if (!ensureAccessTokenResult.IsT0)
             {
-                var impossible =
-                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>.FromT4(
-                        new AuthorizationServiceError { Message = "Impossible case" });
-                
+                var impossible = OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>.FromT2(
+                    new AuthenticationServiceError { Message = "Impossible case" });
+
                 return ensureAccessTokenResult.Match(
                     _ => impossible,
-                    _ => impossible,
-                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>.FromT2,
-                    OneOf<Success, Updated, RefreshTokenExpired, SessionServiceError, AuthorizationServiceError>.FromT4
+                    OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>.FromT1,
+                    OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>.FromT2
                 );
             }
         }
         catch (Exception exception)
         {
-            return new AuthorizationServiceError
+            return new AuthenticationServiceError
             {
-                Message = "An error occured while trying to authorize into account via token.",
+                Message = "An error occured while trying to authenticate via token.",
                 Exception = exception
             };
-        }
-        finally
-        {
-            session.Dispose();
         }
 
         void OnLoggedOn(SteamUser.LoggedOnCallback callback)
@@ -125,7 +129,7 @@ public class AuthorizationService : IAuthorizationService
                     return;
                 }
 
-                authError = new AuthorizationServiceError
+                authError = new AuthenticationServiceError
                 {
                     Message = $"Client '{account.Username}': Unable to logon to Steam: {callback.Result} / {callback.ExtendedResult}"
                 };
@@ -142,7 +146,6 @@ public class AuthorizationService : IAuthorizationService
             if (account.PersonalName != callback.PersonaName)
             {
                 account.PersonalName = callback.PersonaName;
-                updated = true;
             }
 
             cts.Cancel();
@@ -158,25 +161,15 @@ public class AuthorizationService : IAuthorizationService
             return new RefreshTokenExpired();
         }
 
-        if (updated)
-        {
-            return new Updated();
-        }
-
         return new Success();
     }
 
-    public async Task<OneOf<Account, SessionServiceError, AuthorizationServiceError>>
-        AuthorizeByUsernameAndPasswordAsync(string username, string password)
+    public async Task<OneOf<Success, AuthenticationServiceError>> AuthenticateByUsernameAndPasswordAsync(
+        SteamSession session, string username, string password)
     {
-        var createSessionResult = await _sessionService.CreateSessionAsync(username);
-        if (createSessionResult.TryPickT1(out var sessionError, out var session))
-        {
-            return sessionError;
-        }
-
         Account? account = null;
-        AuthorizationServiceError? authError = null;
+        AuthenticationServiceError? authError = null;
+
         using var cts = new CancellationTokenSource();
         var ct = cts.Token;
         using var logOnCallback = session.CallbackManager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
@@ -184,7 +177,7 @@ public class AuthorizationService : IAuthorizationService
 
         try
         {
-            _logger.Information("Client '{Username}': Logging in...", username);
+            _logger.Information("Client '{Username}': Logging in via password...", username);
 
             const bool shouldRememberPassword = true;
             var authSession = await session.Client.Authentication.BeginAuthSessionViaCredentialsAsync(
@@ -228,22 +221,18 @@ public class AuthorizationService : IAuthorizationService
         }
         catch (Exception exception)
         {
-            return new AuthorizationServiceError
+            return new AuthenticationServiceError
             {
                 Message = "Unexpected error in auth via username/password code.",
                 Exception = exception
             };
-        }
-        finally
-        {
-            session.Dispose();
         }
 
         void OnLoggedOn(SteamUser.LoggedOnCallback callback)
         {
             if (callback.Result != EResult.OK)
             {
-                authError = new AuthorizationServiceError
+                authError = new AuthenticationServiceError
                 {
                     Message = $"Client '{account!.Username}': Unable to logon to Steam: {callback.Result} / {callback.ExtendedResult}"
                 };
@@ -270,22 +259,18 @@ public class AuthorizationService : IAuthorizationService
 
         if (account is null)
         {
-            return new AuthorizationServiceError { Message = "For some reason no account is retrieved." };
+            return new AuthenticationServiceError { Message = $"Impossible case. {nameof(AuthenticateByUsernameAndPasswordAsync)}()" };
         }
 
-        return account;
+        session.BindAccount(account);
+        return new Success();
     }
 
-    public async Task<OneOf<Account, UserCancelledAuthByQr, SessionServiceError, AuthorizationServiceError>> AuthorizeByQrCodeAsync()
+    public async Task<OneOf<Success, UserCancelledAuthByQr, AuthenticationServiceError>> AuthenticateByQrCodeAsync(SteamSession session)
     {
-        var createSessionResult = await _sessionService.CreateSessionAsync("<unnamed>");
-        if (createSessionResult.TryPickT1(out var sessionError, out var session))
-        {
-            return sessionError;
-        }
-
-        AuthorizationServiceError? authError = null;
         Account? account = null;
+        AuthenticationServiceError? authError = null;
+
         using var cts = new CancellationTokenSource();
         var ct = cts.Token;
         using var logOnCallback = session.CallbackManager.Subscribe<SteamUser.LoggedOnCallback>(OnLoggedOn);
@@ -293,7 +278,9 @@ public class AuthorizationService : IAuthorizationService
 
         try
         {
-            var authSession = await session.Client.Authentication.BeginAuthSessionViaQRAsync(new AuthSessionDetails());
+            const bool shouldRememberPassword = true;
+            var authSession = await session.Client.Authentication.BeginAuthSessionViaQRAsync(
+                new AuthSessionDetails { IsPersistentSession = shouldRememberPassword });
             authSession.ChallengeURLChanged = () =>
             {
                 // TODO: better refresh
@@ -317,7 +304,8 @@ public class AuthorizationService : IAuthorizationService
             session.User.LogOn(new SteamUser.LogOnDetails
             {
                 Username = pollResponse.AccountName,
-                AccessToken = pollResponse.RefreshToken
+                AccessToken = pollResponse.RefreshToken,
+                ShouldRememberPassword = shouldRememberPassword
             });
 
             while (!ct.IsCancellationRequested)
@@ -340,22 +328,18 @@ public class AuthorizationService : IAuthorizationService
         }
         catch (Exception exception)
         {
-            return new AuthorizationServiceError
+            return new AuthenticationServiceError
             {
                 Message = "Unexpected error in auth via qr code.",
                 Exception = exception
             };
-        }
-        finally
-        {
-            session.Dispose();
         }
 
         void OnLoggedOn(SteamUser.LoggedOnCallback callback)
         {
             if (callback.Result != EResult.OK)
             {
-                authError = new AuthorizationServiceError
+                authError = new AuthenticationServiceError
                 {
                     Message =
                         $"Client '{account!.Username}': Unable to logon to Steam{(callback.Result == EResult.TryAnotherCM ? " (possible timeout)" : string.Empty)}: {callback.Result} / {callback.ExtendedResult}"
@@ -390,20 +374,21 @@ public class AuthorizationService : IAuthorizationService
 
         if (account is null)
         {
-            return new AuthorizationServiceError { Message = "For some reason no account is retrieved." };
+            return new AuthenticationServiceError { Message = $"Impossible case. nameof({AuthenticateByQrCodeAsync})()" };
         }
 
-        return account;
+        session.BindAccount(account);
+        return new Success();
     }
 
-    private OneOf<Success, RefreshTokenExpired, AuthorizationServiceError> EnsureRefreshToken(Account account)
+    private OneOf<Success, RefreshTokenExpired, AuthenticationServiceError> EnsureRefreshToken(Account account)
     {
         var refreshToken = account.RefreshToken;
         var getRefreshTokenExpirationDateResult = JwtToken.GetExpirationDate(refreshToken);
 
         if (getRefreshTokenExpirationDateResult.TryPickT1(out var error, out var refreshTokenExpirationDate))
         {
-            return new AuthorizationServiceError { Message = error.Value };
+            return new AuthenticationServiceError { Message = error.Value };
         }
 
         _logger.Debug("Client '{UserName}': Refresh token expiration date: {ExpirationDate}",
@@ -418,7 +403,7 @@ public class AuthorizationService : IAuthorizationService
         return new Success();
     }
 
-    private async Task<OneOf<Success, Updated, RefreshTokenExpired, AuthorizationServiceError>> EnsureAccessTokenAsync(
+    private async Task<OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>> EnsureAccessTokenAsync(
         Account account, SteamSession session)
     {
         var accessToken = account.AccessToken;
@@ -426,7 +411,7 @@ public class AuthorizationService : IAuthorizationService
 
         if (getAccessTokenExpirationDateResult.TryPickT1(out var error, out var accessTokenExpirationDate))
         {
-            return new AuthorizationServiceError { Message = error.Value };
+            return new AuthenticationServiceError { Message = error.Value };
         }
 
         _logger.Debug("Client '{UserName}': Access token expiration date: {ExpirationDate}",
@@ -440,18 +425,17 @@ public class AuthorizationService : IAuthorizationService
             if (!renewAccessTokenResult.TryPickT0(out _, out var remainder))
             {
                 return remainder.Match(
-                    OneOf<Success, Updated, RefreshTokenExpired, AuthorizationServiceError>.FromT2,
-                    OneOf<Success, Updated, RefreshTokenExpired, AuthorizationServiceError>.FromT3);
+                    OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>.FromT1,
+                    OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>.FromT2);
             }
 
             _logger.Debug("Client '{UserName}': Access token has successfully renewed", account.Username);
-            return new Updated();
         }
 
         return new Success();
     }
 
-    private async Task<OneOf<Updated, RefreshTokenExpired, AuthorizationServiceError>> RenewAccessTokenAsync(Account account, SteamSession session)
+    private async Task<OneOf<Updated, RefreshTokenExpired, AuthenticationServiceError>> RenewAccessTokenAsync(Account account, SteamSession session)
     {
         try
         {
@@ -474,7 +458,7 @@ public class AuthorizationService : IAuthorizationService
         }
         catch (Exception exception)
         {
-            return new AuthorizationServiceError { Message = "An error occured while renewing access token.", Exception = exception };
+            return new AuthenticationServiceError { Message = "An error occured while renewing access token.", Exception = exception };
         }
 
         return new Updated();
