@@ -1,13 +1,14 @@
 using Fizzler.Systems.HtmlAgilityPack;
 using HtmlAgilityPack;
-using Newtonsoft.Json;
 using OneOf;
 using Serilog;
 using XpGetter.Dto;
-using XpGetter.Responses;
 using XpGetter.Results;
+using XpGetter.Settings.Entities;
+using XpGetter.Steam.Http.Clients;
+using XpGetter.Steam.Http.Responses;
 
-namespace XpGetter.Steam;
+namespace XpGetter.Steam.Services;
 
 public interface IActivityService
 {
@@ -23,12 +24,12 @@ public class ActivityServiceError
 // TODO: parsing logic is too heavy; needa extract
 public class ActivityService : IActivityService
 {
-    private const string BaseAddress = "https://steamcommunity.com/";
-    
+    private readonly ISteamHttpClient _steamHttpClient;
     private readonly ILogger _logger;
 
-    public ActivityService(ILogger logger)
+    public ActivityService(ISteamHttpClient steamHttpClient, ILogger logger)
     {
+        _steamHttpClient = steamHttpClient;
         _logger = logger;
     }
     
@@ -36,7 +37,7 @@ public class ActivityService : IActivityService
     {
         var tasks = new List<Task>
         {
-            GetHtmlAsync($"/profiles/{account.Id}/gcpd/730?tab=accountmain", GetAuthCookie(account)),
+            _steamHttpClient.GetHtmlAsync($"/profiles/{account.Id}/gcpd/730?tab=accountmain", GetAuthCookie(account)),
             GetLastNewRankDropAsync(account)
         };
         await Task.WhenAll(tasks);
@@ -258,7 +259,7 @@ public class ActivityService : IActivityService
     {
         var queryString =
             $"l=english&ajax=1&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
-        var getJsonResult = await GetJsonAsync<InventoryHistoryResponse>(
+        var getJsonResult = await _steamHttpClient.GetJsonAsync<InventoryHistoryResponse>(
             $"/profiles/{account.Id}/inventoryhistory?{queryString}",
             GetAuthCookie(account));
         if (getJsonResult.TryPickT1(out var error, out var result))
@@ -335,76 +336,7 @@ public class ActivityService : IActivityService
         
         return new DropItem(classId, name, imgUrl, color);
     }
-
-    private async Task<OneOf<(T Deserialized, string Raw), ActivityServiceError>> GetJsonAsync<T>(string requestUri,
-        string cookies)
-    {
-        try
-        {
-            var getResult = await GetAsync(requestUri, cookies);
-            if (getResult.TryPickT1(out var error, out var contentAsString))
-            {
-                return error;
-            }
-            
-            var deserialized = JsonConvert.DeserializeObject<T>(contentAsString);
-            if (deserialized is null)
-            {
-                return new ActivityServiceError { Message = $"Cannot deserialize json. Raw: {contentAsString}" };
-            }
-
-            return (deserialized, contentAsString);
-        }
-        catch (Exception exception)
-        {
-            return new ActivityServiceError { Message = $"An error occured in {nameof(GetJsonAsync)}()", Exception = exception };
-        }
-    }
-
-    private async Task<OneOf<HtmlDocument, ActivityServiceError>> GetHtmlAsync(string requestUri, string cookies)
-    {
-        try
-        {
-            var getResult = await GetAsync(requestUri, cookies);
-            if (getResult.TryPickT1(out var error, out var contentAsString))
-            {
-                return error;
-            }
-            
-            var document = new HtmlDocument();
-            document.LoadHtml(contentAsString);
-
-            return document;
-        }
-        catch (Exception exception)
-        {
-            return new ActivityServiceError { Message = $"An error occured in {nameof(GetHtmlAsync)}()", Exception = exception };
-        }
-    }
-
-    private async Task<OneOf<string, ActivityServiceError>> GetAsync(string requestUri, string cookies)
-    {
-        try
-        {
-            var baseAddress = new Uri(BaseAddress);
-            using var handler = new HttpClientHandler { UseCookies = true };
-            using var client = new HttpClient(handler) { BaseAddress = baseAddress };
-
-            var message = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            message.Headers.Add("Cookie",
-                $"{cookies}; timezoneOffset={TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalSeconds},0");
-
-            var result = await client.SendAsync(message);
-            result.EnsureSuccessStatusCode();
-
-            return await result.Content.ReadAsStringAsync();
-        }
-        catch (Exception exception)
-        {
-            return new ActivityServiceError { Message = $"An error occured in {nameof(GetAsync)}()", Exception = exception };
-        }
-    }
-
+    
     private OneOf<ActivityInfo, ActivityServiceError> ParseActivityInfoFromHtml(
         Account account, HtmlDocument document, NewRankDrop? lastNewRankDrop, bool? isDropAvailableForce = null,
         DateTimeOffset? dropWasNotObtainedSince = null, string? additionalMessage = null)

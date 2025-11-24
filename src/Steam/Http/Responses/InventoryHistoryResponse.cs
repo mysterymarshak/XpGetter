@@ -1,7 +1,6 @@
-using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
-namespace XpGetter.Responses;
+namespace XpGetter.Steam.Http.Responses;
 
 public class InventoryHistoryResponse
 {

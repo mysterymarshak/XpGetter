@@ -1,4 +1,4 @@
-using XpGetter.Responses;
+using XpGetter.Steam.Http.Responses;
 
 namespace XpGetter.Results;
 

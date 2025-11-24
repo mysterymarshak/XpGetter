@@ -1,8 +1,9 @@
+using System.Reflection;
 using Newtonsoft.Json;
 using Serilog;
-using System.Reflection;
+using XpGetter.Settings.Entities;
 
-namespace XpGetter;
+namespace XpGetter.Settings;
 
 public class SettingsProvider
 {

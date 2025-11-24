@@ -1,9 +1,10 @@
-using SteamKit2;
 using OneOf;
 using Serilog;
+using SteamKit2;
 using XpGetter.Dto;
+using XpGetter.Settings.Entities;
 
-namespace XpGetter.Steam;
+namespace XpGetter.Steam.Services;
 
 public interface ISessionService
 {

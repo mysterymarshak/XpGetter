@@ -1,4 +1,5 @@
 using System.Text;
+using XpGetter.Settings.Entities;
 
 namespace XpGetter.Dto;
 

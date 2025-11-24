@@ -1,4 +1,5 @@
 using SteamKit2;
+using XpGetter.Settings.Entities;
 
 namespace XpGetter.Dto;
 

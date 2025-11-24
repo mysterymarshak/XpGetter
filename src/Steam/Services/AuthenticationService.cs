@@ -3,14 +3,12 @@ using OneOf.Types;
 using Serilog;
 using SteamKit2;
 using SteamKit2.Authentication;
-using SteamKit2.GC;
-using SteamKit2.GC.CSGO.Internal;
-using SteamKit2.Internal;
 using XpGetter.Dto;
 using XpGetter.Results;
+using XpGetter.Settings.Entities;
 using XpGetter.Utils;
 
-namespace XpGetter.Steam;
+namespace XpGetter.Steam.Services;
 
 public interface IAuthenticationService
 {

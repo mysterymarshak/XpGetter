@@ -9,6 +9,9 @@ using XpGetter.Results;
 using XpGetter.Steam;
 using XpGetter.Utils;
 using XpGetter.Dto;
+using XpGetter.Settings;
+using XpGetter.Settings.Entities;
+using XpGetter.Steam.Services;
 
 var containerBuilder = new ContainerBuilder();
 containerBuilder.RegisterModule<MainModule>();

@@ -1,5 +1,7 @@
 using Newtonsoft.Json;
 
+namespace XpGetter.Settings.Entities;
+
 public class SettingsRoot
 {
     [JsonProperty("version")]
