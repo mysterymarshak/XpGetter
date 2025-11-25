@@ -1,34 +1,41 @@
 using SteamKit2;
-using XpGetter.Settings.Entities;
 
 namespace XpGetter.Dto;
 
 public class SteamSession
 {
+    public event Action<SteamSession>? AccountBind;
+
     public bool IsAuthenticated => Client.SessionID is not null;
 
-    public string Name { get; }
+    public string Name { get; private set; }
     public SteamClient Client { get; }
     public CallbackManager CallbackManager { get; }
     public SteamUser User { get; }
-    public Account? Account { get; private set; }
+    public AccountDto? Account { get; private set; }
 
-    public SteamSession(string name, SteamClient client, CallbackManager callbackManager, SteamUser user, Account? account = null)
+    public SteamSession(string name, SteamClient client, CallbackManager callbackManager, SteamUser user)
     {
         Name = name;
         Client = client;
         CallbackManager = callbackManager;
         User = user;
-        Account = account;
     }
 
-    public void BindAccount(Account account)
+    public void BindAccount(AccountDto account)
     {
         Account = account;
+        AccountBind?.Invoke(this);
+    }
+
+    public void BindName(string name)
+    {
+        Name = name;
     }
 
     public void Dispose()
     {
+        AccountBind = null;
         Client.Disconnect();
     }
 }

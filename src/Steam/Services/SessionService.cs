@@ -2,24 +2,19 @@ using OneOf;
 using Serilog;
 using SteamKit2;
 using XpGetter.Dto;
-using XpGetter.Settings.Entities;
+using XpGetter.Errors;
 
 namespace XpGetter.Steam.Services;
 
 public interface ISessionService
 {
-    Task<OneOf<SteamSession, SessionServiceError>> CreateSessionAsync(string clientName, Account? account = null);
-}
-
-public class SessionServiceError
-{
-    public required string ClientName { get; init; }
-    public required string Message { get; init; }
-    public Exception? Exception { get; init; }
+    Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(
+        string clientName, AccountDto? account = null);
 }
 
 public class SessionService : ISessionService
 {
+    private readonly Dictionary<ulong, SteamSession> _sessions = new();
     private readonly ILogger _logger;
 
     public SessionService(ILogger logger)
@@ -27,8 +22,14 @@ public class SessionService : ISessionService
         _logger = logger;
     }
 
-    public async Task<OneOf<SteamSession, SessionServiceError>> CreateSessionAsync(string clientName, Account? account = null)
+    public async Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(
+        string clientName, AccountDto? account = null)
     {
+        if (account is not null && _sessions.TryGetValue(account.Id, out var session))
+        {
+            return session;
+        }
+
         var steamClient = new SteamClient();
         var manager = new CallbackManager(steamClient);
         var steamUser = steamClient.GetHandler<SteamUser>()!;
@@ -89,7 +90,9 @@ public class SessionService : ISessionService
 
         // "End" of the label
 
-        return new SteamSession(clientName, steamClient, manager, steamUser, account);
+        session = new SteamSession(clientName, steamClient, manager, steamUser);
+        session.AccountBind += OnAccountBounded;
+        return session;
 
         void OnConnected(SteamClient.ConnectedCallback callback)
         {
@@ -102,5 +105,16 @@ public class SessionService : ISessionService
             isDisconnected = true;
             _logger.Debug("Client '{ClientName}': Disconnected from Steam.", clientName);
         }
+    }
+
+    private void OnAccountBounded(SteamSession session)
+    {
+        if (!session.IsAuthenticated || session is { Client.SteamID: null })
+        {
+            throw new InvalidOperationException(
+                $"Attempt to bind unauthenticated account. Client '{session.Name}': {session.Account?.Id} | {session.Account?.Username}");
+        }
+
+        _sessions.Add(session.Client.SteamID, session);
     }
 }

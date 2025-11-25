@@ -1,10 +1,7 @@
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using OneOf;
-using Polly;
-using Polly.Extensions.Http;
-using Polly.Retry;
-using XpGetter.Steam.Services;
+using XpGetter.Errors;
 
 namespace XpGetter.Steam.Http.Clients;
 
@@ -12,7 +9,6 @@ public interface ISteamHttpClient
 {
     Task<OneOf<string, ActivityServiceError>> GetAsync(string requestUri, string cookies);
     Task<OneOf<HtmlDocument, ActivityServiceError>> GetHtmlAsync(string requestUri, string cookies);
-
     Task<OneOf<(T Deserialized, string Raw), ActivityServiceError>> GetJsonAsync<T>(
         string requestUri, string cookies);
 }
@@ -20,7 +16,7 @@ public interface ISteamHttpClient
 public class SteamHttpClient : ISteamHttpClient
 {
     private const string BaseAddress = "https://steamcommunity.com/";
-    
+
     private readonly HttpClient _client;
 
     public SteamHttpClient(HttpClient httpClient)
@@ -28,7 +24,7 @@ public class SteamHttpClient : ISteamHttpClient
         _client = httpClient;
         _client.BaseAddress = new Uri(BaseAddress);
     }
-    
+
     public async Task<OneOf<string, ActivityServiceError>> GetAsync(string requestUri, string cookies)
     {
         try
@@ -39,7 +35,7 @@ public class SteamHttpClient : ISteamHttpClient
 
             var result = await _client.SendAsync(message);
             result.EnsureSuccessStatusCode();
-            
+
             return await result.Content.ReadAsStringAsync();
         }
         catch (Exception exception)
@@ -47,7 +43,7 @@ public class SteamHttpClient : ISteamHttpClient
             return new ActivityServiceError { Message = $"An error occured in {nameof(GetAsync)}()", Exception = exception };
         }
     }
-    
+
     public async Task<OneOf<(T Deserialized, string Raw), ActivityServiceError>> GetJsonAsync<T>(
         string requestUri, string cookies)
     {
@@ -58,7 +54,7 @@ public class SteamHttpClient : ISteamHttpClient
             {
                 return error;
             }
-            
+
             var deserialized = JsonConvert.DeserializeObject<T>(contentAsString);
             if (deserialized is null)
             {
@@ -72,7 +68,7 @@ public class SteamHttpClient : ISteamHttpClient
             return new ActivityServiceError { Message = $"An error occured in {nameof(GetJsonAsync)}()", Exception = exception };
         }
     }
-    
+
     public async Task<OneOf<HtmlDocument, ActivityServiceError>> GetHtmlAsync(string requestUri, string cookies)
     {
         try
@@ -82,7 +78,7 @@ public class SteamHttpClient : ISteamHttpClient
             {
                 return error;
             }
-            
+
             var document = new HtmlDocument();
             document.LoadHtml(contentAsString);
 
