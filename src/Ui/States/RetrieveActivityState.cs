@@ -25,7 +25,7 @@ public class RetrieveActivityState : BaseState
         var tasks = _sessions.Select(_activityService.GetActivityInfoAsync);
         var results = await Task.WhenAll(tasks);
 
-        foreach (var (i, result) in results.Index())
+        foreach (var result in results)
         {
             if (result.TryPickT1(out var error, out _))
             {
@@ -60,7 +60,7 @@ public class RetrieveActivityState : BaseState
             var dropAvailableColor = isDropAvailable is null ? "white" : (isDropAvailable.Value ? "green" : "red");
             AnsiConsole.MarkupLine($"[blue]{info.Account.PersonalName}[/]");
             AnsiConsole.MarkupLine($"Rank: {xpData.Rank}");
-            AnsiConsole.MarkupLine($"Last drop time: {info.LastNewRankDrop?.GetLastDropTime()}");
+            AnsiConsole.MarkupLine($"Last drop time: {info.LastNewRankDrop.GetLastDropTime()}");
             AnsiConsole.MarkupLine($"Last loot: {newRankDrop.GetPreviousLoot()}");
             AnsiConsole.MarkupLine($"Drop is available: [{dropAvailableColor}]{isDropAvailableFormatted}[/]");
             if (info.AdditionalMessage is not null)

@@ -12,19 +12,14 @@ public class ManageAccountState : BaseState
 {
     private readonly AppConfigurationDto _configuration;
     private readonly IConfigurationService _configurationService;
-    private readonly ISessionService _sessionService;
-    private readonly IAuthenticationService _authenticationService;
     private readonly ILogger _logger;
     private readonly string _username;
 
     public ManageAccountState(AppConfigurationDto configuration, string username,
-        IConfigurationService configurationService, ISessionService sessionService,
-        IAuthenticationService authenticationService, StateContext context, ILogger logger) : base(context)
+        IConfigurationService configurationService, StateContext context, ILogger logger) : base(context)
     {
         _configuration = configuration;
         _configurationService = configurationService;
-        _sessionService = sessionService;
-        _authenticationService = authenticationService;
         _logger = logger;
         _username = username;
     }

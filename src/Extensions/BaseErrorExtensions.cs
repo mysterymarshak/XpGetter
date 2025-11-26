@@ -5,23 +5,26 @@ namespace XpGetter.Extensions;
 
 public static class BaseErrorExtensions
 {
-    public static void DumpToConsole(this BaseError error, string format)
+    extension(BaseError error)
     {
-        AnsiConsole.MarkupLine(format);
-        AnsiConsole.MarkupLine(error.Message);
-        if (error.Exception is not null)
+        public void DumpToConsole(string format)
         {
-            AnsiConsole.WriteException(error.Exception);
+            AnsiConsole.MarkupLine(format);
+            AnsiConsole.MarkupLine(error.Message);
+            if (error.Exception is not null)
+            {
+                AnsiConsole.WriteException(error.Exception);
+            }
         }
-    }
 
-    public static void DumpToConsole(this BaseError error, string format, params object[] args)
-    {
-        AnsiConsole.MarkupLine(format, args);
-        AnsiConsole.MarkupLine(error.Message);
-        if (error.Exception is not null)
+        public void DumpToConsole(string format, params object[] args)
         {
-            AnsiConsole.WriteException(error.Exception);
+            AnsiConsole.MarkupLine(format, args);
+            AnsiConsole.MarkupLine(error.Message);
+            if (error.Exception is not null)
+            {
+                AnsiConsole.WriteException(error.Exception);
+            }
         }
     }
 }
