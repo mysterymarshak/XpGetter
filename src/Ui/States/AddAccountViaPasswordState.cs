@@ -27,7 +27,7 @@ public class AddAccountViaPasswordState : BaseState
         AnsiConsole.MarkupLine(Messages.AddAccount.AddingAccountViaPassword);
 
         var username = await AnsiConsole.PromptAsync(new TextPrompt<string>("Type the username:"));
-        var password = await AnsiConsole.PromptAsync(new TextPrompt<string>("Type the password:").Secret('\0'));
+        var password = await AnsiConsole.PromptAsync(new TextPrompt<string>("Type the password:").Secret(null));
 
         var createSessionResult = await _sessionService.GetOrCreateSessionAsync(username);
         if (createSessionResult.TryPickT1(out var sessionError, out var session))
@@ -38,7 +38,7 @@ public class AddAccountViaPasswordState : BaseState
 
         var authenticationResult =
             await _authenticationService.AuthenticateByUsernameAndPasswordAsync(session, username, password);
-        if (authenticationResult.TryPickT2(out var authError, out _))
+        if (authenticationResult.TryPickT3(out var authError, out _))
         {
             authError.DumpToConsole(Messages.Authentication.AuthenticationError, session.Name);
             return await GoTo<AddAccountState>();
@@ -47,6 +47,12 @@ public class AddAccountViaPasswordState : BaseState
         if (authenticationResult.IsT1)
         {
             AnsiConsole.MarkupLine(Messages.Authentication.InvalidPassword);
+            return await GoTo<AddAccountState>();
+        }
+
+        if (authenticationResult.IsT2)
+        {
+            AnsiConsole.MarkupLine(Messages.Authentication.Cancelled);
             return await GoTo<AddAccountState>();
         }
 

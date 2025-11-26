@@ -1,5 +1,6 @@
 using Spectre.Console;
 using XpGetter.Dto;
+using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 using XpGetter.Steam.Services;
 using XpGetter.Utils;
@@ -29,12 +30,7 @@ public class RetrieveActivityState : BaseState
         {
             if (result.TryPickT1(out var error, out _))
             {
-                AnsiConsole.MarkupLine(Messages.Activity.GetActivityError);
-                AnsiConsole.MarkupLine(error.Message);
-                if (error.Exception is not null)
-                {
-                    AnsiConsole.WriteException(error.Exception);
-                }
+                error.DumpToConsole(Messages.Activity.GetActivityError);
             }
         }
 

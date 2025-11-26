@@ -42,7 +42,7 @@ public class AddAccountViaQrState : BaseState
 
         if (authenticationResult.IsT1)
         {
-            AnsiConsole.MarkupLine(Messages.AddAccount.ProbablyCancelled);
+            AnsiConsole.MarkupLine(Messages.Authentication.Cancelled);
             return await GoTo<AddAccountState>();
         }
 

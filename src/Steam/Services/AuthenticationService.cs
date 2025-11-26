@@ -15,10 +15,10 @@ public interface IAuthenticationService
     Task<OneOf<Success, RefreshTokenExpired, AuthenticationServiceError>> AuthenticateSessionAsync(
         SteamSession session, AccountDto account);
 
-    Task<OneOf<Success, InvalidPassword, AuthenticationServiceError>> AuthenticateByUsernameAndPasswordAsync(
-        SteamSession session, string username, string password);
+    Task<OneOf<Success, InvalidPassword, UserCancelledAuth, AuthenticationServiceError>>
+        AuthenticateByUsernameAndPasswordAsync(SteamSession session, string username, string password);
 
-    Task<OneOf<Success, UserCancelledAuthByQr, AuthenticationServiceError>>
+    Task<OneOf<Success, UserCancelledAuth, AuthenticationServiceError>>
         AuthenticateByQrCodeAsync(SteamSession session);
 }
 
@@ -145,8 +145,8 @@ public class AuthenticationService : IAuthenticationService
         return new Success();
     }
 
-    public async Task<OneOf<Success, InvalidPassword, AuthenticationServiceError>> AuthenticateByUsernameAndPasswordAsync(
-        SteamSession session, string username, string password)
+    public async Task<OneOf<Success, InvalidPassword, UserCancelledAuth, AuthenticationServiceError>>
+        AuthenticateByUsernameAndPasswordAsync(SteamSession session, string username, string password)
     {
         AccountDto? account = null;
         AuthenticationServiceError? authError = null;
@@ -198,12 +198,16 @@ public class AuthenticationService : IAuthenticationService
                 }
             }
         }
+        catch (TaskCanceledException)
+        {
+        }
         catch (AuthenticationException authenticationException) when (authenticationException.Result == EResult.InvalidPassword)
         {
             return new InvalidPassword();
         }
-        catch (TaskCanceledException)
+        catch (AuthenticationException authenticationException) when (authenticationException.Result == EResult.FileNotFound)
         {
+            return new UserCancelledAuth();
         }
         catch (Exception exception)
         {
@@ -252,7 +256,7 @@ public class AuthenticationService : IAuthenticationService
         return new Success();
     }
 
-    public async Task<OneOf<Success, UserCancelledAuthByQr, AuthenticationServiceError>> AuthenticateByQrCodeAsync(
+    public async Task<OneOf<Success, UserCancelledAuth, AuthenticationServiceError>> AuthenticateByQrCodeAsync(
         SteamSession session)
     {
         AccountDto? account = null;
@@ -315,7 +319,7 @@ public class AuthenticationService : IAuthenticationService
         }
         catch (AuthenticationException authenticationException) when (authenticationException.Result == EResult.FileNotFound)
         {
-            return new UserCancelledAuthByQr();
+            return new UserCancelledAuth();
         }
         catch (Exception exception)
         {

@@ -24,6 +24,7 @@ public static class Messages
         public const string UnauthenticatedSessions = "There're unauthenticated, not expired sessions for some reason.";
         public const string SuccessfullyAuthenticated = "Successfully authenticated sessions: {@SessionNames}";
         public const string InvalidPassword = "Invalid password. Try again.";
+        public const string Cancelled = "[yellow]It looks like you cancelled the authentication in the Steam mobile app. Try again.[/]";
     }
 
     public static class Activity
@@ -42,7 +43,6 @@ public static class Messages
     public static class AddAccount
     {
         public const string AddingAccountViaQr = "Adding new account via QR...";
-        public const string ProbablyCancelled = "[yellow]You have probably cancelled auth by QR in steam app. Try again.[/]";
         public const string SuccessfullyAdded = "Account '{0}' was successfully added.";
         public const string AddingAccountViaPassword = "Adding new account via username/password...";
         public const string AccountAlreadyExists = "Account '{0}' already exists.";
