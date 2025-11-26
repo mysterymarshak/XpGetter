@@ -21,8 +21,14 @@ public class ManageAccountsState : BaseState
         const string exitChoice = "Exit";
 
         var choices = _configuration.Accounts
-            .Select(x => x.Username)
-            .Append(addNewChoice)
+            .Select(x => x.Username);
+
+        if (_configuration.Accounts.Count() < Constants.MaxAccounts)
+        {
+            choices = choices.Append(addNewChoice);
+        }
+
+        choices = choices
             .Append(backChoice)
             .Append(exitChoice)
             .ToList();

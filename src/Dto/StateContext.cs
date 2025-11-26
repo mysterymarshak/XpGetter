@@ -5,7 +5,7 @@ namespace XpGetter.Dto;
 
 public class StateContext
 {
-    public BaseState State { get; private set; }
+    public BaseState? State { get; private set; }
 
     private readonly IStatesResolver _statesResolver;
 

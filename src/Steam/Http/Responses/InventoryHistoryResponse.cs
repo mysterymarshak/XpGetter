@@ -23,7 +23,7 @@ public class InventoryHistoryResponse
 public class ItemDescription
 {
     [JsonProperty("market_hash_name")]
-    public string MarketName { get; set; }
+    public string? MarketName { get; set; }
 }
 
 public class CursorInfo

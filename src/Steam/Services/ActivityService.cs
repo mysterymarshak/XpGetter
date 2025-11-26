@@ -33,6 +33,12 @@ public class ActivityService : IActivityService
     public async Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfoAsync(SteamSession session)
     {
         var account = session.Account;
+
+        if (account is null)
+        {
+            return new ActivityServiceError { Message = $"Account cannot be null. {nameof(GetActivityInfoAsync)}()" };
+        }
+
         var tasks = new List<Task>
         {
             _steamHttpClient.GetHtmlAsync($"/profiles/{account.Id}/gcpd/730?tab=accountmain", GetAuthCookie(account)),
