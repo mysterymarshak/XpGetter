@@ -1,16 +1,11 @@
 using System.Text;
 using Newtonsoft.Json;
 using OneOf;
+using SteamKit2;
 using XpGetter.Dto;
 using XpGetter.Errors;
 
 namespace XpGetter.Markets.CsgoMarket;
-
-public interface IMarketService
-{
-    Task<OneOf<IEnumerable<PriceDto>, MarketServiceError>> GetItemPriceAsync(
-        IEnumerable<CsgoItem> names, string currency);
-}
 
 public class CsgoMarketService : IMarketService
 {
@@ -24,15 +19,15 @@ public class CsgoMarketService : IMarketService
         _client.BaseAddress = new Uri(BaseUrl);
     }
 
-    public async Task<OneOf<IEnumerable<PriceDto>, MarketServiceError>> GetItemPriceAsync(
-        IEnumerable<CsgoItem> names, string currency)
+    public async Task<OneOf<IEnumerable<PriceDto>, MarketServiceError>> GetItemsPriceAsync(
+        IEnumerable<CsgoItem> items, ECurrencyCode currency)
     {
         try
         {
             var message = new HttpRequestMessage(HttpMethod.Post, $"?currency={currency}");
             var payload = new ItemPriceRequest
             {
-                ItemNames = names
+                ItemNames = items
                     .Where(x => !string.IsNullOrWhiteSpace(x.MarketName))
                     .Select(x => x.MarketName!)
                     .ToList()
@@ -40,7 +35,7 @@ public class CsgoMarketService : IMarketService
 
             if (payload.ItemNames.Count == 0)
             {
-                return new MarketServiceError { Message = "No valid items to get price provided." };
+                return OneOf<IEnumerable<PriceDto>, MarketServiceError>.FromT0([]);
             }
 
             message.Content = new StringContent(JsonConvert.SerializeObject(payload, Formatting.None),
@@ -66,7 +61,7 @@ public class CsgoMarketService : IMarketService
         {
             return new MarketServiceError
             {
-                Message = $"An error occured in {nameof(GetItemPriceAsync)}()",
+                Message = $"An error occured in {nameof(GetItemsPriceAsync)}()",
                 Exception = exception
             };
         }

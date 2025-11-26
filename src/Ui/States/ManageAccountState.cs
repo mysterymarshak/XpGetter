@@ -4,7 +4,6 @@ using Spectre.Console;
 using XpGetter.Configuration;
 using XpGetter.Dto;
 using XpGetter.Results.StateExecutionResults;
-using XpGetter.Steam.Services;
 
 namespace XpGetter.Ui.States;
 

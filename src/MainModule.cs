@@ -7,7 +7,9 @@ using Serilog;
 using XpGetter.Configuration;
 using XpGetter.Configuration.Repositories;
 using XpGetter.Mappers;
+using XpGetter.Markets;
 using XpGetter.Markets.CsgoMarket;
+using XpGetter.Markets.SteamMarket;
 using XpGetter.Steam.Http.Clients;
 using XpGetter.Steam.Services;
 using XpGetter.Ui.States;
@@ -61,6 +63,10 @@ public class MainModule : Module
             .SingleInstance();
 
         builder.RegisterType<CsgoMarketService>()
+            .As<IMarketService>()
+            .SingleInstance();
+
+        builder.RegisterType<SteamMarketService>()
             .As<IMarketService>()
             .SingleInstance();
 

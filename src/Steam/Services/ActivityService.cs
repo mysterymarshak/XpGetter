@@ -41,22 +41,26 @@ public class ActivityService : IActivityService
 
         var tasks = new List<Task>
         {
-            _steamHttpClient.GetHtmlAsync($"/profiles/{account.Id}/gcpd/730?tab=accountmain", GetAuthCookie(account)),
+            _steamHttpClient.GetHtmlAsync($"profiles/{account.Id}/gcpd/730?tab=accountmain", GetAuthCookie(account)),
             GetLastNewRankDropAsync(account)
         };
         await Task.WhenAll(tasks);
 
         var getDocumentResult =
-            ((Task<OneOf<HtmlDocument, ActivityServiceError>>)tasks[0]).Result;
+            ((Task<OneOf<HtmlDocument, SteamHttpClientError>>)tasks[0]).Result;
         var getLastNewRankDropResult =
             ((Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, ActivityServiceError>>)tasks[1]).Result;
 
-        if (getDocumentResult.TryPickT1(out var error, out var document))
+        if (getDocumentResult.TryPickT1(out var httpClientError, out var document))
         {
-            return error;
+            return new ActivityServiceError
+            {
+                Message = $"An error occurred while trying retrieve activity info. {httpClientError.Message}",
+                Exception = httpClientError.Exception
+            };
         }
 
-        if (getLastNewRankDropResult.TryPickT3(out error, out var remainder))
+        if (getLastNewRankDropResult.TryPickT3(out var error, out var remainder))
         {
             return error;
         }
@@ -171,11 +175,15 @@ public class ActivityService : IActivityService
         var queryString =
             $"l=english&ajax=1&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
         var getJsonResult = await _steamHttpClient.GetJsonAsync<InventoryHistoryResponse>(
-            $"/profiles/{account.Id}/inventoryhistory?{queryString}",
+            $"profiles/{account.Id}/inventoryhistory?{queryString}",
             GetAuthCookie(account));
         if (getJsonResult.TryPickT1(out var error, out var result))
         {
-            return error;
+            return new ActivityServiceError
+            {
+                Message = $"Error in steam http client: {error.Message}",
+                Exception = error.Exception
+            };
         }
 
         if (!result.Deserialized.Success)

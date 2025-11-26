@@ -7,15 +7,15 @@ namespace XpGetter.Steam.Http.Clients;
 
 public interface ISteamHttpClient
 {
-    Task<OneOf<string, ActivityServiceError>> GetAsync(string requestUri, string cookies);
-    Task<OneOf<HtmlDocument, ActivityServiceError>> GetHtmlAsync(string requestUri, string cookies);
-    Task<OneOf<(T Deserialized, string Raw), ActivityServiceError>> GetJsonAsync<T>(
-        string requestUri, string cookies);
+    Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, string? sessionCookies = null);
+    Task<OneOf<HtmlDocument, SteamHttpClientError>> GetHtmlAsync(string requestUri, string? sessionCookies = null);
+    Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
+        string requestUri, string? sessionCookies = null);
 }
 
 public class SteamHttpClient : ISteamHttpClient
 {
-    private const string BaseAddress = "https://steamcommunity.com/";
+    private const string BaseAddress = "https://steamcommunity.com";
 
     private readonly HttpClient _client;
 
@@ -25,13 +25,18 @@ public class SteamHttpClient : ISteamHttpClient
         _client.BaseAddress = new Uri(BaseAddress);
     }
 
-    public async Task<OneOf<string, ActivityServiceError>> GetAsync(string requestUri, string cookies)
+    public async Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, string? sessionCookies = null)
     {
         try
         {
+            var cookie = $"timezoneOffset={TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalSeconds},0";
+            if (sessionCookies is not null)
+            {
+                cookie += $"; {sessionCookies}";
+            }
+
             var message = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            message.Headers.Add("Cookie",
-                $"{cookies}; timezoneOffset={TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalSeconds},0");
+            message.Headers.Add("Cookie", cookie);
 
             var result = await _client.SendAsync(message);
             result.EnsureSuccessStatusCode();
@@ -40,16 +45,20 @@ public class SteamHttpClient : ISteamHttpClient
         }
         catch (Exception exception)
         {
-            return new ActivityServiceError { Message = $"An error occured in {nameof(GetAsync)}()", Exception = exception };
+            return new SteamHttpClientError
+            {
+                Message = $"An error occured in {nameof(GetAsync)}()",
+                Exception = exception
+            };
         }
     }
 
-    public async Task<OneOf<(T Deserialized, string Raw), ActivityServiceError>> GetJsonAsync<T>(
-        string requestUri, string cookies)
+    public async Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
+        string requestUri, string? sessionCookies = null)
     {
         try
         {
-            var getResult = await GetAsync(requestUri, cookies);
+            var getResult = await GetAsync(requestUri, sessionCookies);
             if (getResult.TryPickT1(out var error, out var contentAsString))
             {
                 return error;
@@ -58,22 +67,23 @@ public class SteamHttpClient : ISteamHttpClient
             var deserialized = JsonConvert.DeserializeObject<T>(contentAsString);
             if (deserialized is null)
             {
-                return new ActivityServiceError { Message = $"Cannot deserialize json. Raw: {contentAsString}" };
+                return new SteamHttpClientError { Message = $"Cannot deserialize json. Raw: {contentAsString}" };
             }
 
             return (deserialized, contentAsString);
         }
         catch (Exception exception)
         {
-            return new ActivityServiceError { Message = $"An error occured in {nameof(GetJsonAsync)}()", Exception = exception };
+            return new SteamHttpClientError { Message = $"An error occured in {nameof(GetJsonAsync)}()", Exception = exception };
         }
     }
 
-    public async Task<OneOf<HtmlDocument, ActivityServiceError>> GetHtmlAsync(string requestUri, string cookies)
+    public async Task<OneOf<HtmlDocument, SteamHttpClientError>> GetHtmlAsync(
+        string requestUri, string? sessionCookies = null)
     {
         try
         {
-            var getResult = await GetAsync(requestUri, cookies);
+            var getResult = await GetAsync(requestUri, sessionCookies);
             if (getResult.TryPickT1(out var error, out var contentAsString))
             {
                 return error;
@@ -86,7 +96,11 @@ public class SteamHttpClient : ISteamHttpClient
         }
         catch (Exception exception)
         {
-            return new ActivityServiceError { Message = $"An error occured in {nameof(GetHtmlAsync)}()", Exception = exception };
+            return new SteamHttpClientError
+            {
+                Message = $"An error occured in {nameof(GetHtmlAsync)}()",
+                Exception = exception
+            };
         }
     }
 }
