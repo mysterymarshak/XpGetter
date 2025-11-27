@@ -6,19 +6,20 @@ using XpGetter.Dto;
 using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 using XpGetter.Steam.Services;
+using XpGetter.Utils.Progress;
 
 namespace XpGetter.Cli.States;
 
 public class AuthenticaionState : BaseState
 {
     private readonly AppConfigurationDto _configuration;
-    private readonly ProgressContext _ctx;
+    private readonly IProgressContext _ctx;
     private readonly IConfigurationService _configurationService;
     private readonly ISessionService _sessionService;
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger _logger;
 
-    public AuthenticaionState(AppConfigurationDto configuration, ProgressContext ctx,
+    public AuthenticaionState(AppConfigurationDto configuration, IProgressContext ctx,
         IConfigurationService configurationService, ISessionService sessionService,
         IAuthenticationService authenticationService, StateContext context, ILogger logger) : base(context)
     {

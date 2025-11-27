@@ -3,7 +3,7 @@ using Spectre.Console;
 using XpGetter.Dto;
 using XpGetter.Results.StateExecutionResults;
 
-namespace XpGetter.Cli.States;
+namespace XpGetter.Ui.States;
 
 public class StartState : BaseState
 {
@@ -25,7 +25,7 @@ public class StartState : BaseState
         var pipelineResult = await AnsiConsole
             .Progress()
             .AutoRefresh(true)
-            .AutoClear(false)
+            .AutoClear(true)
             .HideCompleted(false)
             .Columns(new TaskDescriptionColumn { Alignment = Justify.Left }, new SpinnerColumn(Spinner.Known.Flip), new ElapsedTimeColumn())
             .StartAsync(async ctx =>

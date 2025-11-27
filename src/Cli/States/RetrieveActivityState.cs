@@ -3,16 +3,17 @@ using XpGetter.Dto;
 using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 using XpGetter.Steam.Services;
+using XpGetter.Utils.Progress;
 
 namespace XpGetter.Cli.States;
 
 public class RetrieveActivityState : BaseState
 {
-    private readonly ProgressContext _ctx;
+    private readonly IProgressContext _ctx;
     private readonly List<SteamSession> _sessions;
     private readonly IActivityService _activityService;
 
-    public RetrieveActivityState(ProgressContext ctx, List<SteamSession> sessions,
+    public RetrieveActivityState(IProgressContext ctx, List<SteamSession> sessions,
         IActivityService activityService, StateContext context) : base(context)
     {
         _ctx = ctx;

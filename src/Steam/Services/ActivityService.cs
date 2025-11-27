@@ -10,12 +10,13 @@ using XpGetter.Results.StateExecutionResults;
 using XpGetter.Steam.Http.Clients;
 using XpGetter.Steam.Http.Responses;
 using XpGetter.Steam.Http.Responses.Parsers;
+using XpGetter.Utils.Progress;
 
 namespace XpGetter.Steam.Services;
 
 public interface IActivityService
 {
-    Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfoAsync(SteamSession session, ProgressContext ctx);
+    Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfoAsync(SteamSession session, IProgressContext ctx);
 }
 
 public class ActivityService : IActivityService
@@ -34,7 +35,7 @@ public class ActivityService : IActivityService
     }
 
     public async Task<OneOf<ActivityInfo, ActivityServiceError>> GetActivityInfoAsync(
-        SteamSession session, ProgressContext ctx)
+        SteamSession session, IProgressContext ctx)
     {
         var getActivityInfoTask = ctx.AddTask(session, Messages.Statuses.RetrievingActivity);
         var account = session.Account;
@@ -118,7 +119,7 @@ public class ActivityService : IActivityService
     }
 
     private async Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, ActivityServiceError>>
-        GetLastNewRankDropAsync(AccountDto account, ProgressTask task, NoResultsOnPage? previousPageResult = null)
+        GetLastNewRankDropAsync(AccountDto account, IProgressTask task, NoResultsOnPage? previousPageResult = null)
     {
         if (previousPageResult is { Page: > Constants.MaxInventoryHistoryPagesToLoad })
         {
