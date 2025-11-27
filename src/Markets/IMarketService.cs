@@ -7,6 +7,5 @@ namespace XpGetter.Markets;
 
 public interface IMarketService
 {
-    Task<OneOf<IEnumerable<PriceDto>, MarketServiceError>> GetItemsPriceAsync(
-        IEnumerable<CsgoItem> items, ECurrencyCode currency);
+    Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<CsgoItem> items, ECurrencyCode currency);
 }

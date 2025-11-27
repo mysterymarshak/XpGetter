@@ -63,6 +63,7 @@ public class RetrieveActivityState : BaseState
             {
                 AnsiConsole.MarkupLine($"[yellow]{info.AdditionalMessage}[/]");
             }
+            // TODO: formatting
 
             ProgressBar.Print(xpData.Xp, 5000);
 

@@ -48,7 +48,7 @@ public class ConfigurationRepository : IConfigurationRepository
 
         if (deserialized is null)
         {
-            _logger.Warning("Configuration file is invalid. Replacing it with the default one.");
+            _logger.Warning(Messages.Configuration.IsInvalid);
             deserialized = WriteDefaultToDisk();
         }
 

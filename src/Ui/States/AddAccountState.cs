@@ -15,28 +15,23 @@ public class AddAccountState : BaseState
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        const string passwordChoice = "Username/password";
-        const string qrChoice = "QR-code";
-        const string backChoice = "Back";
-        const string exitChoice = "Exit";
-
-        var choices = new List<string>(4) { passwordChoice, qrChoice };
+        var choices = new List<string>(4) { Messages.AddAccount.ViaPassword, Messages.AddAccount.ViaQrCode };
         if (_backOption is not null)
         {
-            choices.Add(backChoice);
+            choices.Add(Messages.Common.Back);
         }
-        choices.Add(exitChoice);
+        choices.Add(Messages.Common.Exit);
 
         var choice = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
-                .Title("Choice auth way:")
+                .Title(Messages.AddAccount.LogInWay)
                 .AddChoices(choices));
 
         return choice switch
         {
-            passwordChoice => await GoTo<AddAccountViaPasswordState>(),
-            qrChoice => await GoTo<AddAccountViaQrState>(),
-            backChoice => await _backOption!.Invoke(),
+            Messages.AddAccount.ViaPassword => await GoTo<AddAccountViaPasswordState>(),
+            Messages.AddAccount.ViaQrCode => await GoTo<AddAccountViaQrState>(),
+            Messages.Common.Back => await _backOption!.Invoke(),
             _ => new SuccessExecutionResult()
         };
     }

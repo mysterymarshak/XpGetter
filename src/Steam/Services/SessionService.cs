@@ -9,7 +9,7 @@ namespace XpGetter.Steam.Services;
 public interface ISessionService
 {
     Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(
-        string clientName, AccountDto? account = null);
+        string? clientName = null, AccountDto? account = null);
 }
 
 public class SessionService : ISessionService
@@ -23,8 +23,10 @@ public class SessionService : ISessionService
     }
 
     public async Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(
-        string clientName, AccountDto? account = null)
+        string? clientName = null, AccountDto? account = null)
     {
+        clientName ??= "<unnamed>";
+
         if (account is not null && _sessions.TryGetValue(account.Id, out var session))
         {
             return session;
@@ -47,7 +49,8 @@ public class SessionService : ISessionService
 
         try
         {
-            _logger.Debug("Client '{ClientName}': Connecting to Steam...", clientName);
+            _logger.Debug(Messages.Session.BoundedSessionLogFormat, clientName,
+                Messages.Session.Connecting);
             steamClient.Connect();
         }
         catch (Exception exception)
@@ -56,7 +59,7 @@ public class SessionService : ISessionService
             return new SessionServiceError
             {
                 ClientName = clientName,
-                Message = "An error occured while connecting to steam.",
+                Message = Messages.Session.ConnectingException,
                 Exception = exception
             };
         }
@@ -74,12 +77,14 @@ public class SessionService : ISessionService
                         return new SessionServiceError
                         {
                             ClientName = clientName,
-                            Message = "Cannot connect to steam."
+                            Message = string.Format(Messages.Session.BoundedSessionLogFormat, clientName,
+                                Messages.Session.TooManyRetryAttempts)
                         };
                     }
 
                     isDisconnected = false;
-                    _logger.Information("Trying to reconnect ({RetryNumber})", retryNumber++);
+                    _logger.Information(Messages.Session.BoundedSessionLogFormat, clientName,
+                        string.Format(Messages.Session.Reconnect, retryNumber++));
                     goto Connect;
                 }
             }
@@ -96,14 +101,16 @@ public class SessionService : ISessionService
 
         void OnConnected(SteamClient.ConnectedCallback callback)
         {
-            _logger.Information("Client '{ClientName}': Connected to Steam.", clientName);
+            _logger.Information(Messages.Session.BoundedSessionLogFormat, clientName,
+                Messages.Session.Connected);
             cts.Cancel();
         }
 
         void OnDisconnected(SteamClient.DisconnectedCallback callback)
         {
             isDisconnected = true;
-            _logger.Debug("Client '{ClientName}': Disconnected from Steam.", clientName);
+            _logger.Debug(Messages.Session.BoundedSessionLogFormat, clientName,
+                Messages.Session.Disconnected);
         }
     }
 
@@ -111,8 +118,9 @@ public class SessionService : ISessionService
     {
         if (!session.IsAuthenticated || session is { Client.SteamID: null })
         {
-            throw new InvalidOperationException(
-                $"Attempt to bind unauthenticated account. Client '{session.Name}': {session.Account?.Id} | {session.Account?.Username}");
+            _logger.Error(Messages.Session.BoundedSessionLogFormat, session.Name,
+                Messages.Session.UnauthenticatedAccountBind);
+            return;
         }
 
         _sessions.Add(session.Client.SteamID, session);

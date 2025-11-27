@@ -16,36 +16,32 @@ public class ManageAccountsState : BaseState
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        const string addNewChoice = "Add new";
-        const string backChoice = "Back";
-        const string exitChoice = "Exit";
-
         var choices = _configuration.Accounts
             .Select(x => x.Username);
 
         if (_configuration.Accounts.Count() < Constants.MaxAccounts)
         {
-            choices = choices.Append(addNewChoice);
+            choices = choices.Append(Messages.ManageAccounts.AddNew);
         }
 
         choices = choices
-            .Append(backChoice)
-            .Append(exitChoice)
+            .Append(Messages.Common.Back)
+            .Append(Messages.Common.Exit)
             .ToList();
 
         var choice = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
-                .Title("Choice option:")
+                .Title(Messages.Common.ChoiceOption)
                 .AddChoices(choices));
 
         var backOption = () => GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration));
 
         return choice switch
         {
-            addNewChoice => await GoTo<AddAccountState>(new NamedParameter("backOption", backOption)),
-            backChoice => await GoTo<HelloState>(
+            Messages.ManageAccounts.AddNew => await GoTo<AddAccountState>(new NamedParameter("backOption", backOption)),
+            Messages.Common.Back => await GoTo<HelloState>(
                 new NamedParameter("configuration", _configuration), new NamedParameter("skipHelloMessage", true)),
-            exitChoice => new SuccessExecutionResult(),
+            Messages.Common.Exit => new SuccessExecutionResult(),
             _ => await GoTo<ManageAccountState>(
                 new NamedParameter("username", choice), new NamedParameter("configuration", _configuration))
         };

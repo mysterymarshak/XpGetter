@@ -26,7 +26,8 @@ public class HelloState : BaseState
             if (_configuration.Accounts.Any())
             {
                 AnsiConsole.MarkupLine(Messages.Start.SavedAccounts,
-                    string.Join(", ", _configuration.Accounts.Select(x => x.Username)));
+                    string.Join(", ", _configuration.Accounts.Select(x =>
+                        string.Format(Messages.Start.SavedAccountFormat, x.Username))));
             }
             else
             {
@@ -35,17 +36,16 @@ public class HelloState : BaseState
             }
         }
 
-        var choices = new List<string> { "Get activity info", "Manage accounts", "Exit" };
+        var choices = new List<string> { Messages.Start.GetActivityInfo, Messages.Start.ManageAccounts, Messages.Common.Exit };
         var choice = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
-                .Title("Choice option:")
+                .Title(Messages.Common.ChoiceOption)
                 .AddChoices(choices));
-        var choiceIndex = choices.IndexOf(choice);
 
-        return choiceIndex switch
+        return choice switch
         {
-            0 => await GoTo<StartState>(new NamedParameter("configuration", _configuration)),
-            1 => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
+            Messages.Start.GetActivityInfo => await GoTo<StartState>(new NamedParameter("configuration", _configuration)),
+            Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
             _ => new SuccessExecutionResult()
         };
     }

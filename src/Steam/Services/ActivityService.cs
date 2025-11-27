@@ -36,7 +36,10 @@ public class ActivityService : IActivityService
 
         if (account is null)
         {
-            return new ActivityServiceError { Message = $"Account cannot be null. {nameof(GetActivityInfoAsync)}()" };
+            return new ActivityServiceError
+            {
+                Message = Messages.Activity.SessionWithNoAccount
+            };
         }
 
         var tasks = new List<Task>
@@ -55,7 +58,7 @@ public class ActivityService : IActivityService
         {
             return new ActivityServiceError
             {
-                Message = $"An error occurred while trying retrieve activity info. {httpClientError.Message}",
+                Message = string.Format(Messages.Activity.HttpError, httpClientError.Message),
                 Exception = httpClientError.Exception
             };
         }
@@ -69,7 +72,7 @@ public class ActivityService : IActivityService
         {
             var additionalMessage = lastNewRankDrop is null ? (
                 remainder.IsT1 ? remainder.AsT1.Message :
-                remainder.IsT2 ? "No new rank drop info were found. Are you new in cs2?" : null) : null;
+                remainder.IsT2 ? Messages.Activity.NoNewRankDropInfo : null) : null;
 
             lastNewRankDrop?.BindExternal(remainder.IsT2 ? true : null,
                 remainder.IsT1 ? remainder.AsT1.LastEntryDateTime : null);
@@ -79,7 +82,7 @@ public class ActivityService : IActivityService
             {
                 return new ActivityServiceError
                 {
-                    Message = $"Activity parser error: {parserError}",
+                    Message = string.Format(Messages.Activity.ActivityParserError, parserError.Message),
                     Exception = parserError.Exception
                 };
             }
@@ -93,7 +96,7 @@ public class ActivityService : IActivityService
             };
         }
 
-        return new ActivityServiceError { Message = $"Impossible case. {nameof(GetActivityInfoAsync)}" };
+        return new ActivityServiceError { Message = string.Format(Messages.Common.ImpossibleMethodCase, nameof(GetActivityInfoAsync)) };
     }
 
     private async Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, ActivityServiceError>>
@@ -110,8 +113,7 @@ public class ActivityService : IActivityService
             return error;
         }
 
-        var parseNewRankDropResult =
-            _newRankDropParser.TryParseNext(result.Deserialized);
+        var parseNewRankDropResult = _newRankDropParser.TryParseNext(result.Deserialized);
 
         if (parseNewRankDropResult.TryPickT0(out var newRankDrop, out _))
         {
@@ -127,7 +129,7 @@ public class ActivityService : IActivityService
         {
             if (mispagedDrop.Cursor is null)
             {
-                _logger.Warning("Cannot retrieve mispaged drop if cursor is null.");
+                _logger.Warning(Messages.Activity.NullCursorForMispagedDrop);
                 return new NewRankDrop(mispagedDrop.DateTime, [mispagedDrop.FirstItem]);
             }
 
@@ -139,9 +141,13 @@ public class ActivityService : IActivityService
 
             var parseMispagedDropResult =
                 _newRankDropParser.TryParseMispagedDrop(result.Deserialized);
-            if (parseMispagedDropResult.TryPickT1(out error, out var secondItem))
+            if (parseMispagedDropResult.TryPickT1(out var parserError, out var secondItem))
             {
-                return error;
+                return new ActivityServiceError
+                {
+                    Message = string.Format(Messages.Activity.ActivityParserError, parserError.Message),
+                    Exception = parserError.Exception
+                };
             }
 
             if (secondItem is not null)
@@ -157,16 +163,18 @@ public class ActivityService : IActivityService
             return new NoDropHistoryFound();
         }
 
-        if (parseNewRankDropResult.TryPickT4(out var parserError, out _))
+        // A local variable named 'parserError' cannot be declared in this scope because it would give a different meaning to 'parserError', which is already used in a parent or current scope to denote something else
+        // wtf lol
+        if (parseNewRankDropResult.TryPickT4(out var parserError1, out _))
         {
             return new ActivityServiceError
             {
-                Message = $"New rank drop parser error: {parserError.Message}",
-                Exception = parserError.Exception
+                Message = string.Format(Messages.Activity.ActivityParserError, parserError1.Message),
+                Exception = parserError1.Exception
             };
         }
 
-        return new ActivityServiceError { Message = $"Impossible case. {nameof(GetLastNewRankDropAsync)}()" };
+        return new ActivityServiceError { Message = string.Format(Messages.Common.ImpossibleMethodCase, nameof(GetLastNewRankDropAsync)) };
     }
 
     private async Task<OneOf<(InventoryHistoryResponse Deserialized, string Raw), ActivityServiceError>>
@@ -181,16 +189,18 @@ public class ActivityService : IActivityService
         {
             return new ActivityServiceError
             {
-                Message = $"Error in steam http client: {error.Message}",
+                Message = string.Format(Messages.Activity.HttpError, error.Message),
                 Exception = error.Exception
             };
         }
 
         if (!result.Deserialized.Success)
         {
+            _logger.Error(Messages.Activity.NotSuccessfulResultInLoadInventoryHistoryLogger, result.Raw);
+
             return new ActivityServiceError
             {
-                Message = $"Success: false in {nameof(LoadInventoryHistoryAsync)}(). Raw response: {result.Raw}"
+                Message = Messages.Activity.NotSuccessfulResultInLoadInventoryHistory
             };
         }
 

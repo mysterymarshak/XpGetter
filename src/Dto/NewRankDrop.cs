@@ -4,6 +4,11 @@ namespace XpGetter.Dto;
 
 public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<CsgoItem>? Items = null)
 {
+    private const string DefaultName = "<unknown>";
+    private const string DefaultColor = "silver";
+    private const string DefaultDate = "<unknown>";
+    private const string ExternalDateFormat = "before {0}";
+
     private bool? _externalIsAvailable;
     private DateTimeOffset? _externalWasNotObtainedAtLeastSince;
 
@@ -17,7 +22,7 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
     {
         if (Items is [] or null)
         {
-            return "<unknown>";
+            return DefaultName;
         }
 
         var stringBuilder = new StringBuilder();
@@ -40,7 +45,7 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
     private void AppendItem(CsgoItem item, StringBuilder stringBuilder)
     {
         stringBuilder.Append('[');
-        stringBuilder.Append(item.Color ?? "silver");
+        stringBuilder.Append(item.Color ?? DefaultColor);
         stringBuilder.Append(']');
         stringBuilder.Append(item.Name);
         stringBuilder.Append("[/]");
@@ -50,15 +55,15 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
     {
         if (_externalIsAvailable is true)
         {
-            return "<unknown>";
+            return DefaultDate;
         }
 
         if (_externalWasNotObtainedAtLeastSince is not null)
         {
-            return $"before {_externalWasNotObtainedAtLeastSince.Value.LocalDateTime.ToShortDateString()}";
+            return string.Format(ExternalDateFormat, _externalWasNotObtainedAtLeastSince.Value.LocalDateTime.ToShortDateString());
         }
 
-        return LastDateTime.ToString() ?? "<unknown>";
+        return LastDateTime.ToString() ?? DefaultDate;
     }
 
     public bool? IsDropAvailable()

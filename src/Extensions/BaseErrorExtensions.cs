@@ -7,9 +7,9 @@ public static class BaseErrorExtensions
 {
     extension(BaseError error)
     {
-        public void DumpToConsole(string format)
+        public void DumpToConsole(string message)
         {
-            AnsiConsole.MarkupLine(format);
+            AnsiConsole.MarkupLine(message);
             AnsiConsole.MarkupLine(error.Message);
             if (error.Exception is not null)
             {

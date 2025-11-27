@@ -9,6 +9,8 @@ namespace XpGetter.Steam.Http.Responses.Parsers;
 
 public class NewRankDropParser
 {
+    private const string NewRankDropRow = "Earned a new rank and got a drop";
+
     private readonly ILogger _logger;
 
     private int _parsedPages;
@@ -26,7 +28,7 @@ public class NewRankDropParser
         {
             return new NewRankDropParserError
             {
-                Message = $"Invalid html page retrieved for {nameof(TryParseNext)}(). Was null"
+                Message = Messages.ActivityParsers.Drop.EmptyHtml
             };
         }
 
@@ -36,9 +38,12 @@ public class NewRankDropParser
         var rows = document.DocumentNode.SelectNodes("//div[@class='tradehistoryrow']");
         if (rows is null)
         {
+            // TODO: what if new account
+            _logger.Error(Messages.ActivityParsers.Drop.NoHistoryRowsLogger, response.Html);
+
             return new NewRankDropParserError
             {
-                Message = $"Invalid html page retrieved for {nameof(TryParseNext)}(). Raw: {response.Html}"
+                Message = Messages.ActivityParsers.Drop.NoHistoryRows
             };
         }
 
@@ -50,9 +55,7 @@ public class NewRankDropParser
             var parseDropItemResult = TryParseCsgoItemFromRow(response, row);
             if (parseDropItemResult.DateTime is null)
             {
-                _logger.Debug("Cannot parse datetime for entry.");
-                _logger.Debug("Html: {InnerHtml}", row.InnerHtml);
-
+                _logger.Warning(Messages.ActivityParsers.Drop.CannotParseDateTimeEntry, row.InnerHtml);
                 continue;
             }
 
@@ -73,8 +76,7 @@ public class NewRankDropParser
             var parseSecondDropItemResult = TryParseCsgoItemFromRow(response, nextDropItemNode);
             if (parseSecondDropItemResult.DateTime is null || parseSecondDropItemResult.DropItem is null)
             {
-                _logger.Warning("Cannot parse second drop item.");
-                _logger.Warning("Html: {InnerHtml}", row.InnerHtml);
+                _logger.Warning(Messages.ActivityParsers.Drop.CannotParseSecondItem, row.InnerHtml);
             }
             else
             {
@@ -95,14 +97,14 @@ public class NewRankDropParser
         return new NoResultsOnPage(_parsedPages, lastEntryDateTime.Value, _parsedItems);
     }
 
-    public OneOf<CsgoItem?, ActivityServiceError> TryParseMispagedDrop(InventoryHistoryResponse response)
+    public OneOf<CsgoItem?, NewRankDropParserError> TryParseMispagedDrop(InventoryHistoryResponse response)
     {
         var html = response.Html;
         if (html is null)
         {
-            return new ActivityServiceError
+            return new NewRankDropParserError
             {
-                Message = $"Invalid html page retrieved for {nameof(TryParseMispagedDrop)}(). Was null"
+                Message = Messages.ActivityParsers.Drop.EmptyMispagedDropHtml
             };
         }
 
@@ -110,29 +112,26 @@ public class NewRankDropParser
         document.LoadHtml(html);
 
         var rows = document.DocumentNode.SelectNodes("//div[@class='tradehistoryrow']");
-        if (rows is null)
+        if (rows is null or [])
         {
-            return new ActivityServiceError
+            _logger.Warning(Messages.ActivityParsers.Drop.NoHistoryRowsForMispagedDropLogger, html);
+
+            return new NewRankDropParserError
             {
-                Message = $"Invalid html page retrieved for {nameof(TryParseMispagedDrop)}(). Raw: {html}"
+                Message = Messages.ActivityParsers.Drop.NoHistoryRowsForMispagedDrop
             };
         }
 
-        var row = rows.FirstOrDefault();
-        if (row is null)
-        {
-            return new ActivityServiceError
-            {
-                Message = $"No inventory changes rows retrieved for {nameof(TryParseMispagedDrop)}(). Raw: {html}"
-            };
-        }
-
+        var row = rows.First();
         var parseDropItemResult = TryParseCsgoItemFromRow(response, row);
         if (parseDropItemResult.DateTime is null || parseDropItemResult.DropItem is null)
         {
-            _logger.Warning("Cannot parse second drop item.");
-            _logger.Warning("Html: {InnerHtml}", row.InnerHtml);
-            return (CsgoItem?)null;
+            _logger.Warning(Messages.ActivityParsers.Drop.CannotParseMispagedDropLogger, row.InnerHtml);
+
+            return new NewRankDropParserError
+            {
+                Message = Messages.ActivityParsers.Drop.CannotParseMispagedDrop
+            };
         }
 
         return parseDropItemResult.DropItem;
@@ -148,7 +147,7 @@ public class NewRankDropParser
         }
 
         var descriptionNode = row.SelectSingleNode(".//div[@class='tradehistory_event_description']");
-        if (descriptionNode?.InnerText.Trim() != "Earned a new rank and got a drop")
+        if (descriptionNode?.InnerText.Trim() != NewRankDropRow)
         {
             return (null, parsedDateTime);
         }

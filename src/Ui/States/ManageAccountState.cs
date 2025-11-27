@@ -32,17 +32,16 @@ public class ManageAccountState : BaseState
             return await GoTo<HelloState>(new NamedParameter("configuration", _configuration));
         }
 
-        var choices = new List<string> { "Remove", "Back", "Exit" };
+        var choices = new List<string> { Messages.ManageAccounts.Remove, Messages.Common.Back, Messages.Common.Exit };
         var choice = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
-                .Title($"{_username}:")
+                .Title(string.Format(Messages.ManageAccounts.AccountFormat, _username))
                 .AddChoices(choices));
-        var choiceIndex = choices.IndexOf(choice);
 
-        return choiceIndex switch
+        return choice switch
         {
-            0 => await RemoveAccount(account),
-            1 => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
+            Messages.ManageAccounts.Remove => await RemoveAccount(account),
+            Messages.Common.Back => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
             _ => new SuccessExecutionResult()
         };
     }

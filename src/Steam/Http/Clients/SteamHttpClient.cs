@@ -1,7 +1,9 @@
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using OneOf;
+using Serilog;
 using XpGetter.Errors;
+using XpGetter.Extensions;
 
 namespace XpGetter.Steam.Http.Clients;
 
@@ -18,11 +20,13 @@ public class SteamHttpClient : ISteamHttpClient
     private const string BaseAddress = "https://steamcommunity.com";
 
     private readonly HttpClient _client;
+    private readonly ILogger _logger;
 
-    public SteamHttpClient(HttpClient httpClient)
+    public SteamHttpClient(HttpClient httpClient, ILogger logger)
     {
         _client = httpClient;
         _client.BaseAddress = new Uri(BaseAddress);
+        _logger = logger;
     }
 
     public async Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, string? sessionCookies = null)
@@ -47,7 +51,7 @@ public class SteamHttpClient : ISteamHttpClient
         {
             return new SteamHttpClientError
             {
-                Message = $"An error occured in {nameof(GetAsync)}()",
+                Message = Messages.Http.Error,
                 Exception = exception
             };
         }
@@ -67,14 +71,21 @@ public class SteamHttpClient : ISteamHttpClient
             var deserialized = JsonConvert.DeserializeObject<T>(contentAsString);
             if (deserialized is null)
             {
-                return new SteamHttpClientError { Message = $"Cannot deserialize json. Raw: {contentAsString}" };
+                var deserializationError = new SteamHttpClientError { Message = Messages.Http.DeserializationError };
+
+                _logger.Error(Messages.Http.DeserializationErrorLog, contentAsString);
+                return deserializationError;
             }
 
             return (deserialized, contentAsString);
         }
         catch (Exception exception)
         {
-            return new SteamHttpClientError { Message = $"An error occured in {nameof(GetJsonAsync)}()", Exception = exception };
+            return new SteamHttpClientError
+            {
+                Message = Messages.Http.Error,
+                Exception = exception
+            };
         }
     }
 
@@ -98,7 +109,7 @@ public class SteamHttpClient : ISteamHttpClient
         {
             return new SteamHttpClientError
             {
-                Message = $"An error occured in {nameof(GetHtmlAsync)}()",
+                Message = Messages.Http.HtmlError,
                 Exception = exception
             };
         }

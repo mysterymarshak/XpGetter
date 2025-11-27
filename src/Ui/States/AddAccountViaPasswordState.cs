@@ -26,8 +26,8 @@ public class AddAccountViaPasswordState : BaseState
     {
         AnsiConsole.MarkupLine(Messages.AddAccount.AddingAccountViaPassword);
 
-        var username = await AnsiConsole.PromptAsync(new TextPrompt<string>("Type the username:"));
-        var password = await AnsiConsole.PromptAsync(new TextPrompt<string>("Type the password:").Secret(null));
+        var username = await AnsiConsole.PromptAsync(new TextPrompt<string>(Messages.AddAccount.TypeUsername));
+        var password = await AnsiConsole.PromptAsync(new TextPrompt<string>(Messages.AddAccount.TypePassword).Secret(null));
 
         var createSessionResult = await _sessionService.GetOrCreateSessionAsync(username);
         if (createSessionResult.TryPickT1(out var sessionError, out var session))

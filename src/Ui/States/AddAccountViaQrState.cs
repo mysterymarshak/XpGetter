@@ -26,7 +26,7 @@ public class AddAccountViaQrState : BaseState
     {
         AnsiConsole.MarkupLine(Messages.AddAccount.AddingAccountViaQr);
 
-        var createSessionResult = await _sessionService.GetOrCreateSessionAsync("<unnamed>");
+        var createSessionResult = await _sessionService.GetOrCreateSessionAsync();
         if (createSessionResult.TryPickT1(out var sessionError, out var session))
         {
             sessionError.DumpToConsole(Messages.Session.FailedSessionCreation, sessionError.ClientName);

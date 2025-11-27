@@ -1,9 +1,12 @@
 using System.Text;
 using Newtonsoft.Json;
 using OneOf;
+using Serilog;
+using Spectre.Console;
 using SteamKit2;
 using XpGetter.Dto;
 using XpGetter.Errors;
+using XpGetter.Extensions;
 
 namespace XpGetter.Markets.CsgoMarket;
 
@@ -12,32 +15,31 @@ public class CsgoMarketService : IMarketService
     private const string BaseUrl = "https://api.marketapp.online/core/item-price/v2";
 
     private readonly HttpClient _client;
+    private readonly ILogger _logger;
 
-    public CsgoMarketService(HttpClient httpClient)
+    public CsgoMarketService(HttpClient httpClient, ILogger logger)
     {
         _client = httpClient;
         _client.BaseAddress = new Uri(BaseUrl);
+        _logger = logger;
     }
 
-    public async Task<OneOf<IEnumerable<PriceDto>, MarketServiceError>> GetItemsPriceAsync(
-        IEnumerable<CsgoItem> items, ECurrencyCode currency)
+    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<CsgoItem> items, ECurrencyCode currency)
     {
+        var names = items
+            .Where(x => !string.IsNullOrWhiteSpace(x.MarketName))
+            .Select(x => x.MarketName!)
+            .ToList();
+
+        if (names.Count == 0)
+        {
+            return [];
+        }
+
         try
         {
+            var payload = new ItemPriceRequest { ItemNames = names };
             var message = new HttpRequestMessage(HttpMethod.Post, $"?currency={currency}");
-            var payload = new ItemPriceRequest
-            {
-                ItemNames = items
-                    .Where(x => !string.IsNullOrWhiteSpace(x.MarketName))
-                    .Select(x => x.MarketName!)
-                    .ToList()
-            };
-
-            if (payload.ItemNames.Count == 0)
-            {
-                return OneOf<IEnumerable<PriceDto>, MarketServiceError>.FromT0([]);
-            }
-
             message.Content = new StringContent(JsonConvert.SerializeObject(payload, Formatting.None),
                 Encoding.UTF8, "application/json");
 
@@ -49,7 +51,13 @@ public class CsgoMarketService : IMarketService
             var deserialized = JsonConvert.DeserializeObject<List<ItemPriceResponse>>(contentAsString);
             if (deserialized is null)
             {
-                return new MarketServiceError { Message = $"Cannot deserialize json. Raw: {contentAsString}" };
+                var error = new MarketServiceError
+                {
+                    Message = string.Format(Messages.Market.DeserializationError, contentAsString)
+                };
+
+                _logger.LogError(error);
+                return [];
             }
 
             return deserialized
@@ -59,11 +67,15 @@ public class CsgoMarketService : IMarketService
         }
         catch (Exception exception)
         {
-            return new MarketServiceError
+            var error = new MarketServiceError
             {
-                Message = $"An error occured in {nameof(GetItemsPriceAsync)}()",
+                Message = string.Format(Messages.Market.GetPriceException, string.Join(", ", names)),
                 Exception = exception
             };
+
+            _logger.LogError(error);
         }
+
+        return [];
     }
 }

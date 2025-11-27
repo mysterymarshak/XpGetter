@@ -15,7 +15,7 @@ public static class JwtToken
 
         if (expClaim is null)
         {
-            return new Error<string>("Invalid access token is provided.");
+            return new Error<string>(Messages.Authentication.InvalidJwtToken);
         }
 
         var expUnix = long.Parse(expClaim);

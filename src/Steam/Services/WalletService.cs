@@ -3,6 +3,7 @@ using SteamKit2;
 using SteamKit2.Internal;
 using XpGetter.Dto;
 using XpGetter.Errors;
+using XpGetter.Extensions;
 
 namespace XpGetter.Steam.Services;
 
@@ -28,7 +29,7 @@ public class WalletService : IWalletService
         {
             return new WalletServiceError
             {
-                Message = "An error occured while retrieving wallet info.",
+                Message = Messages.Wallet.GetWalletInfoException.BindSession(session),
                 Exception = exception
             };
         }

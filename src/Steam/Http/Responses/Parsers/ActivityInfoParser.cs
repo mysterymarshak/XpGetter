@@ -8,6 +8,9 @@ namespace XpGetter.Steam.Http.Responses.Parsers;
 
 public class ActivityInfoParser
 {
+    private const string RankRow = "CS:GO Profile Rank:";
+    private const string XpRow = "Experience points earned towards next rank:";
+
     public OneOf<XpData, ActivityInfoParserError> ParseActivityInfoFromHtml(HtmlDocument document)
     {
         var tables = document.DocumentNode
@@ -15,7 +18,7 @@ public class ActivityInfoParser
 
         if (tables is null)
         {
-            return new ActivityInfoParserError { Message = "Table with class 'generic_kv_table' not found." };
+            return new ActivityInfoParserError { Message = Messages.ActivityParsers.Activity.NoDataTables };
         }
 
         var lines = tables
@@ -27,14 +30,14 @@ public class ActivityInfoParser
 
         foreach (var line in lines)
         {
-            if (line.StartsWith("CS:GO Profile Rank:"))
+            if (line.StartsWith(RankRow))
             {
-                var value = line["CS:GO Profile Rank:".Length..].Trim();
+                var value = line.AsSpan()[RankRow.Length..];
                 int.TryParse(value, out rank);
             }
-            else if (line.StartsWith("Experience points earned towards next rank:"))
+            else if (line.StartsWith(XpRow))
             {
-                var value = line["Experience points earned towards next rank:".Length..].Trim();
+                var value = line.AsSpan()[XpRow.Length..];
                 int.TryParse(value, out xp);
             }
         }
