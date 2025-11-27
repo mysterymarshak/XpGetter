@@ -2,6 +2,7 @@ using Autofac;
 using Spectre.Console;
 using XpGetter.Dto;
 using XpGetter.Results.StateExecutionResults;
+using XpGetter.Utils.Progress.AnsiConsole;
 
 namespace XpGetter.Cli.States;
 
@@ -25,11 +26,12 @@ public class StartState : BaseState
         var pipelineResult = await AnsiConsole
             .Progress()
             .AutoRefresh(true)
-            .AutoClear(true)
+            .AutoClear(false)
             .HideCompleted(false)
             .Columns(new TaskDescriptionColumn { Alignment = Justify.Left }, new SpinnerColumn(Spinner.Known.Flip), new ElapsedTimeColumn())
-            .StartAsync(async ctx =>
+            .StartAsync(async ansiConsoleCtx =>
             {
+                var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
                 var authenticationStateResult = (AuthenticationExecutionResult)await GoTo<AuthenticaionState>(
                     new NamedParameter("configuration", _configuration),
                     new NamedParameter("ctx", ctx));
