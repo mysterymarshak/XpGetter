@@ -44,7 +44,19 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
                 result = await helloState.TransferControl();
             }
 
-            return result is PanicExecutionResult ? 1 : 0;
+            if (result is PanicExecutionResult panicExecutionResult)
+            {
+                panicExecutionResult.DumpError();
+                if (!string.IsNullOrWhiteSpace(panicExecutionResult.Message))
+                {
+                    AnsiConsole.MarkupLine(panicExecutionResult.Message);
+                }
+                AnsiConsole.MarkupLine(Messages.Common.FatalError);
+
+                return 1;
+            }
+
+            return 0;
         }
         catch (Exception exception)
         {

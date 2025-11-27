@@ -41,6 +41,28 @@ public static class Messages
         public const string AccountAlreadyExists = "[red]Account '{0}' already exists.[/]";
     }
 
+    public static class Statuses
+    {
+        public const string CreatingSession = "Creating session...";
+        public const string SessionCreationError = "Session creation error [red]:([/]";
+        public const string Authenticating = "Authenticating...";
+        public const string Authenticated = "Authenticated [green]:)[/]";
+        public const string RetrievingActivity = "Retrieving activity info...";
+        public const string RetrievingLastNewRankDrop = "Retrieving last new rank drop...";
+        public const string RetrievingXpAndRank = "Retrieving xp and rank...";
+        public const string RetrievingXpAndRankError = "Retrieving xp and rank: error [red]:([/]";
+        public const string RetrievingXpAndRankOk = "Retrieving xp and rank: got! [green]:)[/]";
+        public const string RetrievingActivityError = "Retrieving activity info: error [red]:([/]";
+        public const string RetrievingActivityOk = "Retrieving activity info: got! [green]:)[/]";
+        public const string TooLongHistoryStatus = "New rank drop: too long inventory history! [red]:([/]";
+        public const string NewRankDropError = "New rank drop: error [red]:([/]";
+        public const string NewRankDropOk = "New rank drop: got! [green]:)[/]";
+        public const string NewRankDropNoResultsOnPage = "New rank drop: fetching more history...";
+        public const string NewRankDropGotOnlyOne = "New rank drop: got with warnings [yellow]-_-;[/]";
+        public const string NewRankDropMispaged = "New rank drop: mispaged. You're lucky!";
+        public const string NewRankDropNotFound = "New rank drop: not found. Are you new in cs2? [green]:)[/]";
+    }
+
     public static class Session
     {
         public const string ClientNameFormat = "Client '{0}'";
@@ -65,6 +87,8 @@ public static class Messages
 
     public static class Authentication
     {
+        public const string Authenticating = "Authenticating...";
+        public const string Authenticated = "Authenticated [green]:)[/]";
         public const string LoggingIn = "Logging in...";
         public const string LoggingInPassword = "Logging in via password...";
         public const string AuthenticateViaTokenException = "An exception was thrown while trying to authenticate session via token.";
@@ -82,7 +106,9 @@ public static class Messages
         public const string AccessRenewingException = "An exception was thrown while renewing access token.";
         public const string CannotCreateSteamSession = "[red]Cannot create steam session. Check your internet connection.[/]";
         public const string SessionExpired = "[yellow]Session for '{0}' is expired. You need to log in into account again.[/]";
+        public const string SessionExpiredStatus = "Session expired [red]:([/]";
         public const string AuthenticationError = "[red]An error occurred while logging in into account '{0}'[/]";
+        public const string AuthenticationErrorStatus = "Authentication error [red]:([/]";
         public const string AccountRemoved = "[yellow]Account '{0}' removed because it's session is expired.[/]";
         public const string NoSavedAccounts = "[yellow]You need to log in again.[/]";
         public const string UnauthenticatedSessions = "[red]There're unauthenticated, not expired sessions for some reason.[/]";

@@ -41,7 +41,7 @@ public class ManageAccountsState : BaseState
             Messages.ManageAccounts.AddNew => await GoTo<AddAccountState>(new NamedParameter("backOption", backOption)),
             Messages.Common.Back => await GoTo<HelloState>(
                 new NamedParameter("configuration", _configuration), new NamedParameter("skipHelloMessage", true)),
-            Messages.Common.Exit => new SuccessExecutionResult(),
+            Messages.Common.Exit => new ExitExecutionResult(),
             _ => await GoTo<ManageAccountState>(
                 new NamedParameter("username", choice), new NamedParameter("configuration", _configuration))
         };

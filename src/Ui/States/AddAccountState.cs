@@ -32,7 +32,7 @@ public class AddAccountState : BaseState
             Messages.AddAccount.ViaPassword => await GoTo<AddAccountViaPasswordState>(),
             Messages.AddAccount.ViaQrCode => await GoTo<AddAccountViaQrState>(),
             Messages.Common.Back => await _backOption!.Invoke(),
-            _ => new SuccessExecutionResult()
+            _ => new ExitExecutionResult()
         };
     }
 }

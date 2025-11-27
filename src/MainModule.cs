@@ -21,7 +21,7 @@ public class MainModule : Module
     protected override void Load(ContainerBuilder builder)
     {
         var logger = new LoggerConfiguration()
-            .WriteTo.Console()
+            .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
             .MinimumLevel.Debug()
             .CreateLogger();
 

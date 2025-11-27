@@ -13,16 +13,18 @@ namespace XpGetter.Ui.States;
 public class AuthenticaionState : BaseState
 {
     private readonly AppConfigurationDto _configuration;
+    private readonly ProgressContext _ctx;
     private readonly IConfigurationService _configurationService;
     private readonly ISessionService _sessionService;
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger _logger;
 
-    public AuthenticaionState(AppConfigurationDto configuration, IConfigurationService configurationService,
-        ISessionService sessionService, IAuthenticationService authenticationService,
-        StateContext context, ILogger logger) : base(context)
+    public AuthenticaionState(AppConfigurationDto configuration, ProgressContext ctx,
+        IConfigurationService configurationService, ISessionService sessionService,
+        IAuthenticationService authenticationService, StateContext context, ILogger logger) : base(context)
     {
         _configuration = configuration;
+        _ctx = ctx;
         _configurationService = configurationService;
         _sessionService = sessionService;
         _authenticationService = authenticationService;
@@ -32,75 +34,74 @@ public class AuthenticaionState : BaseState
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
         var accounts = _configuration.Accounts.ToList();
-        var createSessionsResult = await CreateSessions(accounts);
-        if (createSessionsResult.TryPickT1(out var error, out var sessions))
+
+        var createAndAuthenticateSessionTasks = accounts.Select(CreateAndAuthenticateSession);
+        var createAndAuthenticateSessionResults = await Task.WhenAll(createAndAuthenticateSessionTasks);
+
+        var panicExecutionResult = createAndAuthenticateSessionResults.FirstOrDefault(x => x.IsT2);
+        if (panicExecutionResult.TryPickT2(out var panicResult, out _))
         {
-            return error;
+            return new AuthenticationExecutionResult { Error = panicResult };
         }
 
-        var authenticatedSessions = await AuthenticateSessions(sessions, accounts);
-        if (authenticatedSessions.Count == 0)
-        {
-            if (!_configuration.Accounts.Any())
-            {
-                AnsiConsole.MarkupLine(Messages.Authentication.NoSavedAccounts);
-                return await GoTo<AddAccountState>();
-            }
+        var combinedError = createAndAuthenticateSessionResults
+            .Where(x => x.IsT1)
+            .Select(x => x.AsT1)
+            .DefaultIfEmpty(null)
+            .Aggregate((x, y) => x!.Combine(y!));
 
-            AnsiConsole.MarkupLine(Messages.Common.FatalError);
-            return new PanicExecutionResult(Messages.Authentication.UnauthenticatedSessions);
+        var authenticatedSessions = createAndAuthenticateSessionResults
+            .Where(x => x.IsT0)
+            .Select(x => x.AsT0)
+            .ToList();
+
+        if (authenticatedSessions.Any(x => !x.IsAuthenticated))
+        {
+            return new AuthenticationExecutionResult { Error = new PanicExecutionResult(Messages.Authentication.UnauthenticatedSessions) };
         }
 
         _logger.Debug(Messages.Authentication.SuccessfullyAuthenticated, authenticatedSessions.Select(x => x.Name));
-        return await GoTo<RetrieveActivityState>(
-            new NamedParameter("configuration", _configuration), new NamedParameter("sessions", authenticatedSessions));
+        return new AuthenticationExecutionResult { AuthenticatedSessions = authenticatedSessions, Error = combinedError };
     }
 
-    private async Task<OneOf<List<SteamSession>, StateExecutionResult>> CreateSessions(List<AccountDto> accounts)
+    private async Task<OneOf<SteamSession, ErrorExecutionResult, PanicExecutionResult>> CreateAndAuthenticateSession(AccountDto account)
     {
-        var createSessionTasks = accounts.Select(x => _sessionService.GetOrCreateSessionAsync(x.Username, x));
-        var createSessionResults = await Task.WhenAll(createSessionTasks);
-        var createSessionErrors = createSessionResults.Where(x => x.IsT1).ToList();
-
-        foreach (var errorResult in createSessionErrors)
+        var authenticateTask = _ctx.AddTask(account, Messages.Statuses.CreatingSession);
+        var createSessionResult = await _sessionService.GetOrCreateSessionAsync(account.Username, account);
+        if (createSessionResult.TryPickT1(out var error, out var session))
         {
-            var error = errorResult.AsT1;
-            error.DumpToConsole(Messages.Session.FailedSessionCreation, error.ClientName);
+            authenticateTask.SetResult(account, Messages.Statuses.SessionCreationError);
+            error.DumpToConsole(Messages.Authentication.CannotCreateSteamSession);
+            return new PanicExecutionResult(string.Format(Messages.Session.FailedSessionCreation, error.ClientName));
         }
 
-        if (createSessionErrors.Count > 0)
+        ErrorExecutionResult? errorExecutionResult = null;
+        authenticateTask.Description(session, Messages.Authentication.Authenticating);
+        var authenticationResult = await _authenticationService.AuthenticateSessionAsync(session, account);
+        if (authenticationResult.TryPickT1(out _, out _))
         {
-            return new PanicExecutionResult(Messages.Authentication.CannotCreateSteamSession);
+            authenticateTask.SetResult(session, Messages.Authentication.SessionExpiredStatus);
+
+            _configuration.RemoveAccount(account.Id);
+            _logger.Debug(Messages.Authentication.AccountRemoved, account.Username);
+
+            errorExecutionResult = new ErrorExecutionResult(() => AnsiConsole.MarkupLine(Messages.Authentication.SessionExpired, account.Username));
         }
-
-        return createSessionResults.Select(x => x.AsT0).ToList();
-    }
-
-    private async Task<List<SteamSession>> AuthenticateSessions(List<SteamSession> sessions, List<AccountDto> accounts)
-    {
-        var authenticateSessionTasks =
-            sessions.Select((x, i) => _authenticationService.AuthenticateSessionAsync(x, accounts[i]));
-        var authenticateSessionResults = await Task.WhenAll(authenticateSessionTasks);
-
-        foreach (var (i, result) in authenticateSessionResults.Index())
+        else if (authenticationResult.TryPickT2(out var authServiceError, out _))
         {
-            var account = accounts[i];
-
-            if (result.TryPickT1(out _, out _))
-            {
-                _configuration.RemoveAccount(account.Id);
-
-                AnsiConsole.MarkupLine(Messages.Authentication.SessionExpired, account.Username);
-                _logger.Debug(Messages.Authentication.AccountRemoved, account.Username);
-            }
-            else if (result.TryPickT2(out var authServiceError, out _))
-            {
-                authServiceError.DumpToConsole(Messages.Authentication.AuthenticationError, account.Username);
-            }
+            authenticateTask.SetResult(session, Messages.Authentication.AuthenticationErrorStatus);
+            errorExecutionResult =
+                new ErrorExecutionResult(() => authServiceError.DumpToConsole(Messages.Authentication.AuthenticationError, account.Username));
         }
 
         _configurationService.WriteConfiguration(_configuration);
 
-        return sessions.Where(x => x.IsAuthenticated).ToList();
+        if (errorExecutionResult is not null)
+        {
+            return errorExecutionResult;
+        }
+
+        authenticateTask.SetResult(session, Messages.Authentication.Authenticated);
+        return session;
     }
 }

@@ -46,7 +46,7 @@ public class HelloState : BaseState
         {
             Messages.Start.GetActivityInfo => await GoTo<StartState>(new NamedParameter("configuration", _configuration)),
             Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
-            _ => new SuccessExecutionResult()
+            _ => new ExitExecutionResult()
         };
     }
 }

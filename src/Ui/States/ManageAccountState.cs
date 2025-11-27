@@ -42,7 +42,7 @@ public class ManageAccountState : BaseState
         {
             Messages.ManageAccounts.Remove => await RemoveAccount(account),
             Messages.Common.Back => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
-            _ => new SuccessExecutionResult()
+            _ => new ExitExecutionResult()
         };
     }
 

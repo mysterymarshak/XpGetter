@@ -22,6 +22,60 @@ public class StartState : BaseState
             return await GoTo<AddAccountState>();
         }
 
-        return await GoTo<AuthenticaionState>(new NamedParameter("configuration", _configuration));
+        var pipelineResult = await AnsiConsole
+            .Progress()
+            .AutoRefresh(true)
+            .AutoClear(true)
+            .HideCompleted(false)
+            .Columns(new TaskDescriptionColumn { Alignment = Justify.Left }, new SpinnerColumn(Spinner.Known.Flip), new ElapsedTimeColumn())
+            .StartAsync(async ctx =>
+            {
+                var authenticationStateResult = (AuthenticationExecutionResult)await GoTo<AuthenticaionState>(
+                    new NamedParameter("configuration", _configuration),
+                    new NamedParameter("ctx", ctx));
+                if (authenticationStateResult.Error is PanicExecutionResult)
+                {
+                    return authenticationStateResult.Error;
+                }
+
+                var authenticatedSessions = authenticationStateResult.AuthenticatedSessions;
+                if (!authenticatedSessions.Any())
+                {
+                    if (!_configuration.Accounts.Any())
+                    {
+                        AnsiConsole.MarkupLine(Messages.Authentication.NoSavedAccounts);
+                        return await GoTo<AddAccountState>();
+                    }
+
+                    authenticationStateResult.Error?.DumpError();
+                    return new PanicExecutionResult();
+                }
+
+                // still could be unwrapped error
+
+                var retrieveActivityStateResult = (RetrieveActivityStateResult)await GoTo<RetrieveActivityState>(
+                    new NamedParameter("configuration", _configuration),
+                    new NamedParameter("sessions", authenticatedSessions),
+                    new NamedParameter("ctx", ctx));
+
+                authenticationStateResult.Error?.DumpError();
+                retrieveActivityStateResult.Error?.DumpError();
+
+                if (retrieveActivityStateResult.ActivityInfos.Any())
+                {
+                    return new SuccessExecutionResult { ActivityInfos = retrieveActivityStateResult.ActivityInfos };
+                }
+
+                return new ExitExecutionResult();
+            });
+
+        if (pipelineResult is SuccessExecutionResult successExecutionResult)
+        {
+            return await GoTo<PrintActivityState>(
+                new NamedParameter("configuration", _configuration),
+                new NamedParameter("activityInfos", successExecutionResult.ActivityInfos));
+        }
+
+        return pipelineResult;
     }
 }
