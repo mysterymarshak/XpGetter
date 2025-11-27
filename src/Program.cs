@@ -1,5 +1,5 @@
 ﻿using Spectre.Console.Cli;
-using XpGetter.Ui;
+using XpGetter.Cli;
 
 var app = new CommandApp<RunCommand>();
 return await app.RunAsync(args);

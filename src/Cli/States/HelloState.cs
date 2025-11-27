@@ -3,7 +3,7 @@ using Spectre.Console;
 using XpGetter.Dto;
 using XpGetter.Results.StateExecutionResults;
 
-namespace XpGetter.Ui.States;
+namespace XpGetter.Cli.States;
 
 public class HelloState : BaseState
 {

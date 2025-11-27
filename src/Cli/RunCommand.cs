@@ -2,12 +2,12 @@ using System.ComponentModel;
 using Autofac;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using XpGetter.Cli.States;
 using XpGetter.Configuration;
 using XpGetter.Dto;
 using XpGetter.Results.StateExecutionResults;
-using XpGetter.Ui.States;
 
-namespace XpGetter.Ui;
+namespace XpGetter.Cli;
 
 internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
 {

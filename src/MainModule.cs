@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Polly.Extensions.Http;
 using Serilog;
+using XpGetter.Cli.States;
 using XpGetter.Configuration;
 using XpGetter.Configuration.Repositories;
 using XpGetter.Mappers;
@@ -12,7 +13,6 @@ using XpGetter.Markets.CsgoMarket;
 using XpGetter.Markets.SteamMarket;
 using XpGetter.Steam.Http.Clients;
 using XpGetter.Steam.Services;
-using XpGetter.Ui.States;
 
 namespace XpGetter;
 

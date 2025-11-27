@@ -1,5 +1,5 @@
 using Autofac.Core;
-using XpGetter.Ui.States;
+using XpGetter.Cli.States;
 
 namespace XpGetter.Dto;
 

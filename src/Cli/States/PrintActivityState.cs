@@ -3,7 +3,7 @@ using XpGetter.Dto;
 using XpGetter.Results.StateExecutionResults;
 using XpGetter.Utils;
 
-namespace XpGetter.Ui.States;
+namespace XpGetter.Cli.States;
 
 public class PrintActivityState : BaseState
 {

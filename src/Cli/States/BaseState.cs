@@ -2,7 +2,7 @@ using Autofac.Core;
 using XpGetter.Dto;
 using XpGetter.Results.StateExecutionResults;
 
-namespace XpGetter.Ui.States;
+namespace XpGetter.Cli.States;
 
 public abstract class BaseState
 {

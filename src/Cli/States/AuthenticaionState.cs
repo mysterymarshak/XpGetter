@@ -1,4 +1,3 @@
-using Autofac;
 using OneOf;
 using Serilog;
 using Spectre.Console;
@@ -8,7 +7,7 @@ using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 using XpGetter.Steam.Services;
 
-namespace XpGetter.Ui.States;
+namespace XpGetter.Cli.States;
 
 public class AuthenticaionState : BaseState
 {

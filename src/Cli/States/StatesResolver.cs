@@ -2,7 +2,7 @@ using Autofac;
 using Autofac.Core;
 using XpGetter.Dto;
 
-namespace XpGetter.Ui.States;
+namespace XpGetter.Cli.States;
 
 public interface IStatesResolver
 {

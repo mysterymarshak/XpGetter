@@ -6,7 +6,7 @@ using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 using XpGetter.Steam.Services;
 
-namespace XpGetter.Ui.States;
+namespace XpGetter.Cli.States;
 
 public class AddAccountViaPasswordState : BaseState
 {

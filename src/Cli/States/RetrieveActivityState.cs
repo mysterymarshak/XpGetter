@@ -3,9 +3,8 @@ using XpGetter.Dto;
 using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 using XpGetter.Steam.Services;
-using XpGetter.Utils;
 
-namespace XpGetter.Ui.States;
+namespace XpGetter.Cli.States;
 
 public class RetrieveActivityState : BaseState
 {
