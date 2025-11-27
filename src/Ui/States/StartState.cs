@@ -51,8 +51,6 @@ public class StartState : BaseState
                     return new PanicExecutionResult();
                 }
 
-                // still could be unwrapped error
-
                 var retrieveActivityStateResult = (RetrieveActivityStateResult)await GoTo<RetrieveActivityState>(
                     new NamedParameter("configuration", _configuration),
                     new NamedParameter("sessions", authenticatedSessions),
