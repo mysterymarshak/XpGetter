@@ -213,7 +213,7 @@ public class ActivityService : IActivityService
         LoadInventoryHistoryAsync(AccountDto account, CursorInfo? cursor = null)
     {
         var queryString =
-            $"l=english&ajax=1&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
+            $"l=english&ajax=1&app[]=730&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
         var getJsonResult = await _steamHttpClient.GetJsonAsync<InventoryHistoryResponse>(
             $"profiles/{account.Id}/inventoryhistory?{queryString}",
             GetAuthCookie(account));

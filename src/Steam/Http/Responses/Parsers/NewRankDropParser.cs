@@ -154,7 +154,7 @@ public class NewRankDropParser
 
         var itemsGroupNode = row.SelectSingleNode(".//div[@class='tradehistory_items_group']");
         var earnedItemNode = itemsGroupNode?.SelectSingleNode(".//a[@class='history_item economy_item_hoverable']");
-        if (earnedItemNode is null || earnedItemNode.GetAttributeValue("data-appid", 0) != 730)
+        if (earnedItemNode is null)
         {
             return (null, parsedDateTime);
         }
