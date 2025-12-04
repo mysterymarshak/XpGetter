@@ -20,7 +20,11 @@ public static class StringExtensions
                 return "****";
             }
 
-            return $"{@string.AsSpan()[..4]}{new string('*', @string.Length - 4)}";
+            return string.Create(@string.Length, @string, (span, original) =>
+            {
+                original.AsSpan()[..4].CopyTo(span);
+                span[4..].Fill('*');
+            });
         }
     }
 }
