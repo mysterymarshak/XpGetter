@@ -64,7 +64,7 @@ public class PricedNewRankDropService : INewRankDropService
         var getItemsPriceResultIsWarning = false;
         var items = newRankDrop.Items;
         var itemPrices = await _marketService.GetItemsPriceAsync(items, walletInfo.CurrencyCode);
-        foreach (var price in itemPrices)
+        foreach (var price in itemPrices.Where(x => x.Provider == PriceProvider.Steam))
         {
             var item = items.FirstOrDefault(x => x.MarketName == price.MarketName);
             if (item is null)
