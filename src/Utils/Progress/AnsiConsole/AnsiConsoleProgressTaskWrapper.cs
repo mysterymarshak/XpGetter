@@ -1,6 +1,6 @@
 using Spectre.Console;
 using XpGetter.Dto;
-using XpGetter.Results.StateExecutionResults;
+using XpGetter.Extensions;
 
 namespace XpGetter.Utils.Progress.AnsiConsole;
 

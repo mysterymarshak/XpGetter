@@ -1,6 +1,7 @@
 using Autofac;
 using Spectre.Console;
 using XpGetter.Dto;
+using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 
 namespace XpGetter.Cli.States;
@@ -27,7 +28,7 @@ public class HelloState : BaseState
             {
                 AnsiConsole.MarkupLine(Messages.Start.SavedAccounts,
                     string.Join(", ", _configuration.Accounts.Select(x =>
-                        string.Format(Messages.Start.SavedAccountFormat, x.Username))));
+                        string.Format(Messages.Start.SavedAccountFormat, x.Username.Censor()))));
             }
             else
             {

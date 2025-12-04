@@ -11,5 +11,16 @@ public static class StringExtensions
             return string.Format(Messages.Session.BoundedSessionLogFormat,
                 session.Account?.Username ?? forceName ?? session.Name, @string);
         }
+
+        // TODO: depends on configuration
+        public string Censor()
+        {
+            if (@string.Length <= 4)
+            {
+                return "****";
+            }
+
+            return $"{@string.AsSpan()[..4]}{new string('*', @string.Length - 4)}";
+        }
     }
 }

@@ -1,7 +1,7 @@
 using Spectre.Console;
 using XpGetter.Dto;
 
-namespace XpGetter.Results.StateExecutionResults;
+namespace XpGetter.Extensions;
 
 public static class ProgressTaskExtensions
 {
@@ -9,12 +9,12 @@ public static class ProgressTaskExtensions
     {
         public void Description(AccountDto account, string description)
         {
-            task.Description($"{account.Username}: {description}");
+            task.Description($"{account.Username.Censor()}: {description}");
         }
         
         public void Description(SteamSession session, string description)
         {
-            task.Description($"{session.Name}: {description}");
+            task.Description($"{session.Name.Censor()}: {description}");
         }
         
         public void SetResult(AccountDto account, string result)

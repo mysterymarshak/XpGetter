@@ -9,12 +9,12 @@ public static class ProgressContextExtensions
     {
         public ProgressTask AddTask(AccountDto account, string description)
         {
-            return ctx.AddTask($"{account.Username}: {description}");
+            return ctx.AddTask($"{account.Username.Censor()}: {description}");
         }
 
         public ProgressTask AddTask(SteamSession session, string description)
         {
-            return ctx.AddTask($"{session.Name}: {description}");
+            return ctx.AddTask($"{session.Name.Censor()}: {description}");
         }
     }
 }
