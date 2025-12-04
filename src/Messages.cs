@@ -64,6 +64,7 @@ public static class Messages
         public const string RetrievingWalletInfo = "Retrieving wallet info...";
         public const string RetrievingWalletInfoError = "Retrieving wallet info: error [red]:([/]";
         public const string RetrievingWalletInfoOk = "Retrieving wallet info: got! [green]:)[/]";
+        public const string RetrievingItemsPriceNotStarted = "Retrieving items price: awaiting wallet info & items...";
         public const string RetrievingItemsPrice = "Retrieving items price...";
         public const string RetrievingItemsPriceWarning = "Retrieving items price: some warnings [yellow]-_-;[/]";
         public const string RetrievingItemsPriceOk = "Retrieving items price: got! [green]:)[/]";

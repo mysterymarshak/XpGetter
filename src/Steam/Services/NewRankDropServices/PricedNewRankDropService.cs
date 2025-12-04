@@ -35,6 +35,8 @@ public class PricedNewRankDropService : INewRankDropService
             _walletService.GetWalletInfoAsync(session),
             _newRankDropService.GetLastNewRankDropAsync(session, ctx)
         };
+
+        var getItemsPriceTask = ctx.AddTask(session, Messages.Statuses.RetrievingItemsPriceNotStarted);
         await Task.WhenAll(tasks);
 
         var getWalletInfoResult =
@@ -58,7 +60,7 @@ public class PricedNewRankDropService : INewRankDropService
             return getNewRankDropResult;
         }
 
-        var getItemsPriceTask = ctx.AddTask(account, Messages.Statuses.RetrievingItemsPrice);
+        getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
         var getItemsPriceResultIsWarning = false;
         var items = newRankDrop.Items;
         var itemPrices = await _marketService.GetItemsPriceAsync(items, walletInfo.CurrencyCode);
