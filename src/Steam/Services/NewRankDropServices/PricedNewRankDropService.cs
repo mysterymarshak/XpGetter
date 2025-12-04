@@ -23,13 +23,13 @@ public class PricedNewRankDropService : INewRankDropService
         _marketService = marketService;
         _logger = logger;
     }
-    
+
     public async Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx)
     {
         var account = session.Account!;
         var getWalletCurrencyTask = ctx.AddTask(account, Messages.Statuses.RetrievingWalletInfo);
-        
+
         var tasks = new List<Task>
         {
             _walletService.GetWalletInfoAsync(session),
@@ -44,12 +44,12 @@ public class PricedNewRankDropService : INewRankDropService
 
         getWalletCurrencyTask.SetResult(session, getNewRankDropResult.IsT0 ?
             Messages.Statuses.RetrievingWalletInfoOk : Messages.Statuses.RetrievingWalletInfoError);
-        
+
         if (getWalletInfoResult.TryPickT1(out var error, out var walletInfo))
         {
             _logger.Warning(error.Message);
             _logger.Warning(error.Exception, string.Empty);
-            
+
             return getNewRankDropResult;
         }
 

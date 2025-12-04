@@ -45,7 +45,7 @@ public class ActivityService : IActivityService
                 Message = Messages.Activity.SessionWithNoAccount
             };
         }
-        
+
         var getXpAndRankTask = ctx.AddTask(session, Messages.Statuses.RetrievingXpAndRank);
         var tasks = new List<Task>
         {

@@ -22,7 +22,7 @@ public class NewRankDropService : INewRankDropService
         _steamHttpClient = steamHttpClient;
         _logger = logger;
     }
-    
+
     public async Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx)
     {
@@ -121,7 +121,7 @@ public class NewRankDropService : INewRankDropService
         task.SetResult(account, Messages.Statuses.NewRankDropError);
         return new NewRankDropServiceError { Message = string.Format(Messages.Common.ImpossibleMethodCase, nameof(GetLastNewRankDropAsync)) };
     }
-    
+
     private async Task<OneOf<(InventoryHistoryResponse Deserialized, string Raw), NewRankDropServiceError>>
         LoadInventoryHistoryAsync(AccountDto account, CursorInfo? cursor = null)
     {

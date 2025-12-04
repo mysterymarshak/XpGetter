@@ -51,10 +51,10 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
         stringBuilder.Append(item.Name);
         // TODO: append quality for skins
         stringBuilder.Append("[/]");
-        
+
         if (item.Price is null)
             return;
-        
+
         stringBuilder.Append(" (");
         stringBuilder.Append("[green]");
         stringBuilder.Append(item.Price.Currency.FormatValue(item.Price.Value));

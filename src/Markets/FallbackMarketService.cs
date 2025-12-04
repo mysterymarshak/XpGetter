@@ -19,12 +19,12 @@ public class FallbackMarketService : IMarketService
     public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<CsgoItem> items, ECurrencyCode currency)
     {
         var result = await _csgo.GetItemsPriceAsync(items, currency);
-        
+
         if (!result.Any())
         {
             result = await _steam.GetItemsPriceAsync(items, currency);
         }
-        
+
         return result;
     }
 }

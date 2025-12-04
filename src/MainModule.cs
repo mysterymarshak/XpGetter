@@ -94,7 +94,7 @@ public class MainModule : Module
         builder.RegisterType<NewRankDropService>()
             .As<INewRankDropService>()
             .SingleInstance();
-        
+
         builder.RegisterDecorator<PricedNewRankDropService, INewRankDropService>();
 
         builder.RegisterAssemblyTypes(ThisAssembly)

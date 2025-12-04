@@ -5,8 +5,7 @@ namespace XpGetter.Extensions;
 
 public static class CurrencyCodeExtensions
 {
-    private static readonly Dictionary<ECurrencyCode, CultureInfo> CultureMap =
-        new()
+    private static readonly Dictionary<ECurrencyCode, CultureInfo> CultureMap = new()
         {
             { ECurrencyCode.USD, new CultureInfo("en-US") },
             { ECurrencyCode.GBP, new CultureInfo("en-GB") },
@@ -67,7 +66,7 @@ public static class CurrencyCodeExtensions
         {
             culture = CultureInfo.InvariantCulture;
         }
-        
+
         return value.ToString("C", culture);
     }
 }
