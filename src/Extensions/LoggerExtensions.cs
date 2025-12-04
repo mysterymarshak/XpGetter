@@ -1,5 +1,4 @@
 using Serilog;
-using XpGetter.Dto;
 using XpGetter.Errors;
 
 namespace XpGetter.Extensions;

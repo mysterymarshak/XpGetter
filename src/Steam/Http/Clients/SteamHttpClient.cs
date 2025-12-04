@@ -2,17 +2,17 @@ using HtmlAgilityPack;
 using Newtonsoft.Json;
 using OneOf;
 using Serilog;
+using XpGetter.Dto;
 using XpGetter.Errors;
-using XpGetter.Extensions;
 
 namespace XpGetter.Steam.Http.Clients;
 
 public interface ISteamHttpClient
 {
-    Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, string? sessionCookies = null);
-    Task<OneOf<HtmlDocument, SteamHttpClientError>> GetHtmlAsync(string requestUri, string? sessionCookies = null);
+    Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null);
+    Task<OneOf<HtmlDocument, SteamHttpClientError>> GetHtmlAsync(string requestUri, AuthCookie? authCookie = null);
     Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
-        string requestUri, string? sessionCookies = null);
+        string requestUri, AuthCookie? authCookie = null);
 }
 
 public class SteamHttpClient : ISteamHttpClient
@@ -29,14 +29,14 @@ public class SteamHttpClient : ISteamHttpClient
         _logger = logger;
     }
 
-    public async Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, string? sessionCookies = null)
+    public async Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null)
     {
         try
         {
             var cookie = $"timezoneOffset={TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalSeconds},0";
-            if (sessionCookies is not null)
+            if (authCookie is not null)
             {
-                cookie += $"; {sessionCookies}";
+                cookie += $"; {authCookie.Value}";
             }
 
             var message = new HttpRequestMessage(HttpMethod.Get, requestUri);
@@ -58,11 +58,11 @@ public class SteamHttpClient : ISteamHttpClient
     }
 
     public async Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
-        string requestUri, string? sessionCookies = null)
+        string requestUri, AuthCookie? authCookie = null)
     {
         try
         {
-            var getResult = await GetAsync(requestUri, sessionCookies);
+            var getResult = await GetAsync(requestUri, authCookie);
             if (getResult.TryPickT1(out var error, out var contentAsString))
             {
                 return error;
@@ -90,11 +90,11 @@ public class SteamHttpClient : ISteamHttpClient
     }
 
     public async Task<OneOf<HtmlDocument, SteamHttpClientError>> GetHtmlAsync(
-        string requestUri, string? sessionCookies = null)
+        string requestUri, AuthCookie? authCookie = null)
     {
         try
         {
-            var getResult = await GetAsync(requestUri, sessionCookies);
+            var getResult = await GetAsync(requestUri, authCookie);
             if (getResult.TryPickT1(out var error, out var contentAsString))
             {
                 return error;

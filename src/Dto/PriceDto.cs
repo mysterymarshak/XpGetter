@@ -1,3 +1,5 @@
+using SteamKit2;
+
 namespace XpGetter.Dto;
 
 public enum PriceProvider
@@ -8,7 +10,7 @@ public enum PriceProvider
     Unknown
 }
 
-public record PriceDto(string ItemName, double Value, string ProviderRaw)
+public record PriceDto(string MarketName, double Value, string ProviderRaw, ECurrencyCode Currency)
 {
     public PriceProvider Provider => ProviderRaw switch
     {

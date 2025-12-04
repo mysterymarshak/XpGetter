@@ -1,4 +1,3 @@
-using Spectre.Console;
 using XpGetter.Dto;
 using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;

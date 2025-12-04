@@ -59,7 +59,8 @@ public class SteamMarketService : IMarketService
         }
 
         return successResults
-            .Select(result => new PriceDto(result.ItemName, result.Deserialized.Value, "Steam"))
+            .Select(result =>
+                new PriceDto(result.ItemName, result.Deserialized.Value, "Steam", currency))
             .ToList();
     }
 

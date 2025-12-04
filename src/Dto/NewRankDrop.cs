@@ -1,4 +1,5 @@
 using System.Text;
+using XpGetter.Extensions;
 
 namespace XpGetter.Dto;
 
@@ -48,7 +49,17 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
         stringBuilder.Append(item.Color ?? DefaultColor);
         stringBuilder.Append(']');
         stringBuilder.Append(item.Name);
+        // TODO: append quality for skins
         stringBuilder.Append("[/]");
+        
+        if (item.Price is null)
+            return;
+        
+        stringBuilder.Append(" (");
+        stringBuilder.Append("[green]");
+        stringBuilder.Append(item.Price.Currency.FormatValue(item.Price.Value));
+        stringBuilder.Append("[/]");
+        stringBuilder.Append(')');
     }
 
     public string GetLastDropTime()

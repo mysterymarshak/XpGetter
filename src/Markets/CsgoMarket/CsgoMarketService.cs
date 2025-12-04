@@ -1,8 +1,6 @@
 using System.Text;
 using Newtonsoft.Json;
-using OneOf;
 using Serilog;
-using Spectre.Console;
 using SteamKit2;
 using XpGetter.Dto;
 using XpGetter.Errors;
@@ -61,7 +59,8 @@ public class CsgoMarketService : IMarketService
             }
 
             return deserialized
-                .Select(x => x.Prices.Select(y => new PriceDto(x.ItemName, y.Value, y.Provider)))
+                .Select(x => x.Prices.Select(y =>
+                    new PriceDto(x.ItemName, y.Value, y.Provider, currency)))
                 .SelectMany(x => x)
                 .ToList();
         }

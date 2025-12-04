@@ -13,6 +13,7 @@ using XpGetter.Markets.CsgoMarket;
 using XpGetter.Markets.SteamMarket;
 using XpGetter.Steam.Http.Clients;
 using XpGetter.Steam.Services;
+using XpGetter.Steam.Services.NewRankDropServices;
 
 namespace XpGetter;
 
@@ -63,10 +64,14 @@ public class MainModule : Module
             .SingleInstance();
 
         builder.RegisterType<CsgoMarketService>()
-            .As<IMarketService>()
+            .AsSelf()
             .SingleInstance();
 
         builder.RegisterType<SteamMarketService>()
+            .AsSelf()
+            .SingleInstance();
+
+        builder.RegisterType<FallbackMarketService>()
             .As<IMarketService>()
             .SingleInstance();
 
@@ -85,6 +90,12 @@ public class MainModule : Module
         builder.RegisterType<StatesResolver>()
             .As<IStatesResolver>()
             .SingleInstance();
+
+        builder.RegisterType<NewRankDropService>()
+            .As<INewRankDropService>()
+            .SingleInstance();
+        
+        builder.RegisterDecorator<PricedNewRankDropService, INewRankDropService>();
 
         builder.RegisterAssemblyTypes(ThisAssembly)
             .AssignableTo<BaseState>()

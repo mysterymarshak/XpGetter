@@ -61,6 +61,12 @@ public static class Messages
         public const string NewRankDropGotOnlyOne = "New rank drop: got with warnings [yellow]-_-;[/]";
         public const string NewRankDropMispaged = "New rank drop: mispaged. You're lucky!";
         public const string NewRankDropNotFound = "New rank drop: not found. Are you new in cs2? [green]:)[/]";
+        public const string RetrievingWalletInfo = "Retrieving wallet info...";
+        public const string RetrievingWalletInfoError = "Retrieving wallet info: error [red]:([/]";
+        public const string RetrievingWalletInfoOk = "Retrieving wallet info: got! [green]:)[/]";
+        public const string RetrievingItemsPrice = "Retrieving items price...";
+        public const string RetrievingItemsPriceWarning = "Retrieving items price: some warnings [yellow]-_-;[/]";
+        public const string RetrievingItemsPriceOk = "Retrieving items price: got! [green]:)[/]";
     }
 
     public static class Session
@@ -162,6 +168,7 @@ public static class Messages
     {
         public const string DeserializationError = "Cannot deserialize item price response json. Raw: {0}";
         public const string GetPriceException = "An exception was thrown while retrieving the items price. Item names: [{0}]";
+        public const string CannotFindItemForPrice = "Cannot find original item from the name provided in price response. Item to find: '{MarketName}'. All items: '{@MarketNames}'";
     }
 
     public static class Common

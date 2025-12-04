@@ -1,7 +1,5 @@
-using OneOf;
 using SteamKit2;
 using XpGetter.Dto;
-using XpGetter.Errors;
 
 namespace XpGetter.Markets;
 
