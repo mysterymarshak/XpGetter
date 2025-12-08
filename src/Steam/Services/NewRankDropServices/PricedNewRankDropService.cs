@@ -61,9 +61,19 @@ public class PricedNewRankDropService : INewRankDropService
         }
 
         getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
+
         var getItemsPriceResultIsWarning = false;
         var items = newRankDrop.Items!;
         var itemPrices = await _marketService.GetItemsPriceAsync(items, walletInfo.CurrencyCode);
+
+        foreach (var price in itemPrices.Where(x => x.Value == 0))
+        {
+            // TODO: catch this situations one by one and analyze them, maybe there're just no offers for this item and its not an error
+            getItemsPriceResultIsWarning = true;
+            _logger.Warning(Messages.Market.InvalidPriceRetrieved, price.MarketName, price.ProviderRaw);
+        }
+
+        // TODO: extract item provider to use to config
         foreach (var price in itemPrices.Where(x => x.Provider == PriceProvider.Steam))
         {
             var item = items.FirstOrDefault(x => x.MarketName == price.MarketName);

@@ -19,7 +19,8 @@ public partial class ItemPriceResponse
 
     private class IntConverter : JsonConverter<int?>
     {
-        public override int? ReadJson(JsonReader reader, Type objectType, int? existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override int? ReadJson(JsonReader reader, Type objectType, int? existingValue, bool hasExistingValue,
+            JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.String)
             {
@@ -53,7 +54,9 @@ public partial class ItemPriceResponse
                     return 0;
                 }
 
-                var cleaned = RemovePrefixesSuffixesRegex().Replace(raw, "");
+                raw = raw.Replace(",", ".");
+
+                var cleaned = RemovePrefixesSuffixesRegex().Match(raw).Value;
                 return double.Parse(cleaned, CultureInfo.InvariantCulture);
             }
 
@@ -65,7 +68,7 @@ public partial class ItemPriceResponse
             writer.WriteValue(value);
         }
 
-        [GeneratedRegex(@"[^\d\.\-]")]
+        [GeneratedRegex(@"-?\d+(\.\d+)?")]
         private static partial Regex RemovePrefixesSuffixesRegex();
     }
 }
