@@ -94,7 +94,7 @@ public class NewRankDropParser
         _parsedPages++;
         _parsedItems += response.EntriesCount;
 
-        return new NoResultsOnPage(_parsedPages, lastEntryDateTime.Value, _parsedItems);
+        return new NoResultsOnPage(_parsedPages, lastEntryDateTime.Value, _parsedItems, response.Cursor);
     }
 
     public OneOf<CsgoItem?, NewRankDropParserError> TryParseMispagedDrop(InventoryHistoryResponse response)

@@ -40,7 +40,7 @@ public class NewRankDropService : INewRankDropService
             return new TooLongHistory(previousPageResult.LastEntryDateTime, previousPageResult.TotalItemsParsed);
         }
 
-        var loadInventoryHistoryResult = await LoadInventoryHistoryAsync(account);
+        var loadInventoryHistoryResult = await LoadInventoryHistoryAsync(account, previousPageResult?.Cursor);
         if (loadInventoryHistoryResult.TryPickT1(out var error, out var result))
         {
             task.SetResult(account, Messages.Statuses.NewRankDropError);
