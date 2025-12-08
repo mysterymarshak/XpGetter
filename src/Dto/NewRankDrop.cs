@@ -74,7 +74,7 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
             return string.Format(ExternalDateFormat, _externalWasNotObtainedAtLeastSince.Value.LocalDateTime.ToShortDateString());
         }
 
-        return LastDateTime.ToString() ?? DefaultDate;
+        return LastDateTime?.ToString("dd.MM.yyyy HH:mm") ?? DefaultDate;
     }
 
     public bool? IsDropAvailable()
