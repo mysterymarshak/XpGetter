@@ -2,13 +2,13 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Serilog;
 using XpGetter.Configuration.Entities;
+using XpGetter.Extensions;
 
 namespace XpGetter.Configuration.Repositories;
 
 public class ConfigurationRepository : IConfigurationRepository
 {
-    private string FilePath => Path.Combine(
-        Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty, FileName);
+    private string FilePath => Path.GetFilePathWithinExecutableDirectory(FileName);
 
     private const string FileName = "settings.json";
 

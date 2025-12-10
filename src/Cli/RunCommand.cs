@@ -1,10 +1,12 @@
 using System.ComponentModel;
 using Autofac;
+using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using XpGetter.Cli.States;
 using XpGetter.Configuration;
 using XpGetter.Dto;
+using XpGetter.Extensions;
 using XpGetter.Results.StateExecutionResults;
 
 namespace XpGetter.Cli;
@@ -23,15 +25,17 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
     {
         try
         {
-            // TODO: add some logging
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterModule<MainModule>();
             var container = containerBuilder.Build();
 
             var statesResolver = container.Resolve<IStatesResolver>();
             var configurationService = container.Resolve<IConfigurationService>();
+            var logger = container.Resolve<ILogger>();
             var context = new StateContext(statesResolver);
             var configuration = configurationService.GetConfiguration();
+
+            logger.Debug(Messages.Start.HelloLog);
 
             StateExecutionResult result;
             if (arguments.SkipMenu)

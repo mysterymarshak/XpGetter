@@ -7,6 +7,7 @@ using Serilog;
 using XpGetter.Cli.States;
 using XpGetter.Configuration;
 using XpGetter.Configuration.Repositories;
+using XpGetter.Extensions;
 using XpGetter.Mappers;
 using XpGetter.Markets;
 using XpGetter.Markets.CsgoMarket;
@@ -21,11 +22,11 @@ public class MainModule : Module
 {
     protected override void Load(ContainerBuilder builder)
     {
+        const string logFileBaseName = "log.txt";
         var logger = new LoggerConfiguration()
-            .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
+            .WriteTo.File(Path.GetFilePathWithinExecutableDirectory(logFileBaseName), rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
             .MinimumLevel.Debug()
             .CreateLogger();
-        // TODO: folder should be excplicitly that in which executale is located
 
         builder.RegisterInstance(logger)
             .As<ILogger>()

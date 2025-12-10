@@ -9,6 +9,7 @@ public static class Messages
 
     public static class Start
     {
+        public const string HelloLog = $"{Constants.ProgramName} {Constants.Version}: Started.";
         public const string Hello = $"[deepskyblue3]Hello! XpGetter {Constants.Version}[/]";
         public const string NoAccounts = "No accounts found.";
         public const string SavedAccountFormat = "[steelblue1]{0}[/]";
