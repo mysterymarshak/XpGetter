@@ -4,6 +4,7 @@ namespace XpGetter.Application.Utils;
 
 public static class ProgressBar
 {
+    // TODO: move to Cli
     public static void Print(int value1, int value2)
     {
         var percentage = (float)value1/value2;
