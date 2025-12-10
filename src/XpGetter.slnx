@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="XpGetter.Application\XpGetter.Application.csproj" />
+  <Project Path="XpGetter.Cli/XpGetter.Cli.csproj" />
+</Solution>

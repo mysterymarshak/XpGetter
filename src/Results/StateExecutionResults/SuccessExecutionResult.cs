@@ -1,8 +1,0 @@
-using XpGetter.Dto;
-
-namespace XpGetter.Results.StateExecutionResults;
-
-public class SuccessExecutionResult : StateExecutionResult
-{
-    public IEnumerable<ActivityInfo> ActivityInfos { get; init; } = [];
-}

@@ -56,4 +56,4 @@ TestResult.xml
 nunit-*.xml
 
 .idea/
-Folder.DotSettings.user
+*.DotSettings.user

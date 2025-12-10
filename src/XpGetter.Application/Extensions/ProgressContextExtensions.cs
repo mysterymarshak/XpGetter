@@ -1,0 +1,20 @@
+using Spectre.Console;
+using XpGetter.Application.Dto;
+
+namespace XpGetter.Application.Extensions;
+
+public static class ProgressContextExtensions
+{
+    extension(ProgressContext ctx)
+    {
+        public ProgressTask AddTask(AccountDto account, string description)
+        {
+            return ctx.AddTask($"{account.Username.Censor()}: {description}");
+        }
+
+        public ProgressTask AddTask(SteamSession session, string description)
+        {
+            return ctx.AddTask($"{session.Name.Censor()}: {description}");
+        }
+    }
+}
