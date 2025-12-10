@@ -26,6 +26,7 @@
     <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
     <PackageReference Include="SteamKit2" Version="3.3.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+    <PackageReference Include="System.Management" Version="10.0.1" />
   </ItemGroup>
 
 </Project>

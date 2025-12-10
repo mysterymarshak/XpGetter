@@ -11,7 +11,7 @@ public class ConfigurationRepository : IConfigurationRepository
 {
     private string FilePath => Path.GetFilePathWithinExecutableDirectory(FileName);
 
-    private const string FileName = "settings.json";
+    private const string FileName = "configuration";
 
     private readonly IFileOperationStrategy _fileOperationStrategy;
     private readonly ILogger _logger;

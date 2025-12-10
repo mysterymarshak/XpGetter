@@ -105,7 +105,7 @@ public class MainModule : Module
             .AsSelf()
             .InstancePerDependency();
 
-        builder.RegisterType<DirectFileOperationStrategy>()
+        builder.RegisterType<EncryptedFileOperationStrategy>()
             .As<IFileOperationStrategy>()
             .SingleInstance();
     }
