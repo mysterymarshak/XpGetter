@@ -14,6 +14,7 @@ using XpGetter.Application.Features.Markets.SteamMarket;
 using XpGetter.Application.Features.Steam;
 using XpGetter.Application.Features.Steam.Http.Clients;
 using XpGetter.Application.Features.Steam.NewRankDrop;
+using XpGetter.Application.Features.Versions;
 using XpGetter.Application.Mappers;
 
 namespace XpGetter.Application;
@@ -88,15 +89,19 @@ public class ApplicationModule : Module
         builder.RegisterType<ConfigurationMapper>()
             .AsSelf()
             .SingleInstance();
-        
+
         builder.RegisterType<NewRankDropService>()
             .As<INewRankDropService>()
             .SingleInstance();
 
         builder.RegisterDecorator<PricedNewRankDropService, INewRankDropService>();
-        
+
         builder.RegisterType<EncryptedFileOperationStrategy>()
             .As<IFileOperationStrategy>()
+            .SingleInstance();
+
+        builder.RegisterType<VersionService>()
+            .As<IVersionService>()
             .SingleInstance();
     }
 }

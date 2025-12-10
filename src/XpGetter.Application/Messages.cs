@@ -16,6 +16,16 @@ public static class Messages
         public const string SavedAccounts = "[green]Saved accounts: [[{0}]][/]";
         public const string GetActivityInfo = "Get activity info";
         public const string ManageAccounts = "Manage accounts";
+        public const string CheckForUpdates = "Check for updates";
+    }
+
+    public static class Version
+    {
+        public const string GetException = "An exception was thrown while retrieving latest version.";
+        public const string Error = "[red]Couldn't retrieve the latest version. Check the logs.[/]";
+        public const string Update = "There's a new version '[green]{0}[/]'! Go to [link={{Constants.GitHubReleasesPageUrl}}]GitHub Releases[/] to download it.";
+        public const string Newer = "It looks like you're on a dev ver! Nothing to do.";
+        public const string NoUpdates = $"{Constants.ProgramName} {Constants.Version} is up to date!";
     }
 
     public static class ManageAccounts
@@ -69,6 +79,7 @@ public static class Messages
         public const string RetrievingItemsPrice = "Retrieving items price...";
         public const string RetrievingItemsPriceWarning = "Retrieving items price: some warnings [yellow]-_-;[/]";
         public const string RetrievingItemsPriceOk = "Retrieving items price: got! [green]:)[/]";
+        public const string RetrievingLatestVersion = "Retrieving lastest version...";
     }
 
     public static class Session
@@ -177,6 +188,7 @@ public static class Messages
 
     public static class Common
     {
+        public const string Dummy = "dummy";
         public const string ChoiceOption = "Choice option:";
         public const string Back = "Back";
         public const string Exit = "Exit";

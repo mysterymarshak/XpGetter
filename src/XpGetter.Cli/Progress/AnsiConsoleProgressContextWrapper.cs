@@ -14,6 +14,11 @@ public class AnsiConsoleProgressContextWrapper : IProgressContext
         _ctx = ctx;
     }
 
+    public IProgressTask AddTask(string description)
+    {
+        return new AnsiConsoleProgressTaskWrapper(_ctx.AddTask(description));
+    }
+
     public IProgressTask AddTask(SteamSession session, string description)
     {
         return new AnsiConsoleProgressTaskWrapper(_ctx.AddTask(session, description));

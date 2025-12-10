@@ -10,6 +10,7 @@ public static class Constants
     public const int MaxInventoryHistoryPagesToLoad = 3;
     public const int MaxAccounts = 5;
     public const string GitHubPageUrl = $"https://github.com/{Author}/{ProgramName}";
+    public const string GitHubReleasesPageUrl = $"https://github.com/{Author}/{ProgramName}/releases";
 }
 
 // CONFIG VERSION CHANGES

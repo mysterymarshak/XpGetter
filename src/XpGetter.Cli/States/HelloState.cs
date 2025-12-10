@@ -38,7 +38,13 @@ public class HelloState : BaseState
             }
         }
 
-        var choices = new List<string> { Messages.Start.GetActivityInfo, Messages.Start.ManageAccounts, Messages.Common.Exit };
+        var choices = new List<string>
+        {
+            Messages.Start.GetActivityInfo,
+            Messages.Start.ManageAccounts,
+            Messages.Start.CheckForUpdates,
+            Messages.Common.Exit
+        };
         var choice = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
                 .Title(Messages.Common.ChoiceOption)
@@ -48,6 +54,7 @@ public class HelloState : BaseState
         {
             Messages.Start.GetActivityInfo => await GoTo<StartState>(new NamedParameter("configuration", _configuration)),
             Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
+            Messages.Start.CheckForUpdates => await GoTo<CheckUpdatesState>(new NamedParameter("configuration", _configuration)),
             _ => new ExitExecutionResult()
         };
     }
