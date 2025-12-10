@@ -2,6 +2,7 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Serilog;
 using XpGetter.Configuration.Entities;
+using XpGetter.Configuration.Repositories.FileOperationStrategies;
 using XpGetter.Extensions;
 
 namespace XpGetter.Configuration.Repositories;
@@ -12,12 +13,14 @@ public class ConfigurationRepository : IConfigurationRepository
 
     private const string FileName = "settings.json";
 
+    private readonly IFileOperationStrategy _fileOperationStrategy;
     private readonly ILogger _logger;
 
     private AppConfiguration? _configuration;
 
-    public ConfigurationRepository(ILogger logger)
+    public ConfigurationRepository(IFileOperationStrategy fileOperationStrategy, ILogger logger)
     {
+        _fileOperationStrategy = fileOperationStrategy;
         _logger = logger;
     }
 
@@ -43,7 +46,7 @@ public class ConfigurationRepository : IConfigurationRepository
             return _configuration!;
         }
 
-        var fileContent = File.ReadAllText(FilePath);
+        var fileContent = _fileOperationStrategy.ReadFileContent(FilePath);
         var deserialized = JsonConvert.DeserializeObject<AppConfiguration>(fileContent);
 
         if (deserialized is null)
@@ -59,7 +62,7 @@ public class ConfigurationRepository : IConfigurationRepository
     public void Export(AppConfiguration configuration)
     {
         StoreConfigurationInstance(configuration);
-        File.WriteAllText(FilePath, JsonConvert.SerializeObject(configuration));
+        _fileOperationStrategy.WriteFileContent(FilePath, JsonConvert.SerializeObject(configuration));
     }
 
     private AppConfiguration WriteDefaultToDisk()

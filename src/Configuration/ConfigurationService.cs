@@ -7,7 +7,6 @@ using XpGetter.Results;
 
 namespace XpGetter.Configuration;
 
-// TODO: make encrypted impl
 public interface IConfigurationService
 {
     AppConfigurationDto GetConfiguration();

@@ -7,6 +7,7 @@ using Serilog;
 using XpGetter.Cli.States;
 using XpGetter.Configuration;
 using XpGetter.Configuration.Repositories;
+using XpGetter.Configuration.Repositories.FileOperationStrategies;
 using XpGetter.Extensions;
 using XpGetter.Mappers;
 using XpGetter.Markets;
@@ -103,5 +104,9 @@ public class MainModule : Module
             .AssignableTo<BaseState>()
             .AsSelf()
             .InstancePerDependency();
+
+        builder.RegisterType<DirectFileOperationStrategy>()
+            .As<IFileOperationStrategy>()
+            .SingleInstance();
     }
 }
