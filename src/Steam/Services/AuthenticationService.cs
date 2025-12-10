@@ -375,7 +375,7 @@ public class AuthenticationService : IAuthenticationService
         {
             var url = authSession.ChallengeURL;
             QrCode.DrawSmallestAscii(url);
-            // TODO inverse dependency ?
+            // TODO inverse dependency ? also see AnsiConsole.Live
         }
 
         if (authError is not null)

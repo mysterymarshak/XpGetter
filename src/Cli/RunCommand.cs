@@ -23,6 +23,7 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
     {
         try
         {
+            // TODO: add some logging
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterModule<MainModule>();
             var container = containerBuilder.Build();

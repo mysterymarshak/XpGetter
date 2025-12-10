@@ -25,6 +25,7 @@ public class MainModule : Module
             .WriteTo.File("log.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 3)
             .MinimumLevel.Debug()
             .CreateLogger();
+        // TODO: folder should be excplicitly that in which executale is located
 
         builder.RegisterInstance(logger)
             .As<ILogger>()

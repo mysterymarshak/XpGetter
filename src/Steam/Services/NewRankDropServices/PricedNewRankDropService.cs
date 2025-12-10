@@ -68,7 +68,7 @@ public class PricedNewRankDropService : INewRankDropService
 
         foreach (var price in itemPrices.Where(x => x.Value == 0))
         {
-            // TODO: catch this situations one by one and analyze them, maybe there're just no offers for this item and its not an error
+            // TODO: catch this situations one by one and analyze them, maybe there're just no offers for this item (probably won't happen with weekly drop items) and its not an error
             getItemsPriceResultIsWarning = true;
             _logger.Warning(Messages.Market.InvalidPriceRetrieved, price.MarketName, price.ProviderRaw);
         }

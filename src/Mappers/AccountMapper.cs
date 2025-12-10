@@ -15,7 +15,7 @@ public class AccountMapper
             WalletCurrency = entity.CacheData?.WalletCurrency,
             RefreshToken = entity.RefreshToken,
             Username = entity.Username,
-            ActivityInfo = null // TODO
+            ActivityInfo = null // TODO: caching
         };
     }
 
