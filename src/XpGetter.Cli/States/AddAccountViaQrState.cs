@@ -51,7 +51,7 @@ public class AddAccountViaQrState : BaseState
         var addAccountResult = _configurationService.TryAddAccount(configuration, account);
         if (addAccountResult.IsT1)
         {
-            AnsiConsole.MarkupLine(Messages.AddAccount.AccountAlreadyExists);
+            AnsiConsole.MarkupLine(Messages.AddAccount.AccountAlreadyExists, account.Username);
         }
         else
         {
