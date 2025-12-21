@@ -29,6 +29,7 @@ public class FallbackMarketService : IMarketService
             result = await _steam.GetItemsPriceAsync(items, currency);
         }
 
+        _logger.Debug(Messages.Market.GotPricesLog, result);
         return result;
     }
 }

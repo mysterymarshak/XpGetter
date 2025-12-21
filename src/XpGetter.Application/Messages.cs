@@ -17,6 +17,7 @@ public static class Messages
         public const string GetActivityInfo = "Get activity info";
         public const string ManageAccounts = "Manage accounts";
         public const string CheckForUpdates = "Check for updates";
+        public const string Exited = "Exited.";
     }
 
     public static class Version
@@ -170,6 +171,7 @@ public static class Messages
         public const string NullCursorForMispagedDrop = "Cannot retrieve mispaged drop if cursor is null.";
         public const string NotSuccessfulResultInLoadInventoryHistory = "Success: false while retrieving inventory history. See details in logs.";
         public const string NotSuccessfulResultInLoadInventoryHistoryLogger = "Success: false while retrieving inventory history. Raw response: {Response}";
+        public const string EnterToReturn = "Press enter to return to main menu...";
     }
 
     public static class Wallet
@@ -184,6 +186,7 @@ public static class Messages
         public const string CannotFindItemForPrice = "Cannot find original item from the name provided in price response. Item to find: '{MarketName}'. All items: '{@MarketNames}'";
         public const string InvalidPriceRetrieved = "Invalid price for '{MarketName}' is retrieved. Used provider: {PriceProvider}. If there's no warning about using steam market instead of csgo market, then the second one service was used (as default).";
         public const string FallbackServiceUsedSteam = "Couldn't get items [{@ItemNames}] price via csgo market service. Trying to use steam one.";
+        public const string GotPricesLog = "Got items' prices: {@Prices}";
     }
 
     public static class Common
@@ -195,5 +198,6 @@ public static class Messages
         public const string ImpossibleMethodCase = "Impossible case. {0}()";
         public const string FatalError =
             $"[red]Some errors occurred. Read their descriptions to understand what happened. The program cannot continue execution. Check your internet connection or report a bug to the developer. Also, see the [link={Constants.GitHubPageUrl}]GitHub page[/] for similar issues or the FAQ.[/]";
+        public const string Gap = "[slateblue3_1]===============[/]";
     }
 }

@@ -61,6 +61,7 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
                 return 1;
             }
 
+            AnsiConsole.MarkupLine(Messages.Start.Exited);
             return 0;
         }
         catch (Exception exception)

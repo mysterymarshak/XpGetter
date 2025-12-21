@@ -34,7 +34,7 @@ public class RetrieveActivityState : BaseState
                 var errorDelegate = () => error.DumpToConsole(Messages.Activity.GetActivityError);
                 if (errorResult is null)
                 {
-                    errorResult = new ErrorExecutionResult(errorDelegate);    
+                    errorResult = new ErrorExecutionResult(errorDelegate);
                 }
                 else
                 {
