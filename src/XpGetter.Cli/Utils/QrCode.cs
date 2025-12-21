@@ -11,6 +11,11 @@ public class QrCode : IQrCode
 
     public void Draw(string url)
     {
+        Render(url);
+    }
+
+    public void Clear()
+    {
         if (_lastHeight > 0)
         {
             AnsiConsole.Cursor.MoveUp(_lastHeight);
@@ -27,8 +32,6 @@ public class QrCode : IQrCode
 
             AnsiConsole.Cursor.MoveUp(_lastHeight - 1);
         }
-
-        Render(url);
     }
 
     public void Reset()

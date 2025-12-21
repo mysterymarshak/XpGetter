@@ -337,6 +337,10 @@ public class AuthenticationService : IAuthenticationService
                 Exception = exception
             };
         }
+        finally
+        {
+            _qrCode.Clear();
+        }
 
         void OnLoggedOn(SteamUser.LoggedOnCallback callback)
         {
