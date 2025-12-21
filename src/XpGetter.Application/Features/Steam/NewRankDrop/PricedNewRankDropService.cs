@@ -44,7 +44,7 @@ public class PricedNewRankDropService : INewRankDropService
         var getNewRankDropResult =
             ((Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
 
-        getWalletCurrencyTask.SetResult(session, getNewRankDropResult.IsT0 ?
+        getWalletCurrencyTask.SetResult(session, getWalletInfoResult.IsT0 ?
             Messages.Statuses.RetrievingWalletInfoOk : Messages.Statuses.RetrievingWalletInfoError);
 
         if (getWalletInfoResult.TryPickT1(out var error, out var walletInfo))
@@ -52,11 +52,14 @@ public class PricedNewRankDropService : INewRankDropService
             _logger.Warning(error.Message);
             _logger.Warning(error.Exception, string.Empty);
 
+            getItemsPriceTask.SetResult(session, Messages.Statuses.RetrievingItemsPriceError);
+
             return getNewRankDropResult;
         }
 
         if (!getNewRankDropResult.TryPickT0(out var newRankDrop, out _))
         {
+            getItemsPriceTask.SetResult(session, Messages.Statuses.RetrievingItemsPriceError);
             return getNewRankDropResult;
         }
 
@@ -87,7 +90,7 @@ public class PricedNewRankDropService : INewRankDropService
         }
 
         getItemsPriceTask.SetResult(session, (getItemsPriceResultIsWarning || !itemPrices.Any())
-            ? Messages.Statuses.RetrievingItemsPriceWarning : Messages.Statuses.RetrievingItemsPriceOk);
+            ? Messages.Statuses.RetrievingItemsPriceError : Messages.Statuses.RetrievingItemsPriceOk);
 
         return getNewRankDropResult;
     }

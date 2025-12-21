@@ -27,28 +27,25 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterModule<ApplicationModule>();
             containerBuilder.RegisterModule<CliModule>();
-            var container = containerBuilder.Build();
+            using var container = containerBuilder.Build();
 
             var statesResolver = container.Resolve<IStatesResolver>();
-            var configurationService = container.Resolve<IConfigurationService>();
             var logger = container.Resolve<ILogger>();
             var context = new StateContext(statesResolver);
-            var configuration = configurationService.GetConfiguration();
 
             logger.Debug(Messages.Start.HelloLog);
 
-            StateExecutionResult result;
-            if (arguments.SkipMenu)
-            {
-                var startState = context.ResolveState<StartState>(new NamedParameter("configuration", configuration));
-                result = await startState.TransferControl();
-            }
-            else
-            {
-                var helloState = context.ResolveState<HelloState>(new NamedParameter("configuration", configuration));
-                result = await helloState.TransferControl();
-            }
+            var configurationService = container.Resolve<IConfigurationService>();
+            var configuration = configurationService.GetConfiguration();
+            var configurationParameter = new NamedParameter("configuration", configuration);
 
+            var initialState = (BaseState)(arguments.SkipMenu switch
+            {
+                true => context.ResolveState<StartState>(configurationParameter),
+                false => context.ResolveState<HelloState>(configurationParameter)
+            });
+
+            var result = await initialState.TransferControl();
             if (result is PanicExecutionResult panicExecutionResult)
             {
                 panicExecutionResult.DumpError();

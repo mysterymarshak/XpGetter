@@ -6,7 +6,7 @@ using XpGetter.Application.Errors;
 
 namespace XpGetter.Application.Features.Steam;
 
-public interface ISessionService
+public interface ISessionService : IDisposable
 {
     Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(
         string? clientName = null, AccountDto? account = null);
@@ -111,6 +111,15 @@ public class SessionService : ISessionService
             isDisconnected = true;
             _logger.Debug(Messages.Session.BoundedSessionLogFormat, clientName,
                 Messages.Session.Disconnected);
+        }
+    }
+
+    public void Dispose()
+    {
+        foreach (var kv in _sessions)
+        {
+            var session = kv.Value;
+            session.Dispose();
         }
     }
 
