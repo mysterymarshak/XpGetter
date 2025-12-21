@@ -1,7 +1,8 @@
 using Spectre.Console;
 using XpGetter.Application.Dto;
+using XpGetter.Application.Extensions;
 
-namespace XpGetter.Application.Extensions;
+namespace XpGetter.Cli.Extensions;
 
 public static class ProgressContextExtensions
 {

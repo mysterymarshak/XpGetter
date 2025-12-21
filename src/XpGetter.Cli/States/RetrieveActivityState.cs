@@ -1,6 +1,5 @@
 using XpGetter.Application;
 using XpGetter.Application.Dto;
-using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Steam;
 using XpGetter.Application.Utils.Progress;
 using XpGetter.Cli.Extensions;

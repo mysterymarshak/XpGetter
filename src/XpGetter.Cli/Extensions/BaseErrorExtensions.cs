@@ -1,7 +1,7 @@
 using Spectre.Console;
 using XpGetter.Application.Errors;
 
-namespace XpGetter.Application.Extensions;
+namespace XpGetter.Cli.Extensions;
 
 public static class BaseErrorExtensions
 {

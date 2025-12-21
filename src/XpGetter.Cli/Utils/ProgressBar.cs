@@ -1,10 +1,9 @@
 using Spectre.Console;
 
-namespace XpGetter.Application.Utils;
+namespace XpGetter.Cli.Utils;
 
 public static class ProgressBar
 {
-    // TODO: move to Cli
     public static void Print(int value1, int value2)
     {
         var percentage = (float)value1/value2;

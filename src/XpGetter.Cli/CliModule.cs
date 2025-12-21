@@ -1,5 +1,7 @@
 using Autofac;
+using XpGetter.Application.Utils;
 using XpGetter.Cli.States;
+using XpGetter.Cli.Utils;
 
 namespace XpGetter.Cli;
 
@@ -14,6 +16,10 @@ public class CliModule : Module
         builder.RegisterAssemblyTypes(ThisAssembly)
             .AssignableTo<BaseState>()
             .AsSelf()
+            .InstancePerDependency();
+
+        builder.RegisterType<QrCode>()
+            .As<IQrCode>()
             .InstancePerDependency();
     }
 }

@@ -1,9 +1,9 @@
 using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
-using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Steam;
+using XpGetter.Cli.Extensions;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;

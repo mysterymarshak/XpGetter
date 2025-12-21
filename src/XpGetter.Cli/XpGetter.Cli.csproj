@@ -12,4 +12,9 @@
       <ProjectReference Include="..\XpGetter.Application\XpGetter.Application.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="QRCoder" Version="1.7.0" />
+      <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
+    </ItemGroup>
+
 </Project>

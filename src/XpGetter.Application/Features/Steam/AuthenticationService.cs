@@ -25,10 +25,12 @@ public interface IAuthenticationService
 
 public class AuthenticationService : IAuthenticationService
 {
+    private readonly IQrCode _qrCode;
     private readonly ILogger _logger;
 
-    public AuthenticationService(ILogger logger)
+    public AuthenticationService(IQrCode qrCode, ILogger logger)
     {
+        _qrCode = qrCode;
         _logger = logger;
     }
 
@@ -264,6 +266,8 @@ public class AuthenticationService : IAuthenticationService
     public async Task<OneOf<Success, UserCancelledAuth, AuthenticationServiceError>> AuthenticateByQrCodeAsync(
         SteamSession session)
     {
+        _qrCode.Reset();
+
         AccountDto? account = null;
         AuthenticationServiceError? authError = null;
 
@@ -283,7 +287,6 @@ public class AuthenticationService : IAuthenticationService
                 });
             authSession.ChallengeURLChanged = () =>
             {
-                // TODO: better refresh
                 _logger.Information(Messages.Authentication.QrCodeRefreshed);
                 DrawChallengeUrl(authSession);
             };
@@ -374,8 +377,7 @@ public class AuthenticationService : IAuthenticationService
         void DrawChallengeUrl(QrAuthSession authSession)
         {
             var url = authSession.ChallengeURL;
-            QrCode.DrawSmallestAscii(url);
-            // TODO inverse dependency ? also see AnsiConsole.Live
+            _qrCode.Draw(url);
         }
 
         if (authError is not null)

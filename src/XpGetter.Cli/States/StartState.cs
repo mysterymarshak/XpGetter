@@ -4,6 +4,7 @@ using XpGetter.Application;
 using XpGetter.Application.Dto;
 using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
+using XpGetter.Cli.Utils;
 
 namespace XpGetter.Cli.States;
 

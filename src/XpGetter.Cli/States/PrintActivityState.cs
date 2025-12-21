@@ -1,7 +1,7 @@
 using Spectre.Console;
 using XpGetter.Application.Dto;
-using XpGetter.Application.Utils;
 using XpGetter.Cli.States.Results;
+using XpGetter.Cli.Utils;
 
 namespace XpGetter.Cli.States;
 
