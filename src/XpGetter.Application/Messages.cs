@@ -171,7 +171,7 @@ public static class Messages
         public const string NullCursorForMispagedDrop = "Cannot retrieve mispaged drop if cursor is null.";
         public const string NotSuccessfulResultInLoadInventoryHistory = "Success: false while retrieving inventory history. See details in logs.";
         public const string NotSuccessfulResultInLoadInventoryHistoryLogger = "Success: false while retrieving inventory history. Raw response: {Response}";
-        public const string EnterToReturn = "Press enter to return to main menu...";
+        public const string AnyKeyToReturn = "Press any key to return to main menu...";
     }
 
     public static class Wallet

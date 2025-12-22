@@ -23,7 +23,7 @@ public class PrintActivityState : BaseState
     {
         PrintActivityInfo();
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine(Messages.Activity.EnterToReturn);
+        AnsiConsole.MarkupLine(Messages.Activity.AnyKeyToReturn);
 
         Console.ReadKey();
 
