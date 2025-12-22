@@ -53,6 +53,7 @@ public class CheckUpdatesState : BaseState
 
         return await GoTo<HelloState>(
             new NamedParameter("configuration", _configuration),
+            new NamedParameter("checkAndPrintAccounts", false),
             new NamedParameter("skipHelloMessage", true));
     }
 }

@@ -46,6 +46,7 @@ public static class Messages
         public const string ViaPassword = "Username/password";
         public const string ViaQrCode = "QR-code";
         public const string AddingAccountViaQr = "Adding new account via QR...";
+        public const string ScanQrCode = "Scan this QR code in Steam Guard mobile app:";
         public const string SuccessfullyAdded = "[green]Account '{0}' was successfully added.[/]";
         public const string TypeUsername = "Username:";
         public const string TypePassword = "Password:";
@@ -191,6 +192,7 @@ public static class Messages
 
     public static class Common
     {
+        public const string Done = "Done";
         public const string Dummy = "dummy";
         public const string ChoiceOption = "Choice option:";
         public const string Back = "Back";

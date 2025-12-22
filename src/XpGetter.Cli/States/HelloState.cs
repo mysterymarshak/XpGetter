@@ -11,12 +11,14 @@ public class HelloState : BaseState
 {
     private readonly AppConfigurationDto _configuration;
     private readonly bool _skipHelloMessage;
+    private readonly bool _checkAndPrintAccounts;
 
     public HelloState(AppConfigurationDto configuration, StateContext context,
-        bool skipHelloMessage = false) : base(context)
+                      bool skipHelloMessage = false, bool checkAndPrintAccounts = true) : base(context)
     {
         _configuration = configuration;
         _skipHelloMessage = skipHelloMessage;
+        _checkAndPrintAccounts = checkAndPrintAccounts;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -24,7 +26,10 @@ public class HelloState : BaseState
         if (!_skipHelloMessage)
         {
             AnsiConsole.MarkupLine(Messages.Start.Hello);
+        }
 
+        if (_checkAndPrintAccounts)
+        {
             if (_configuration.Accounts.Any())
             {
                 AnsiConsole.MarkupLine(Messages.Start.SavedAccounts,

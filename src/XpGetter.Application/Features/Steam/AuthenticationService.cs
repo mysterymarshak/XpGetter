@@ -381,7 +381,7 @@ public class AuthenticationService : IAuthenticationService
         void DrawChallengeUrl(QrAuthSession authSession)
         {
             var url = authSession.ChallengeURL;
-            _qrCode.Draw(url);
+            _qrCode.Draw(Messages.AddAccount.ScanQrCode, url);
         }
 
         if (authError is not null)

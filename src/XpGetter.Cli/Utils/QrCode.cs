@@ -9,9 +9,10 @@ public class QrCode : IQrCode
 {
     private int _lastHeight = 0;
 
-    public void Draw(string url)
+    public void Draw(string message, string content)
     {
-        Render(url);
+        AnsiConsole.MarkupLine(message);
+        Render(content);
     }
 
     public void Clear()

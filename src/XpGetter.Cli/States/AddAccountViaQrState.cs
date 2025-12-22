@@ -46,6 +46,8 @@ public class AddAccountViaQrState : BaseState
             return await GoTo<AddAccountState>();
         }
 
+        AnsiConsole.MarkupLine(Messages.Common.Done);
+
         var account = session.Account!;
         var configuration = _configurationService.GetConfiguration();
         var addAccountResult = _configurationService.TryAddAccount(configuration, account);
@@ -59,6 +61,8 @@ public class AddAccountViaQrState : BaseState
             AnsiConsole.MarkupLine(Messages.AddAccount.SuccessfullyAdded, account.Username);
         }
 
-        return await GoTo<HelloState>(new NamedParameter("configuration", configuration));
+        return await GoTo<HelloState>(
+            new NamedParameter("skipHelloMessage", true),
+            new NamedParameter("configuration", configuration));
     }
 }
