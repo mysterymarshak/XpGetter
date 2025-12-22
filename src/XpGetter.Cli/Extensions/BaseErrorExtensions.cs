@@ -17,9 +17,9 @@ public static class BaseErrorExtensions
             }
         }
 
-        public void DumpToConsole(string format, params object[] args)
+        public void DumpToConsole(string format, string message)
         {
-            AnsiConsole.MarkupLine(format, args);
+            AnsiConsole.MarkupLine(format, message);
             AnsiConsole.MarkupLine(error.Message);
             if (error.Exception is not null)
             {
