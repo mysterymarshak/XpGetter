@@ -88,13 +88,14 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         pattern: release-artifacts-*
+        path: artifacts
         merge-multiple: true
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ env.RELEASE_TAG }}
-        name: Release ${{ env.RELEASE_TAG }}
+        name: ${{ env.RELEASE_TAG }}
         draft: false
         prerelease: false
         files: artifacts/*.zip
