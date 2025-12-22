@@ -46,14 +46,13 @@ public class PrintActivityState : BaseState
             AnsiConsole.MarkupLine($"[blue]{info.Account.PersonalName}[/]");
             AnsiConsole.MarkupLine($"Rank: {xpData.Rank}");
             AnsiConsole.MarkupLine($"Last drop time: {info.LastNewRankDrop.GetLastDropTime()}");
-            AnsiConsole.MarkupLine($"Last loot: {newRankDrop.GetPreviousLoot()}");
+            AnsiConsole.MarkupLine($"Last drop: {newRankDrop.GetPreviousLoot()}");
             AnsiConsole.MarkupLine($"Drop is available: [{dropAvailableColor}]{isDropAvailableFormatted}[/]");
             if (info.AdditionalMessage is not null)
             {
                 AnsiConsole.MarkupLine($"[yellow]{info.AdditionalMessage}[/]");
             }
             // TODO: formatting
-
             ProgressBar.Print(xpData.Xp, 5000);
 
             if (i != _activityInfos.Count() - 1)
