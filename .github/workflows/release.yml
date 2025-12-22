@@ -52,11 +52,13 @@ jobs:
         dotnet publish src/XpGetter.Cli/XpGetter.Cli.csproj
         -c Release
         -r ${{ matrix.rid }}
-        --self-contained ${{ matrix.is_self_contained }}
+        -p:SelfContained=${{ matrix.is_self_contained }}
         -p:PublishSingleFile=true
         -p:PublishTrimmed=false
         -p:EnableCompressionInSingleFile=${{ matrix.compression }}
-        -o ./publish_output
+        -p:DebugType=None
+        -p:DebugSymbols=false
+        -o ./publish_output/XpGetter
 
     - name: Zip Build Output
       run: |
@@ -91,12 +93,12 @@ jobs:
         path: artifacts
         merge-multiple: true
 
-    - name: Create GitHub Release
+    - name: Create GitHub Release draft
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ env.RELEASE_TAG }}
         name: ${{ env.RELEASE_TAG }}
-        draft: false
+        draft: true
         prerelease: false
         files: artifacts/*.zip
         generate_release_notes: true
