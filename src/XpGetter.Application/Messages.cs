@@ -101,6 +101,7 @@ public static class Messages
     public static class Http
     {
         public const string Error = "[red]Http client error.[/]";
+        public const string ErrorLog = "Http client error.";
         public const string HtmlError = "[red]Http client/invalid html error.[/]";
         public const string DeserializationError = "Cannot deserialize json. See details in logs.";
         public const string DeserializationErrorLog = "Cannot deserialize json. Raw: {Json}";
@@ -164,7 +165,6 @@ public static class Messages
 
     public static class Activity
     {
-        public const string HttpError = "Http client error: {0}";
         public const string ActivityParserError = "Activity parser error: {0}";
         public const string NoNewRankDropInfo = "No new rank drop info were found. Are you new in cs2?";
         public const string SessionWithNoAccount = "Before requesting activity info session should be authorized and account should be bounded.";
@@ -201,6 +201,7 @@ public static class Messages
         public const string ImpossibleMethodCase = "Impossible case. {0}()";
         public const string FatalError =
             $"[red]Some errors occurred. Read their descriptions to understand what happened. The program cannot continue execution. Check your internet connection or report a bug to the developer. Also, see the [link={Constants.GitHubPageUrl}]GitHub page[/] for similar issues or the FAQ.[/]";
+        public const string AnyKeyToExit = "Press any key to exit...";
         public const string Gap = "[slateblue3_1]===============[/]";
     }
 }

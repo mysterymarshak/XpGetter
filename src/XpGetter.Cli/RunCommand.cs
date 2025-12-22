@@ -57,6 +57,13 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
 
                 return 1;
             }
+            else if (result is ErrorExecutionResult errorExecutionResult)
+            {
+                errorExecutionResult.DumpError();
+
+                WaitForAnyKeyToExit();
+                return 1;
+            }
 
             AnsiConsole.MarkupLine(Messages.Start.Exited);
             return 0;
@@ -66,7 +73,16 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
             AnsiConsole.MarkupLine(Messages.Common.FatalError);
             AnsiConsole.WriteException(exception);
 
+            WaitForAnyKeyToExit();
+
             return 1;
         }
+    }
+
+    private void WaitForAnyKeyToExit()
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine(Messages.Common.AnyKeyToExit);
+        Console.ReadKey();
     }
 }

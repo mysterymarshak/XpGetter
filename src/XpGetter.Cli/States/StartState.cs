@@ -60,8 +60,15 @@ public class StartState : BaseState
                     new NamedParameter("sessions", authenticatedSessions),
                     new NamedParameter("ctx", ctx));
 
-                authenticationStateResult.Error?.DumpError();
-                retrieveActivityStateResult.Error?.DumpError();
+                if (authenticationStateResult.Error is not null)
+                {
+                    return authenticationStateResult.Error;
+                }
+
+                if (retrieveActivityStateResult.Error is not null)
+                {
+                    return retrieveActivityStateResult.Error;
+                }
 
                 if (retrieveActivityStateResult.ActivityInfos.Any())
                 {

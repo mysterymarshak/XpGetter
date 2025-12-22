@@ -134,7 +134,7 @@ public class NewRankDropService : INewRankDropService
         {
             return new NewRankDropServiceError
             {
-                Message = string.Format(Messages.Activity.HttpError, error.Message),
+                Message = error.Message,
                 Exception = error.Exception
             };
         }

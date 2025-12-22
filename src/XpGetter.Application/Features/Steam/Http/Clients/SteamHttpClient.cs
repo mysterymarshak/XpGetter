@@ -49,6 +49,8 @@ public class SteamHttpClient : ISteamHttpClient
         }
         catch (Exception exception)
         {
+            _logger.Error(exception, Messages.Http.ErrorLog);
+
             return new SteamHttpClientError
             {
                 Message = Messages.Http.Error,
@@ -81,6 +83,8 @@ public class SteamHttpClient : ISteamHttpClient
         }
         catch (Exception exception)
         {
+            _logger.Error(exception, Messages.Http.ErrorLog);
+
             return new SteamHttpClientError
             {
                 Message = Messages.Http.Error,
@@ -107,6 +111,8 @@ public class SteamHttpClient : ISteamHttpClient
         }
         catch (Exception exception)
         {
+            _logger.Error(exception, Messages.Http.ErrorLog);
+
             return new SteamHttpClientError
             {
                 Message = Messages.Http.HtmlError,

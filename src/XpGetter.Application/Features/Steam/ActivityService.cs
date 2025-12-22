@@ -66,7 +66,7 @@ public class ActivityService : IActivityService
             getActivityInfoTask.SetResult(session, Messages.Statuses.RetrievingActivityError);
             return new ActivityServiceError
             {
-                Message = string.Format(Messages.Activity.HttpError, httpClientError.Message),
+                Message = httpClientError.Message,
                 Exception = httpClientError.Exception
             };
         }
