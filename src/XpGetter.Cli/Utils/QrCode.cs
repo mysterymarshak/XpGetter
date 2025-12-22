@@ -31,7 +31,8 @@ public class QrCode : IQrCode
                 }
             }
 
-            AnsiConsole.Cursor.MoveUp(_lastHeight - 1);
+            // +1 because of "message" before qr code
+            AnsiConsole.Cursor.MoveUp(_lastHeight - 1 + 1);
         }
     }
 

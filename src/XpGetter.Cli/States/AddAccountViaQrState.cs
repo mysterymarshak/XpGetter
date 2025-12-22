@@ -1,4 +1,5 @@
 using Autofac;
+using Serilog;
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Features.Configuration;
@@ -13,13 +14,15 @@ public class AddAccountViaQrState : BaseState
     private readonly ISessionService _sessionService;
     private readonly IAuthenticationService _authenticationService;
     private readonly IConfigurationService _configurationService;
+    private readonly ILogger _logger;
 
     public AddAccountViaQrState(ISessionService sessionService, IAuthenticationService authenticationService,
-        IConfigurationService configurationService, StateContext context) : base(context)
+        IConfigurationService configurationService, StateContext context, ILogger logger) : base(context)
     {
         _sessionService = sessionService;
         _authenticationService = authenticationService;
         _configurationService = configurationService;
+        _logger = logger;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -34,7 +37,15 @@ public class AddAccountViaQrState : BaseState
         }
 
         var authenticationResult = await _authenticationService.AuthenticateByQrCodeAsync(session);
-        if (authenticationResult.TryPickT2(out var authError, out _))
+
+        if (authenticationResult.TryPickT2(out var steamKitFail, out _))
+        {
+            AnsiConsole.MarkupLine(Messages.Authentication.SteamKitJobFailed);
+            _logger.Error(steamKitFail.Exception, string.Empty);
+            return await GoTo<AddAccountState>();
+        }
+
+        if (authenticationResult.TryPickT3(out var authError, out _))
         {
             authError.DumpToConsole(Messages.Authentication.AuthenticationError, session.Name);
             return await GoTo<AddAccountState>();

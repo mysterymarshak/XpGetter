@@ -135,6 +135,7 @@ public static class Messages
         public const string UnauthenticatedSessions = "[red]There're unauthenticated, not expired sessions for some reason.[/]";
         public const string SuccessfullyAuthenticated = "Successfully authenticated sessions: {@SessionNames}";
         public const string InvalidPassword = "[red]Invalid password. Try again.[/]";
+        public const string SteamKitJobFailed = "[red]It looks like you didn't try to log in some time; original exception was dumped to logs. Try again.[/]";
         public const string Cancelled = "[red]It looks like you cancelled the authentication in the Steam mobile app. Try again.[/]";
         public const string InvalidJwtToken = "Invalid jwt token is provided.";
     }

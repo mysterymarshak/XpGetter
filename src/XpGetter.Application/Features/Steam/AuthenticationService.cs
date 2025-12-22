@@ -19,7 +19,7 @@ public interface IAuthenticationService
     Task<OneOf<Success, InvalidPassword, UserCancelledAuth, AuthenticationServiceError>>
         AuthenticateByUsernameAndPasswordAsync(SteamSession session, string username, string password);
 
-    Task<OneOf<Success, UserCancelledAuth, AuthenticationServiceError>>
+    Task<OneOf<Success, UserCancelledAuth, SteamKitJobFailed, AuthenticationServiceError>>
         AuthenticateByQrCodeAsync(SteamSession session);
 }
 
@@ -263,7 +263,7 @@ public class AuthenticationService : IAuthenticationService
         return new Success();
     }
 
-    public async Task<OneOf<Success, UserCancelledAuth, AuthenticationServiceError>> AuthenticateByQrCodeAsync(
+    public async Task<OneOf<Success, UserCancelledAuth, SteamKitJobFailed, AuthenticationServiceError>> AuthenticateByQrCodeAsync(
         SteamSession session)
     {
         _qrCode.Reset();
@@ -288,6 +288,7 @@ public class AuthenticationService : IAuthenticationService
             authSession.ChallengeURLChanged = () =>
             {
                 _logger.Information(Messages.Authentication.QrCodeRefreshed);
+                _qrCode.Clear();
                 DrawChallengeUrl(authSession);
             };
 
@@ -325,9 +326,14 @@ public class AuthenticationService : IAuthenticationService
         catch (TaskCanceledException)
         {
         }
-        catch (AuthenticationException authenticationException) when (authenticationException.Result == EResult.FileNotFound)
+        catch (AuthenticationException authenticationException) when (authenticationException.Result ==
+                                                                      EResult.FileNotFound)
         {
             return new UserCancelledAuth();
+        }
+        catch (AsyncJobFailedException jobFailedException)
+        {
+            return new SteamKitJobFailed(jobFailedException);
         }
         catch (Exception exception)
         {
