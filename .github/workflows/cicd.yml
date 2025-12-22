@@ -1,0 +1,129 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build_and_test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore Dependencies
+      run: dotnet restore src/XpGetter.slnx
+
+    - name: Build
+      run: dotnet build src/XpGetter.slnx --no-restore -c Release
+
+    #- name: Test
+      # run: dotnet test src/XpGetter.slnx --no-build -c Release
+
+  release:
+    name: Release
+    needs: build_and_test
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rid: [win-x64, linux-x64]
+        is_self_contained: [true, false]
+        include:
+          - is_self_contained: true
+            compression: true
+            config_name: "SelfContained"
+          - is_self_contained: false
+            compression: false
+            config_name: "FrameworkDependent"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Verify Version Match
+      id: check_version
+      run: |
+        FILE_VERSION=$(cat version | tr -d '[:space:]')
+        echo "Found repo file version: $FILE_VERSION"
+
+        CS_VERSION=$(grep 'public const string Version =' src/XpGetter.Application/Constants.cs | sed -n 's/.*"\(.*\)";/\1/p')
+        echo "Found C# Constants version: $CS_VERSION"
+
+        if [ "$FILE_VERSION" != "$CS_VERSION" ]; then
+          echo "::error::Version Mismatch! Repo file says '$FILE_VERSION' but Code says '$CS_VERSION'. Update them to match."
+          exit 1
+        fi
+
+        echo "VERSION_TAG=v$FILE_VERSION" >> $GITHUB_ENV
+        echo "Versions match ($FILE_VERSION). Proceeding..."
+
+    - name: Publish App
+      run: >
+        dotnet publish src/XpGetter.Cli/XpGetter.Cli.csproj 
+        -c Release 
+        -r ${{ matrix.rid }} 
+        --self-contained ${{ matrix.is_self_contained }} 
+        -p:PublishSingleFile=true 
+        -p:PublishTrimmed=false 
+        -p:EnableCompressionInSingleFile=${{ matrix.compression }} 
+        -o ./publish_output
+
+    - name: Zip Build Output
+      run: |
+        # Use the version we extracted in the zip name
+        ZIP_NAME="XpGetter-${{ env.VERSION_TAG }}-${{ matrix.rid }}-${{ matrix.config_name }}.zip"
+        cd publish_output
+        zip -r ../$ZIP_NAME .
+        cd ..
+        echo "ARTIFACT_PATH=$ZIP_NAME" >> $GITHUB_ENV
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-artifacts-${{ matrix.rid }}-${{ matrix.config_name }}
+        path: ${{ env.ARTIFACT_PATH }}
+
+  create_release_page:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Get Version
+      run: |
+        VER=$(cat version | tr -d '[:space:]')
+        echo "RELEASE_TAG=v$VER" >> $GITHUB_ENV
+
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: release-artifacts-*
+        merge-multiple: true
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        name: Release ${{ env.RELEASE_TAG }}
+        draft: false
+        prerelease: false
+        files: artifacts/*.zip
+        generate_release_notes: true
