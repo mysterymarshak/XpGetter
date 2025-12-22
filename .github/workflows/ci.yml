@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore Dependencies
+      run: dotnet restore src/XpGetter.slnx
+
+    - name: Build
+      run: dotnet build src/XpGetter.slnx --no-restore -c Release
+
+    # - name: Test
+    #   run: dotnet test src/XpGetter.slnx --no-build -c Release
