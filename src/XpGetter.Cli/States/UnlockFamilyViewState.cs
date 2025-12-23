@@ -7,6 +7,7 @@ using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 
+// TODO: prompt to save pin
 public class UnlockFamilyViewState : BaseState
 {
     private readonly SteamSession _session;

@@ -16,7 +16,6 @@ public interface ISteamHttpClient
     Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null);
 }
 
-// TODO: handle enabled family view (now it could fail with 403)
 public class SteamHttpClient : ISteamHttpClient
 {
     private const string BaseAddress = "https://steamcommunity.com";
