@@ -25,7 +25,7 @@ public static class Messages
     {
         public const string GetException = "An exception was thrown while retrieving latest version.";
         public const string Error = "[red]Couldn't retrieve the latest version. Check the logs.[/]";
-        public const string Update = "There's a new version '[green]{0}[/]'! Go to [link={{Constants.GitHubReleasesPageUrl}}]GitHub Releases[/] to download it.";
+        public const string Update = $"There's a new version '[green]{{0}}[/]'! Go to [link={Constants.GitHubReleasesPageUrl}]GitHub Releases[/] to download it.";
         public const string Newer = "It looks like you're on a dev ver! Nothing to do.";
         public const string NoUpdates = $"{Constants.ProgramName} {Constants.Version} is up to date!";
     }
