@@ -19,7 +19,8 @@ public class QrCode : IQrCode
     {
         if (_lastHeight > 0)
         {
-            AnsiConsole.Cursor.MoveUp(_lastHeight);
+            // +1 because of "message" before qr code
+            AnsiConsole.Cursor.MoveUp(_lastHeight + 1);
 
             for (var i = 0; i < _lastHeight; i++)
             {
@@ -31,8 +32,7 @@ public class QrCode : IQrCode
                 }
             }
 
-            // +1 because of "message" before qr code
-            AnsiConsole.Cursor.MoveUp(_lastHeight - 1 + 1);
+            AnsiConsole.Cursor.MoveUp(_lastHeight - 1);
         }
     }
 
