@@ -32,14 +32,7 @@ public class RetrieveActivityState : BaseState
             if (result.TryPickT1(out var error, out _))
             {
                 var errorDelegate = () => error.DumpToConsole(Messages.Activity.GetActivityError);
-                if (errorResult is null)
-                {
-                    errorResult = new ErrorExecutionResult(errorDelegate);
-                }
-                else
-                {
-                    errorResult.Combine(new ErrorExecutionResult(errorDelegate));
-                }
+                errorResult = errorResult.CombineOrCreate(new ErrorExecutionResult(errorDelegate));
             }
         }
 
@@ -48,6 +41,6 @@ public class RetrieveActivityState : BaseState
             .Select(x => x.AsT0)
             .ToList();
 
-        return new RetrieveActivityStateResult { ActivityInfos = successResults, Error = errorResult };
+        return new RetrieveActivityExecutionResult { ActivityInfos = successResults, Error = errorResult };
     }
 }

@@ -1,6 +1,4 @@
-using Autofac;
 using Spectre.Console;
-using XpGetter.Application;
 using XpGetter.Application.Dto;
 using XpGetter.Cli.States.Results;
 using XpGetter.Cli.Utils;
@@ -19,18 +17,10 @@ public class PrintActivityState : BaseState
         _activityInfos = activityInfos.ToList();
     }
 
-    public override async ValueTask<StateExecutionResult> OnExecuted()
+    public override ValueTask<StateExecutionResult> OnExecuted()
     {
         PrintActivityInfo();
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine(Messages.Activity.AnyKeyToReturn);
-
-        Console.ReadKey();
-
-        AnsiConsole.MarkupLine(Messages.Common.Gap);
-        return await GoTo<HelloState>(
-            new NamedParameter("configuration", _configuration),
-            new NamedParameter("skipHelloMessage", true));
+        return new ValueTask<StateExecutionResult>(new SuccessExecutionResult());
     }
 
     private void PrintActivityInfo()

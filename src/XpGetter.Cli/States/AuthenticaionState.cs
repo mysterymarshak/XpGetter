@@ -49,7 +49,7 @@ public class AuthenticaionState : BaseState
             .Where(x => x.IsT1)
             .Select(x => x.AsT1)
             .DefaultIfEmpty(null)
-            .Aggregate((x, y) => x!.Combine(y!));
+            .Aggregate((x, y) => x!.CombineOrCreate(y!));
 
         var authenticatedSessions = createAndAuthenticateSessionResults
             .Where(x => x.IsT0)

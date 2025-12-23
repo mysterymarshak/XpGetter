@@ -4,11 +4,16 @@ namespace XpGetter.Cli.Extensions;
 
 public static class ErrorExecutionResultExtensions
 {
-    extension(ErrorExecutionResult result)
+    extension(ErrorExecutionResult? source)
     {
-        public ErrorExecutionResult Combine(ErrorExecutionResult other)
+        public ErrorExecutionResult CombineOrCreate(ErrorExecutionResult other)
         {
-            return new ErrorExecutionResult(result.DumpErrorDelegate + other.DumpErrorDelegate);
+            if (source is null)
+            {
+                return other;
+            }
+
+            return new ErrorExecutionResult(source.DumpErrorDelegate + other.DumpErrorDelegate);
         }
     }
 }

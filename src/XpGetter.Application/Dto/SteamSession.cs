@@ -1,4 +1,5 @@
 using SteamKit2;
+using SteamKit2.Internal;
 
 namespace XpGetter.Application.Dto;
 
@@ -14,6 +15,7 @@ public class SteamSession
     public CallbackManager CallbackManager { get; }
     public SteamUser User { get; }
     public AccountDto? Account { get; private set; }
+    public ParentalSettings? ParentalSettings { get; private set; }
 
     private string? _parentalCookie;
 
@@ -34,6 +36,11 @@ public class SteamSession
     public void BindName(string name)
     {
         Name = name;
+    }
+
+    public void BindParentalSettings(ParentalSettings? parentalSettings)
+    {
+        ParentalSettings = parentalSettings;
     }
 
     public void BindParentalCookie(string cookie)

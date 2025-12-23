@@ -146,6 +146,16 @@ public static class Messages
         public const string NotOk = "[red]Not success result is retrieved while trying to unlock family view. Details dumped to logs. Try again.[/]";
         public const string NotOkLog = "Success: false is retrieved.";
         public const string ResponseLogDetails = "Response content: {ResponseContent}; Raw headers: {@RawHeaders}";
+        public const string AccountIsLocked = "Account '[steelblue1]{0}[/]' is protected by family view. To retrieve activity info you should unlock it first.";
+        public const string PromptUnlocking = "Unlock with password?";
+        public const string SkipUnlocking = "Skip unlocking...";
+        public const string EnterThePin = "4-digit pin (empty to skip):";
+        public const string InvalidPin = "[red]Pin must be 4 digits. Try again.[/]";
+        public const string TryingToUnlock = "Trying to unlock...";
+        public const string Error = "[red]An error occurred while trying to unlock family view.[/]";
+        public const string SkipUnlockingDueToError = "Skip unlocking because of the unknown error...";
+        public const string WrongPin = "[red]Wrong pin. Try again.[/]";
+        public const string Unlocked = "[green]Unlocked![/]";
     }
 
     public static class ActivityParsers
@@ -200,6 +210,7 @@ public static class Messages
 
     public static class Common
     {
+
         public const string Done = "Done";
         public const string Dummy = "dummy";
         public const string ChoiceOption = "Choice option:";
@@ -210,5 +221,8 @@ public static class Messages
             $"[red]Some errors occurred. Read their descriptions to understand what happened. The program cannot continue execution. Check your internet connection or report a bug to the developer. Also, see the [link={Constants.GitHubPageUrl}]GitHub page[/] for similar issues or the FAQ.[/]";
         public const string AnyKeyToExit = "Press any key to exit...";
         public const string Gap = "[slateblue3_1]===============[/]";
+        public const string NothingToDo = "Nothing to do.";
+        public const string Y = "y";
+        public const string N = "n";
     }
 }

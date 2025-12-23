@@ -3,6 +3,7 @@ using OneOf.Types;
 using Serilog;
 using SteamKit2;
 using SteamKit2.Authentication;
+using SteamKit2.Internal;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
@@ -43,6 +44,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         var tokenExpired = false;
+        ParentalSettings? parentalSettings = null;
         AuthenticationServiceError? authError = null;
 
         using var cts = new CancellationTokenSource();
@@ -124,6 +126,7 @@ public class AuthenticationService : IAuthenticationService
             }
 
             _logger.Information(Messages.Authentication.LogOnOk.BindSession(session));
+            parentalSettings = callback.ParentalSettings;
         }
 
         void OnAccountInfo(SteamUser.AccountInfoCallback callback)
@@ -147,6 +150,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         session.BindAccount(account);
+        session.BindParentalSettings(parentalSettings);
         return new Success();
     }
 

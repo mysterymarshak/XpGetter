@@ -2,6 +2,7 @@ using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
+using XpGetter.Cli.Extensions;
 using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
 
@@ -24,25 +25,20 @@ public class StartState : BaseState
             return await GoTo<AddAccountState>();
         }
 
-        var pipelineResult = await AnsiConsole
-            .Progress()
-            .AutoRefresh(true)
-            .AutoClear(false)
-            .HideCompleted(false)
-            .Columns(new TaskDescriptionColumn { Alignment = Justify.Left }, new SpinnerColumn(Spinner.Known.Flip), new ElapsedTimeColumn())
-            .StartAsync(async ansiConsoleCtx =>
+        var authenticationResult = await AnsiConsole
+            .CreateProgressContext(async ansiConsoleCtx =>
             {
                 var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
-                var authenticationStateResult = (AuthenticationExecutionResult)await GoTo<AuthenticaionState>(
+                var authenticationExecutionResult = (AuthenticationExecutionResult)await GoTo<AuthenticaionState>(
                     new NamedParameter("configuration", _configuration),
                     new NamedParameter("ctx", ctx));
-                if (authenticationStateResult.Error is PanicExecutionResult)
+                if (authenticationExecutionResult.Error is PanicExecutionResult)
                 {
-                    return authenticationStateResult.Error;
+                    return authenticationExecutionResult.Error;
                 }
 
-                var authenticatedSessions = authenticationStateResult.AuthenticatedSessions;
-                if (!authenticatedSessions.Any())
+                var authenticatedSessions = authenticationExecutionResult.AuthenticatedSessions;
+                if (authenticatedSessions.Count == 0)
                 {
                     if (!_configuration.Accounts.Any())
                     {
@@ -50,40 +46,77 @@ public class StartState : BaseState
                         return await GoTo<AddAccountState>();
                     }
 
-                    authenticationStateResult.Error?.DumpError();
+                    authenticationExecutionResult.Error?.DumpError();
                     return new PanicExecutionResult();
                 }
 
-                var retrieveActivityStateResult = (RetrieveActivityStateResult)await GoTo<RetrieveActivityState>(
-                    new NamedParameter("configuration", _configuration),
-                    new NamedParameter("sessions", authenticatedSessions),
-                    new NamedParameter("ctx", ctx));
-
-                if (authenticationStateResult.Error is not null)
-                {
-                    return authenticationStateResult.Error;
-                }
-
-                if (retrieveActivityStateResult.Error is not null)
-                {
-                    return retrieveActivityStateResult.Error;
-                }
-
-                if (retrieveActivityStateResult.ActivityInfos.Any())
-                {
-                    return new SuccessExecutionResult { ActivityInfos = retrieveActivityStateResult.ActivityInfos };
-                }
-
-                return new ExitExecutionResult();
+                return authenticationExecutionResult;
             });
 
-        if (pipelineResult is SuccessExecutionResult successExecutionResult)
+        if (authenticationResult is not AuthenticationExecutionResult authenticationExecutionResult)
         {
-            return await GoTo<PrintActivityState>(
-                new NamedParameter("configuration", _configuration),
-                new NamedParameter("activityInfos", successExecutionResult.ActivityInfos));
+            return authenticationResult;
         }
 
-        return pipelineResult;
+        var sessions = authenticationExecutionResult.AuthenticatedSessions;
+        var familyViewProtected = sessions.Where(x => x.ParentalSettings?.is_enabled == true);
+        var familyViewPassedSessions = sessions;
+        PassFamilyViewExecutionResult? passFamilyViewResult = null;
+        if (familyViewProtected.Any())
+        {
+            passFamilyViewResult = (PassFamilyViewExecutionResult)await GoTo<PassFamilyViewState>(
+                new NamedParameter("sessions", sessions));
+
+            familyViewPassedSessions = passFamilyViewResult.PassedSessions;
+        }
+
+        RetrieveActivityExecutionResult? retrieveActivityStateResult = null;
+        if (familyViewPassedSessions.Count > 0)
+        {
+            retrieveActivityStateResult = await AnsiConsole
+                .CreateProgressContext(async ansiConsoleCtx =>
+                {
+                    var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
+                    return (RetrieveActivityExecutionResult)await GoTo<RetrieveActivityState>(
+                        new NamedParameter("configuration", _configuration),
+                        new NamedParameter("sessions", familyViewPassedSessions),
+                        new NamedParameter("ctx", ctx));
+                });
+
+            if (retrieveActivityStateResult.ActivityInfos.Any())
+            {
+                await GoTo<PrintActivityState>(
+                    new NamedParameter("configuration", _configuration),
+                    new NamedParameter("activityInfos", retrieveActivityStateResult.ActivityInfos));
+            }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine(Messages.Common.NothingToDo);
+        }
+
+        if (authenticationExecutionResult.Error is not null)
+        {
+            return authenticationExecutionResult.Error;
+        }
+
+        if (passFamilyViewResult?.Error is not null)
+        {
+            return passFamilyViewResult.Error;
+        }
+
+        if (retrieveActivityStateResult?.Error is not null)
+        {
+            return retrieveActivityStateResult.Error;
+        }
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine(Messages.Activity.AnyKeyToReturn);
+        Console.ReadKey();
+
+        AnsiConsole.MarkupLine(Messages.Common.Gap);
+        return await GoTo<HelloState>(
+            new NamedParameter("configuration", _configuration),
+            new NamedParameter("skipHelloMessage", true));
     }
 }
