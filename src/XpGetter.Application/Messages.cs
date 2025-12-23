@@ -109,8 +109,6 @@ public static class Messages
 
     public static class Authentication
     {
-        public const string Authenticating = "Authenticating...";
-        public const string Authenticated = "Authenticated [green]:)[/]";
         public const string LoggingIn = "Logging in...";
         public const string LoggingInPassword = "Logging in via password...";
         public const string AuthenticateViaTokenException = "An exception was thrown while trying to authenticate session via token.";
@@ -139,6 +137,15 @@ public static class Messages
         public const string SteamKitJobFailed = "[red]It looks like you didn't try to log in some time; original exception was dumped to logs. Try again.[/]";
         public const string Cancelled = "[red]It looks like you cancelled the authentication in the Steam mobile app. Try again.[/]";
         public const string InvalidJwtToken = "Invalid jwt token is provided.";
+    }
+
+    public static class Parental
+    {
+        public const string NoCookieLog = "Cookie 'steamparental' didn't found.";
+        public const string NoCookie = "[red]Parental data wasn't retrieved for some reason. Details dumped to logs. Try again.[/]";
+        public const string NotOk = "[red]Not success result is retrieved while trying to unlock family view. Details dumped to logs. Try again.[/]";
+        public const string NotOkLog = "Success: false is retrieved.";
+        public const string ResponseLogDetails = "Response content: {ResponseContent}; Raw headers: {@RawHeaders}";
     }
 
     public static class ActivityParsers

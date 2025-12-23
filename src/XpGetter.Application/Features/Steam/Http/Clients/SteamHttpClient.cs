@@ -9,10 +9,11 @@ namespace XpGetter.Application.Features.Steam.Http.Clients;
 
 public interface ISteamHttpClient
 {
-    Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null);
     Task<OneOf<HtmlDocument, SteamHttpClientError>> GetHtmlAsync(string requestUri, AuthCookie? authCookie = null);
     Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
         string requestUri, AuthCookie? authCookie = null);
+    Task<HttpResponseMessage> PostAsync(string requestUri, AuthCookie authCookie, HttpContent content);
+    Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null);
 }
 
 // TODO: handle enabled family view (now it could fail with 403)
@@ -30,36 +31,6 @@ public class SteamHttpClient : ISteamHttpClient
         _logger = logger;
     }
 
-    public async Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null)
-    {
-        try
-        {
-            var cookie = $"timezoneOffset={TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalSeconds},0";
-            if (authCookie is not null)
-            {
-                cookie += $"; {authCookie.Value}";
-            }
-
-            var message = new HttpRequestMessage(HttpMethod.Get, requestUri);
-            message.Headers.Add("Cookie", cookie);
-
-            var result = await _client.SendAsync(message);
-            result.EnsureSuccessStatusCode();
-
-            return await result.Content.ReadAsStringAsync();
-        }
-        catch (Exception exception)
-        {
-            _logger.Error(exception, Messages.Http.ErrorLog);
-
-            return new SteamHttpClientError
-            {
-                Message = Messages.Http.Error,
-                Exception = exception
-            };
-        }
-    }
-
     public async Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
         string requestUri, AuthCookie? authCookie = null)
     {
@@ -74,10 +45,8 @@ public class SteamHttpClient : ISteamHttpClient
             var deserialized = JsonConvert.DeserializeObject<T>(contentAsString);
             if (deserialized is null)
             {
-                var deserializationError = new SteamHttpClientError { Message = Messages.Http.DeserializationError };
-
                 _logger.Error(Messages.Http.DeserializationErrorLog, contentAsString);
-                return deserializationError;
+                return new SteamHttpClientError { Message = Messages.Http.DeserializationError };
             }
 
             return (deserialized, contentAsString);
@@ -117,6 +86,50 @@ public class SteamHttpClient : ISteamHttpClient
             return new SteamHttpClientError
             {
                 Message = Messages.Http.HtmlError,
+                Exception = exception
+            };
+        }
+    }
+
+    public async Task<HttpResponseMessage> PostAsync(
+        string requestUri, AuthCookie authCookie, HttpContent content)
+    {
+        using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
+        message.Content = content;
+        message.Headers.Add("Cookie", authCookie.ToString());
+
+        var result = await _client.SendAsync(message);
+        result.EnsureSuccessStatusCode();
+
+        return result;
+    }
+
+    public async Task<OneOf<string, SteamHttpClientError>> GetAsync(
+        string requestUri, AuthCookie? authCookie = null)
+    {
+        try
+        {
+            var cookie = $"timezoneOffset={TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).TotalSeconds},0";
+            if (authCookie is not null)
+            {
+                cookie += $"; {authCookie}";
+            }
+
+            using var message = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            message.Headers.Add("Cookie", cookie);
+
+            using var result = await _client.SendAsync(message);
+            result.EnsureSuccessStatusCode();
+
+            return await result.Content.ReadAsStringAsync();
+        }
+        catch (Exception exception)
+        {
+            _logger.Error(exception, Messages.Http.ErrorLog);
+
+            return new SteamHttpClientError
+            {
+                Message = Messages.Http.Error,
                 Exception = exception
             };
         }

@@ -12,6 +12,9 @@ namespace XpGetter.Cli;
 
 internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
 {
+    // TODO: add --prefer-personal-names
+    // TODO: add --dont-use-currency-symbols
+    // TODO: add --dont-encrypt-configuration
     public sealed class Arguments : CommandSettings
     {
         [CommandOption("--skip-menu")]

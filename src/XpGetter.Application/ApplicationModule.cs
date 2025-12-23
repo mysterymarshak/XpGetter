@@ -96,13 +96,16 @@ public class ApplicationModule : Module
 
         builder.RegisterDecorator<PricedNewRankDropService, INewRankDropService>();
 
-        // TODO: add flag to disable configuration encryption (?)
         builder.RegisterType<EncryptedFileOperationStrategy>()
             .As<IFileOperationStrategy>()
             .SingleInstance();
 
         builder.RegisterType<VersionService>()
             .As<IVersionService>()
+            .SingleInstance();
+
+        builder.RegisterType<ParentalService>()
+            .As<IParentalService>()
             .SingleInstance();
     }
 }

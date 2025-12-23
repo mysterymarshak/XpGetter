@@ -50,7 +50,7 @@ public class ActivityService : IActivityService
         var tasks = new List<Task>
         {
             // TODO: extract to external service (?)
-            _steamHttpClient.GetHtmlAsync($"profiles/{account.Id}/gcpd/730?tab=accountmain", new AuthCookie(account)),
+            _steamHttpClient.GetHtmlAsync($"profiles/{account.Id}/gcpd/730?tab=accountmain", session.AuthCookie),
             _newRankDropService.GetLastNewRankDropAsync(session, ctx)
         };
         await Task.WhenAll(tasks);

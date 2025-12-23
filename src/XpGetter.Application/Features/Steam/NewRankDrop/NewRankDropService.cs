@@ -26,24 +26,23 @@ public class NewRankDropService : INewRankDropService
     public async Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx)
     {
-        var account = session.Account!;
-        var task = ctx.AddTask(account, Messages.Statuses.RetrievingLastNewRankDrop);
-        return await GetLastNewRankDropInternalAsync(account, task, null);
+        var task = ctx.AddTask(session, Messages.Statuses.RetrievingLastNewRankDrop);
+        return await GetLastNewRankDropInternalAsync(session, task, null);
     }
 
     private async Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
-        GetLastNewRankDropInternalAsync(AccountDto account, IProgressTask task, NoResultsOnPage? previousPageResult)
+        GetLastNewRankDropInternalAsync(SteamSession session, IProgressTask task, NoResultsOnPage? previousPageResult)
     {
         if (previousPageResult is { Page: > Constants.MaxInventoryHistoryPagesToLoad })
         {
-            task.SetResult(account, Messages.Statuses.TooLongHistoryStatus);
+            task.SetResult(session, Messages.Statuses.TooLongHistoryStatus);
             return new TooLongHistory(previousPageResult.LastEntryDateTime, previousPageResult.TotalItemsParsed);
         }
 
-        var loadInventoryHistoryResult = await LoadInventoryHistoryAsync(account, previousPageResult?.Cursor);
+        var loadInventoryHistoryResult = await LoadInventoryHistoryAsync(session, previousPageResult?.Cursor);
         if (loadInventoryHistoryResult.TryPickT1(out var error, out var result))
         {
-            task.SetResult(account, Messages.Statuses.NewRankDropError);
+            task.SetResult(session, Messages.Statuses.NewRankDropError);
             return error;
         }
 
@@ -51,30 +50,30 @@ public class NewRankDropService : INewRankDropService
 
         if (parseNewRankDropResult.TryPickT0(out var newRankDrop, out _))
         {
-            task.SetResult(account, Messages.Statuses.NewRankDropOk);
+            task.SetResult(session, Messages.Statuses.NewRankDropOk);
             return newRankDrop;
         }
 
         if (parseNewRankDropResult.TryPickT1(out var noResultsOnPage, out _))
         {
-            task.SetResult(account, Messages.Statuses.NewRankDropNoResultsOnPage);
-            return await GetLastNewRankDropInternalAsync(account, task, noResultsOnPage);
+            task.SetResult(session, Messages.Statuses.NewRankDropNoResultsOnPage);
+            return await GetLastNewRankDropInternalAsync(session, task, noResultsOnPage);
         }
 
         if (parseNewRankDropResult.TryPickT2(out var mispagedDrop, out _))
         {
             if (mispagedDrop.Cursor is null)
             {
-                task.SetResult(account, Messages.Statuses.NewRankDropGotOnlyOne);
+                task.SetResult(session, Messages.Statuses.NewRankDropGotOnlyOne);
                 _logger.Warning(Messages.Activity.NullCursorForMispagedDrop);
                 return new Dto.NewRankDrop(mispagedDrop.DateTime, [mispagedDrop.FirstItem]);
             }
 
-            task.Description(account, Messages.Statuses.NewRankDropMispaged);
-            loadInventoryHistoryResult = await LoadInventoryHistoryAsync(account, mispagedDrop.Cursor);
+            task.Description(session, Messages.Statuses.NewRankDropMispaged);
+            loadInventoryHistoryResult = await LoadInventoryHistoryAsync(session, mispagedDrop.Cursor);
             if (loadInventoryHistoryResult.TryPickT1(out error, out result))
             {
-                task.SetResult(account, Messages.Statuses.NewRankDropError);
+                task.SetResult(session, Messages.Statuses.NewRankDropError);
                 return error;
             }
 
@@ -82,7 +81,7 @@ public class NewRankDropService : INewRankDropService
                 _parser.TryParseMispagedDrop(result.Deserialized);
             if (parseMispagedDropResult.TryPickT1(out var parserError, out var secondItem))
             {
-                task.SetResult(account, Messages.Statuses.NewRankDropError);
+                task.SetResult(session, Messages.Statuses.NewRankDropError);
                 return new NewRankDropServiceError
                 {
                     Message = string.Format(Messages.Activity.ActivityParserError, parserError.Message),
@@ -92,17 +91,17 @@ public class NewRankDropService : INewRankDropService
 
             if (secondItem is not null)
             {
-                task.SetResult(account, Messages.Statuses.NewRankDropOk);
+                task.SetResult(session, Messages.Statuses.NewRankDropOk);
                 return new Dto.NewRankDrop(mispagedDrop.DateTime, [mispagedDrop.FirstItem, secondItem]);
             }
 
-            task.SetResult(account, Messages.Statuses.NewRankDropGotOnlyOne);
+            task.SetResult(session, Messages.Statuses.NewRankDropGotOnlyOne);
             return new Dto.NewRankDrop(mispagedDrop.DateTime, [mispagedDrop.FirstItem]);
         }
 
         if (parseNewRankDropResult.TryPickT3(out _, out _))
         {
-            task.SetResult(account, Messages.Statuses.NewRankDropNotFound);
+            task.SetResult(session, Messages.Statuses.NewRankDropNotFound);
             return new NoDropHistoryFound();
         }
 
@@ -110,7 +109,7 @@ public class NewRankDropService : INewRankDropService
         // wtf lol
         if (parseNewRankDropResult.TryPickT4(out var parserError1, out _))
         {
-            task.SetResult(account, Messages.Statuses.NewRankDropError);
+            task.SetResult(session, Messages.Statuses.NewRankDropError);
             return new NewRankDropServiceError
             {
                 Message = string.Format(Messages.Activity.ActivityParserError, parserError1.Message),
@@ -118,18 +117,18 @@ public class NewRankDropService : INewRankDropService
             };
         }
 
-        task.SetResult(account, Messages.Statuses.NewRankDropError);
+        task.SetResult(session, Messages.Statuses.NewRankDropError);
         return new NewRankDropServiceError { Message = string.Format(Messages.Common.ImpossibleMethodCase, nameof(GetLastNewRankDropAsync)) };
     }
 
     private async Task<OneOf<(InventoryHistoryResponse Deserialized, string Raw), NewRankDropServiceError>>
-        LoadInventoryHistoryAsync(AccountDto account, CursorInfo? cursor = null)
+        LoadInventoryHistoryAsync(SteamSession session, CursorInfo? cursor = null)
     {
         var queryString =
             $"l=english&ajax=1&app[]=730&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
         var getJsonResult = await _steamHttpClient.GetJsonAsync<InventoryHistoryResponse>(
-            $"profiles/{account.Id}/inventoryhistory?{queryString}",
-            new AuthCookie(account));
+            $"profiles/{session.Account!.Id}/inventoryhistory?{queryString}",
+            session.AuthCookie);
         if (getJsonResult.TryPickT1(out var error, out var result))
         {
             return new NewRankDropServiceError

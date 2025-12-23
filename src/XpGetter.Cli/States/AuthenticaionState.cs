@@ -77,7 +77,7 @@ public class AuthenticaionState : BaseState
         }
 
         ErrorExecutionResult? errorExecutionResult = null;
-        authenticateTask.Description(session, Messages.Authentication.Authenticating);
+        authenticateTask.Description(session, Messages.Statuses.Authenticating);
         var authenticationResult = await _authenticationService.AuthenticateSessionAsync(session, account);
         if (authenticationResult.TryPickT1(out _, out _))
         {
@@ -102,7 +102,7 @@ public class AuthenticaionState : BaseState
             return errorExecutionResult;
         }
 
-        authenticateTask.SetResult(session, Messages.Authentication.Authenticated);
+        authenticateTask.SetResult(session, Messages.Statuses.Authenticated);
         return session;
     }
 }

@@ -8,11 +8,14 @@ public class SteamSession
 
     public bool IsAuthenticated => Client.SessionID is not null;
 
+    public AuthCookie AuthCookie => new(this, _parentalCookie);
     public string Name { get; private set; }
     public SteamClient Client { get; }
     public CallbackManager CallbackManager { get; }
     public SteamUser User { get; }
     public AccountDto? Account { get; private set; }
+
+    private string? _parentalCookie;
 
     public SteamSession(string name, SteamClient client, CallbackManager callbackManager, SteamUser user)
     {
@@ -31,6 +34,11 @@ public class SteamSession
     public void BindName(string name)
     {
         Name = name;
+    }
+
+    public void BindParentalCookie(string cookie)
+    {
+        _parentalCookie = cookie;
     }
 
     public void Dispose()
