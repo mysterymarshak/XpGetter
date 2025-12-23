@@ -73,6 +73,7 @@ public class StartState : BaseState
         RetrieveActivityExecutionResult? retrieveActivityStateResult = null;
         if (familyViewPassedSessions.Count > 0)
         {
+            AnsiConsole.MarkupLine(Messages.Start.SuccessAuthorization);
             retrieveActivityStateResult = await AnsiConsole
                 .CreateProgressContext(async ansiConsoleCtx =>
                 {

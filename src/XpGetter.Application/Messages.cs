@@ -18,6 +18,7 @@ public static class Messages
         public const string ManageAccounts = "Manage accounts";
         public const string CheckForUpdates = "Check for updates";
         public const string Exited = "Exited.";
+        public const string SuccessAuthorization = "Authorization: [green]success[/]. Retrieving activity info...";
     }
 
     public static class Version
