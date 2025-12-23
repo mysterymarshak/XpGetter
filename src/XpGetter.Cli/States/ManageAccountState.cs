@@ -52,10 +52,11 @@ public class ManageAccountState : BaseState
         _configuration.RemoveAccount(account.Id);
         _configurationService.WriteConfiguration(_configuration);
 
-        AnsiConsole.Clear();
         AnsiConsole.MarkupLine(Messages.ManageAccounts.AccountRemoved, _username);
         _logger.Debug(Messages.ManageAccounts.AccountRemoved, account.Username);
 
-        return await GoTo<HelloState>(new NamedParameter("configuration", _configuration));
+        return await GoTo<HelloState>(
+            new NamedParameter("configuration", _configuration),
+            new NamedParameter("skipHelloMessage", true));
     }
 }
