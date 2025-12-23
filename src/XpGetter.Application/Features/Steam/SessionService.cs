@@ -133,5 +133,6 @@ public class SessionService : ISessionService
         }
 
         _sessions.Add(session.Client.SteamID, session);
+        session.AccountBind -= OnAccountBounded;
     }
 }
