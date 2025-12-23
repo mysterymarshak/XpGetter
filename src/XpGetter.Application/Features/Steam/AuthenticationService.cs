@@ -158,6 +158,7 @@ public class AuthenticationService : IAuthenticationService
         AuthenticateByUsernameAndPasswordAsync(SteamSession session, string username, string password)
     {
         AccountDto? account = null;
+        ParentalSettings? parentalSettings = null;
         AuthenticationServiceError? authError = null;
 
         using var cts = new CancellationTokenSource();
@@ -243,6 +244,7 @@ public class AuthenticationService : IAuthenticationService
             }
 
             account!.Id = callback.ClientSteamID!.ConvertToUInt64();
+            parentalSettings = callback.ParentalSettings;
 
             _logger.Information(Messages.Authentication.LogOnOk.BindSession(session));
         }
@@ -264,6 +266,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         session.BindAccount(account);
+        session.BindParentalSettings(parentalSettings);
         return new Success();
     }
 
@@ -273,6 +276,7 @@ public class AuthenticationService : IAuthenticationService
         _qrCode.Reset();
 
         AccountDto? account = null;
+        ParentalSettings? parentalSettings = null;
         AuthenticationServiceError? authError = null;
 
         using var cts = new CancellationTokenSource();
@@ -378,6 +382,7 @@ public class AuthenticationService : IAuthenticationService
             }
 
             account!.Id = callback.ClientSteamID!.ConvertToUInt64();
+            parentalSettings = callback.ParentalSettings;
 
             _logger.Information(Messages.Authentication.LogOnOk.BindSession(session, account.Username));
         }
@@ -406,6 +411,7 @@ public class AuthenticationService : IAuthenticationService
 
         session.BindAccount(account);
         session.BindName(account.Username);
+        session.BindParentalSettings(parentalSettings);
         return new Success();
     }
 
