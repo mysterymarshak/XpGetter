@@ -5,8 +5,8 @@ public static class Constants
     public const string ProgramName = "XpGetter";
     public const string Author = "mysterymarshak";
     public const string MasterBranch = "master";
-    public const string Version = "0.1.2";
-    public const string ConfigVersion = "1.2";
+    public const string Version = "0.2.0";
+    public const string ConfigVersion = "1.3";
     public const int MaxInventoryHistoryPagesToLoad = 3;
     public const int MaxAccounts = 5;
     public const string GitHubPageUrl = $"https://github.com/{Author}/{ProgramName}";
@@ -26,3 +26,6 @@ public static class Constants
 // LastUpdated (last_updated)
 // PersonalName (personal_name)
 // WalletCurrency (wallet_currency)
+
+// 1.2 -> 1.3
+// Added field "FamilyViewPin" (family_view_pin) to Account
