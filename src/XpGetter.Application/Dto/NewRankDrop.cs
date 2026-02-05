@@ -3,7 +3,7 @@ using XpGetter.Application.Extensions;
 
 namespace XpGetter.Application.Dto;
 
-public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<CsgoItem>? Items = null)
+public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> Items)
 {
     private const string DefaultName = "<unknown>";
     private const string DefaultColor = "silver";
@@ -21,7 +21,7 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
 
     public string GetPreviousLoot()
     {
-        if (Items is [] or null)
+        if (Items is [])
         {
             return DefaultName;
         }
@@ -41,25 +41,6 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
         AppendItem(secondItem, stringBuilder);
 
         return stringBuilder.ToString();
-    }
-
-    private void AppendItem(CsgoItem item, StringBuilder stringBuilder)
-    {
-        stringBuilder.Append('[');
-        stringBuilder.Append(item.Color ?? DefaultColor);
-        stringBuilder.Append(']');
-        stringBuilder.Append(item.Name);
-        // TODO: append quality for skins
-        stringBuilder.Append("[/]");
-
-        if (item.Price is null)
-            return;
-
-        stringBuilder.Append(" (");
-        stringBuilder.Append("[green]");
-        stringBuilder.Append(item.Price.Currency.FormatValue(item.Price.Value));
-        stringBuilder.Append("[/]");
-        stringBuilder.Append(')');
     }
 
     public string GetLastDropTime()
@@ -112,5 +93,32 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
         }
 
         return date.AddDays(-daysSinceWednesday);
+    }
+
+    private void AppendItem(CsgoItem item, StringBuilder stringBuilder)
+    {
+        stringBuilder.Append('[');
+        stringBuilder.Append(item.Color ?? DefaultColor);
+        stringBuilder.Append(']');
+        stringBuilder.Append(item.Name);
+
+        var quality = item.GetItemQuality();
+        if (quality is not null)
+        {
+            stringBuilder.Append(" (");
+            stringBuilder.Append(quality);
+            stringBuilder.Append(')');
+        }
+
+        stringBuilder.Append("[/]");
+
+        if (item.Price is null)
+            return;
+
+        stringBuilder.Append(" [[");
+        stringBuilder.Append("[green]");
+        stringBuilder.Append(item.Price.Currency.FormatValue(item.Price.Value));
+        stringBuilder.Append("[/]");
+        stringBuilder.Append("]]");
     }
 }

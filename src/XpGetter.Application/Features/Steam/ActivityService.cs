@@ -107,7 +107,7 @@ public class ActivityService : IActivityService
                 Account = account,
                 AdditionalMessage = additionalMessage,
                 XpData = xpData,
-                LastNewRankDrop = lastNewRankDrop ?? new Dto.NewRankDrop()
+                LastNewRankDrop = lastNewRankDrop ?? new Dto.NewRankDrop(null, [])
             };
         }
 

@@ -34,7 +34,7 @@ public class NewRankDropService : INewRankDropService
             {
                 // 0 items (no new rank drop) is handled by other cases
                 // so First should never fail as well as items is never null and count may be only 1 or 2
-                var status = newRankDrops.First().Items!.Count > 1
+                var status = newRankDrops.First().Items.Count > 1
                     ? Messages.Statuses.NewRankDropOk
                     : Messages.Statuses.NewRankDropGotOnlyOne;
                 task.SetResult(session, status);

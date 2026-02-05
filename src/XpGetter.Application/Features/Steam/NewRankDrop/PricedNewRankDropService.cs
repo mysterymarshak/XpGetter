@@ -60,7 +60,7 @@ public class PricedNewRankDropService : INewRankDropService
 
         getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
 
-        var items = newRankDrops.SelectMany(x => x.Items!);
+        var items = newRankDrops.SelectMany(x => x.Items);
         await BindPricesAsync(items, session, getItemsPriceTask);
 
         return OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>.FromT0(newRankDrops);
@@ -104,7 +104,7 @@ public class PricedNewRankDropService : INewRankDropService
 
         getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
 
-        var items = newRankDrop.Items!;
+        var items = newRankDrop.Items;
         await BindPricesAsync(items, session, getItemsPriceTask);
 
         return getNewRankDropResult;
