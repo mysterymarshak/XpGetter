@@ -3,6 +3,7 @@ using Autofac;
 using Serilog;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using SteamKit2;
 using XpGetter.Application;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Cli.States;
@@ -14,7 +15,6 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
 {
     // TODO: add --dont-use-currency-symbols
     // TODO: add --dont-encrypt-configuration
-    // TODO: add --currency
     // TODO: add --price-provider (CSGO Market | Steam)
     public sealed class RuntimeArguments : CommandSettings
     {
@@ -23,7 +23,7 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
         [DefaultValue(false)]
         public bool SkipMenu { get; init; }
 
-        [CommandOption("--censored")]
+        [CommandOption("--censor")]
         [Description("Censors usernames in terminal output (logs are still uncensored)")]
         [DefaultValue(true)]
         public bool Censor { get; init; }
@@ -32,6 +32,27 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
         [Description("Anonymizes all usernames in terminal output (logs are still unanonymized)")]
         [DefaultValue(false)]
         public bool Anonymize { get; init; }
+
+        [CommandOption("--currency")]
+        [Description("Override for currency to use in price requests")]
+        [DefaultValue(null)]
+        public string? Currency { get; init; }
+
+        public override ValidationResult Validate()
+        {
+            if (Currency is not null)
+            {
+                var existing = Enum.GetNames<ECurrencyCode>().Any(x =>
+                    x.Contains(Currency, StringComparison.InvariantCultureIgnoreCase));
+
+                if (!existing)
+                {
+                    return ValidationResult.Error($"Currency not found: '{Currency}'");
+                }
+            }
+
+            return ValidationResult.Success();
+        }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext commandContext,
@@ -96,6 +117,11 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
     {
         RuntimeConfiguration.AnonymizeUsernames = arguments.Anonymize;
         RuntimeConfiguration.CensorUsernames = arguments.Censor;
+
+        if (arguments.Currency is not null)
+        {
+            RuntimeConfiguration.ForceCurrency = Enum.Parse<ECurrencyCode>(arguments.Currency, true);
+        }
     }
 
     private void WaitForAnyKeyToExit()

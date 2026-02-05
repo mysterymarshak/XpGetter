@@ -5,6 +5,7 @@ using SteamKit2.Internal;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
+using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Utils.Progress;
 
 namespace XpGetter.Application.Features.Steam;
@@ -26,6 +27,11 @@ public class WalletService : IWalletService
     public async Task<OneOf<WalletInfo, WalletServiceError>> GetWalletInfoAsync(SteamSession session, IProgressContext ctx)
     {
         var task = ctx.AddTask(session, Messages.Wallet.RetrievingWalletInfo);
+
+        if (session.WalletInfo is null && RuntimeConfiguration.ForceCurrency is not null)
+        {
+            session.BindWalletInfo(new WalletInfo(RuntimeConfiguration.ForceCurrency.Value));
+        }
 
         if (session.WalletInfo is not null)
         {

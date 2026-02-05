@@ -1,5 +1,16 @@
 ﻿using Spectre.Console.Cli;
+using XpGetter.Application;
 using XpGetter.Cli;
 
 var app = new CommandApp<RunCommand>();
+app.Configure(config =>
+{
+    config.SetApplicationName(Constants.ProgramName);
+    config.SetApplicationVersion(Constants.Version);
+
+    config.AddExample("--skip-menu");
+    config.AddExample("--anonymize", "--currency USD");
+    config.AddExample("--censore false");
+});
+
 return await app.RunAsync(args);
