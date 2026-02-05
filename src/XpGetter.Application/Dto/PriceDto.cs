@@ -6,8 +6,7 @@ public enum PriceProvider
 {
     None = 0,
     MarketCsgo,
-    Steam,
-    Unknown
+    Steam
 }
 
 public record PriceDto(string MarketName, double Value, string ProviderRaw, ECurrencyCode Currency)
@@ -16,6 +15,6 @@ public record PriceDto(string MarketName, double Value, string ProviderRaw, ECur
     {
         "MarketCSGO" => PriceProvider.MarketCsgo,
         "Steam" => PriceProvider.Steam,
-        _ => PriceProvider.Unknown
+        _ => PriceProvider.None
     };
 }

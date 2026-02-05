@@ -5,6 +5,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using SteamKit2;
 using XpGetter.Application;
+using XpGetter.Application.Dto;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Cli.States;
 using XpGetter.Cli.States.Results;
@@ -34,21 +35,25 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
         public bool Anonymize { get; init; }
 
         [CommandOption("--currency")]
-        [Description("Override for currency to use in price requests")]
+        [Description("Overrides currency in all price requests")]
         [DefaultValue(null)]
-        public string? Currency { get; init; }
+        public ECurrencyCode? Currency { get; init; }
+
+        [CommandOption("--price-provider")]
+        [Description("Changes the price provider")]
+        [DefaultValue(PriceProvider.MarketCsgo)]
+        public PriceProvider PriceProvider { get; init; }
 
         public override ValidationResult Validate()
         {
-            if (Currency is not null)
+            if (Currency == ECurrencyCode.Invalid)
             {
-                var existing = Enum.GetNames<ECurrencyCode>().Any(x =>
-                    x.Contains(Currency, StringComparison.InvariantCultureIgnoreCase));
+                return ValidationResult.Error("You cannot provide 'Invalid' currency.");
+            }
 
-                if (!existing)
-                {
-                    return ValidationResult.Error($"Currency not found: '{Currency}'");
-                }
+            if (PriceProvider == PriceProvider.None)
+            {
+                return ValidationResult.Error("You cannot provide 'None' price provider.");
             }
 
             return ValidationResult.Success();
@@ -117,11 +122,8 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
     {
         RuntimeConfiguration.AnonymizeUsernames = arguments.Anonymize;
         RuntimeConfiguration.CensorUsernames = arguments.Censor;
-
-        if (arguments.Currency is not null)
-        {
-            RuntimeConfiguration.ForceCurrency = Enum.Parse<ECurrencyCode>(arguments.Currency, true);
-        }
+        RuntimeConfiguration.ForceCurrency = arguments.Currency;
+        RuntimeConfiguration.PriceProvider = arguments.PriceProvider;
     }
 
     private void WaitForAnyKeyToExit()

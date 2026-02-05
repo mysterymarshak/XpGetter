@@ -2,6 +2,7 @@ using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
+using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Markets;
 using XpGetter.Application.Results;
 using XpGetter.Application.Utils.Progress;
@@ -119,8 +120,7 @@ public class PricedNewRankDropService : INewRankDropService
         getItemsPriceResultIsWarning = itemPrices.Any(x => x.Value == 0) ||
             items.Any(x => itemPrices.All(y => y.MarketName != x.MarketName));
 
-        // TODO: extract item provider to use to config (--price-provider)
-        foreach (var price in itemPrices.Where(x => x.Provider == PriceProvider.Steam))
+        foreach (var price in itemPrices.Where(x => x.Provider == RuntimeConfiguration.PriceProvider))
         {
             var itemsToBind = items.Where(x => x.MarketName == price.MarketName);
             foreach (var item in itemsToBind)
