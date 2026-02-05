@@ -2,6 +2,7 @@ using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
+using XpGetter.Application.Features.Configuration;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.States.Results;
 
@@ -11,12 +12,14 @@ public class PassFamilyViewState : BaseState
 {
     private readonly AppConfigurationDto _configuration;
     private readonly List<SteamSession> _sessions;
+    private readonly IConfigurationService _configurationService;
 
     public PassFamilyViewState(AppConfigurationDto configuration, List<SteamSession> sessions,
-                               StateContext context) : base(context)
+                               IConfigurationService configurationService, StateContext context) : base(context)
     {
         _configuration = configuration;
         _sessions = sessions;
+        _configurationService = configurationService;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -29,6 +32,11 @@ public class PassFamilyViewState : BaseState
             var parentalSettings = session.ParentalSettings;
             if (parentalSettings?.is_enabled != true)
             {
+                var account = session.Account!;
+                if (!string.IsNullOrWhiteSpace(account.FamilyViewPin))
+                {
+                    account.FamilyViewPin = null;
+                }
                 passedSession.Add(session);
                 continue;
             }
@@ -87,6 +95,7 @@ public class PassFamilyViewState : BaseState
             AnsiConsole.MarkupLine(Messages.Parental.SkipUnlocking, session.Name);
         }
 
+        _configurationService.WriteConfiguration(_configuration);
         return new PassFamilyViewExecutionResult { PassedSessions = passedSession, Error =  errorExecutionResult };
     }
 }

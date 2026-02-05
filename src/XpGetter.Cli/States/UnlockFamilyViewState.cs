@@ -10,19 +10,14 @@ namespace XpGetter.Cli.States;
 
 public class UnlockFamilyViewState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
     private readonly SteamSession _session;
     private readonly IParentalService _parentalService;
-    private readonly IConfigurationService _configurationService;
 
-    public UnlockFamilyViewState(AppConfigurationDto configuration, SteamSession session,
-        IParentalService parentalService, IConfigurationService configurationService,
-            StateContext context) : base(context)
+    public UnlockFamilyViewState(SteamSession session, IParentalService parentalService,
+                                 StateContext context) : base(context)
     {
-        _configuration = configuration;
         _session = session;
         _parentalService = parentalService;
-        _configurationService = configurationService;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -56,7 +51,8 @@ public class UnlockFamilyViewState : BaseState
 
                 if (!string.IsNullOrWhiteSpace(savedPin))
                 {
-                    ResetSavedPin();
+                    savedPin = null;
+                    account.FamilyViewPin = null;
                     AnsiConsole.MarkupLine(Messages.Parental.CorruptedSavedPin);
 
                     continue;
@@ -82,7 +78,8 @@ public class UnlockFamilyViewState : BaseState
 
                 if (!string.IsNullOrWhiteSpace(savedPin))
                 {
-                    ResetSavedPin();
+                    savedPin = null;
+                    account.FamilyViewPin = null;
                     AnsiConsole.MarkupLine(Messages.Parental.WrongSavedPin);
                 }
                 else
@@ -106,21 +103,12 @@ public class UnlockFamilyViewState : BaseState
                 if (savePinPromptResult == Messages.Common.Y)
                 {
                     account.FamilyViewPin = pin;
-                    _configurationService.WriteConfiguration(_configuration);
-
                     AnsiConsole.MarkupLine(Messages.Parental.PinSaved);
                 }
             }
         }
 
         return new UnlockFamilyViewExecutionResult { Success = true };
-
-        void ResetSavedPin()
-        {
-            savedPin = null;
-            account.FamilyViewPin = null;
-            _configurationService.WriteConfiguration(_configuration);
-        }
     }
 
     private bool ValidatePin(string pin) => pin.Length == 4 && pin.All(char.IsDigit);
