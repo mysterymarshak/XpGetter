@@ -25,14 +25,15 @@ public class PrintStatisticsState : BaseState
         var maxItems = _statistics.Max(x => x.GroupedItemsCount);
         var longestNameLength = _statistics
             .SelectMany(x => x.GroupedItems)
-            .Max(x => x.Key.Name.Length);
+            .Max(x => x.Key.Format(includePrice: false, includeMarkup: false).Length);
         var dummyString = new string(' ', longestNameLength);
 
         foreach (var (i, statistics) in _statistics.Index())
         {
             var session = statistics.Session;
+            var account = session.Account!;
             var table = new Table()
-                .Title(string.Format(Messages.Statistics.TableTitle, session.Account!.PersonalName))
+                .Title(string.Format(Messages.Statistics.TableTitle, $"[link=https://steamcommunity.com/profiles/{account.Id}]{account.PersonalName}[/]"))
                 .AddColumn(Messages.Statistics.ItemNameColumn)
                 .AddColumn(Messages.Statistics.ItemPriceColumn)
                 .AddColumn(Messages.Statistics.ItemQuantityColumn);

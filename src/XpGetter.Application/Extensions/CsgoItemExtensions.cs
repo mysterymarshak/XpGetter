@@ -11,9 +11,9 @@ public static class CsgoItemExtensions
 
     extension(CsgoItem item)
     {
-        public string Format(bool includePrice = true)
+        public string Format(bool includePrice = true, bool includeMarkup = true)
         {
-            item.FormatInternal(_builder, includePrice);
+            item.FormatInternal(_builder, includePrice, includeMarkup);
 
             var result = _builder.ToString();
             _builder.Clear();
@@ -21,16 +21,16 @@ public static class CsgoItemExtensions
             return result;
         }
 
-        public void AddToStringBuilder(StringBuilder builder, bool includePrice = true)
+        public void AddToStringBuilder(StringBuilder builder, bool includePrice = true, bool includeMarkup = true)
         {
-            item.FormatInternal(builder, includePrice);
+            item.FormatInternal(builder, includePrice, includeMarkup);
         }
 
-        private void FormatInternal(StringBuilder builder, bool includePrice)
+        private void FormatInternal(StringBuilder builder, bool includePrice, bool includeMarkup)
         {
-            builder.Append('[');
+            if (includeMarkup) builder.Append('[');
             builder.Append(item.Color ?? DefaultColor);
-            builder.Append(']');
+            if (includeMarkup) builder.Append(']');
             builder.Append(item.Name);
 
             var quality = item.GetItemQuality();
@@ -41,15 +41,23 @@ public static class CsgoItemExtensions
                 builder.Append(')');
             }
 
-            builder.Append("[/]");
+            if (includeMarkup) builder.Append("[/]");
 
             if (item.Price is not null && includePrice)
             {
-                builder.Append(" [[");
-                builder.Append("[green]");
+                if (includeMarkup)
+                {
+                    builder.Append(" [[");
+                    builder.Append("[green]");
+                }
+
                 builder.Append(item.Price.Currency.FormatValue(item.Price.Value));
-                builder.Append("[/]");
-                builder.Append("]]");
+
+                if (includeMarkup)
+                {
+                    builder.Append("[/]");
+                    builder.Append("]]");
+                }
             }
         }
     }
