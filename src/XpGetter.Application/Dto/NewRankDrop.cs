@@ -6,7 +6,6 @@ namespace XpGetter.Application.Dto;
 public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> Items)
 {
     private const string DefaultName = "<unknown>";
-    private const string DefaultColor = "silver";
     private const string DefaultDate = "<unknown>";
     private const string ExternalDateFormat = "before {0}";
 
@@ -29,7 +28,7 @@ public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> 
         var stringBuilder = new StringBuilder();
 
         var firstItem = Items[0];
-        AppendItem(firstItem, stringBuilder);
+        firstItem.AddToStringBuilder(stringBuilder);
 
         if (Items.Count == 1)
         {
@@ -38,7 +37,7 @@ public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> 
 
         var secondItem = Items[1];
         stringBuilder.Append(" ; ");
-        AppendItem(secondItem, stringBuilder);
+        secondItem.AddToStringBuilder(stringBuilder);
 
         return stringBuilder.ToString();
     }
@@ -92,32 +91,5 @@ public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> 
         }
 
         return date.AddDays(-daysSinceWednesday);
-    }
-
-    private void AppendItem(CsgoItem item, StringBuilder stringBuilder)
-    {
-        stringBuilder.Append('[');
-        stringBuilder.Append(item.Color ?? DefaultColor);
-        stringBuilder.Append(']');
-        stringBuilder.Append(item.Name);
-
-        var quality = item.GetItemQuality();
-        if (quality is not null)
-        {
-            stringBuilder.Append(" (");
-            stringBuilder.Append(quality);
-            stringBuilder.Append(')');
-        }
-
-        stringBuilder.Append("[/]");
-
-        if (item.Price is null)
-            return;
-
-        stringBuilder.Append(" [[");
-        stringBuilder.Append("[green]");
-        stringBuilder.Append(item.Price.Currency.FormatValue(item.Price.Value));
-        stringBuilder.Append("[/]");
-        stringBuilder.Append("]]");
     }
 }

@@ -42,7 +42,7 @@ public class PrintStatisticsState : BaseState
 
             foreach (var group in statistics.GroupedItems)
             {
-                table.AddRow($"[{group.Key.Color}]{group.Key.Name}[/]",
+                table.AddRow($"[{group.Key.Color}]{group.Key.Format(includePrice: false)}[/]",
                              $"[green]{currency?.FormatValue(group.Key.Price?.Value ?? 0)}[/]",
                              $"x{group.Count()}");
             }
