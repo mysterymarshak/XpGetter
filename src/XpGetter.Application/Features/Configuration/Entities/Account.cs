@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 
 namespace XpGetter.Application.Features.Configuration.Entities;
 
+// TODO: add IsDisabled
 public class Account
 {
     [JsonProperty("id")]

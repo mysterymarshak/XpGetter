@@ -99,7 +99,8 @@ public record NewRankDrop(DateTimeOffset? LastDateTime = null, IReadOnlyList<Csg
         return lastReset > LastDateTime;
     }
 
-    private static DateTimeOffset GetLastDropResetTime()
+    // TODO: find better place
+    public static DateTimeOffset GetLastDropResetTime()
     {
         var utcNow = DateTime.UtcNow;
         var date = new DateTimeOffset(utcNow.Year, utcNow.Month, utcNow.Day, 2, 0, 0, TimeSpan.Zero);

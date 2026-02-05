@@ -1,3 +1,4 @@
+using System.Net;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +12,7 @@ using XpGetter.Application.Features.Configuration.Repositories.FileOperationStra
 using XpGetter.Application.Features.Markets;
 using XpGetter.Application.Features.Markets.CsgoMarket;
 using XpGetter.Application.Features.Markets.SteamMarket;
+using XpGetter.Application.Features.Statistics;
 using XpGetter.Application.Features.Steam;
 using XpGetter.Application.Features.Steam.Http.Clients;
 using XpGetter.Application.Features.Steam.NewRankDrop;
@@ -54,8 +56,17 @@ public class ApplicationModule : Module
         services.AddSingleton<IAsyncPolicy<HttpResponseMessage>>(_ =>
             HttpPolicyExtensions
                 .HandleTransientHttpError()
-                .WaitAndRetryAsync(3, retryAttempt =>
-                    TimeSpan.FromSeconds(Math.Pow(2, retryAttempt))));
+                .OrResult(msg => msg.StatusCode == HttpStatusCode.TooManyRequests)
+                .WaitAndRetryAsync(3,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Min(Math.Pow(4, retryAttempt), 60)),
+                    onRetry: (outcome, timespan, retryCount, context) =>
+                    {
+                        if (outcome.Result?.StatusCode == HttpStatusCode.TooManyRequests &&
+                            context.TryGetValue("OnRateLimit", out var action) && action is Action callback)
+                        {
+                            callback();
+                        }
+                    }));
 
         services.AddHttpClient<ISteamHttpClient, SteamHttpClient>()
             .AddPolicyHandler((sp, _) => sp.GetRequiredService<IAsyncPolicy<HttpResponseMessage>>());
@@ -106,6 +117,10 @@ public class ApplicationModule : Module
 
         builder.RegisterType<ParentalService>()
             .As<IParentalService>()
+            .SingleInstance();
+
+        builder.RegisterType<StatisticsService>()
+            .As<IStatisticsService>()
             .SingleInstance();
     }
 }

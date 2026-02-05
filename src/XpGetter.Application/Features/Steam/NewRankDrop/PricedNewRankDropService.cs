@@ -24,19 +24,61 @@ public class PricedNewRankDropService : INewRankDropService
         _logger = logger;
     }
 
+    public async Task<OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
+        GetNewRankDropsAsync(SteamSession session, DateTimeOffset limit, IProgressContext ctx)
+    {
+        var getItemsPriceTask = ctx.AddTask(session, Messages.Statuses.RetrievingItemsPriceNotStarted);
+
+        var tasks = new List<Task>
+        {
+            _walletService.GetWalletInfoAsync(session, ctx),
+            _newRankDropService.GetNewRankDropsAsync(session, limit, ctx)
+        };
+
+        await Task.WhenAll(tasks);
+
+        var getWalletInfoResult =
+            ((Task<OneOf<WalletInfo, WalletServiceError>>)tasks[0]).Result;
+        var getNewRankDropsResult =
+            ((Task<OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
+
+        if (getWalletInfoResult.TryPickT1(out var walletError, out _))
+        {
+            _logger.Warning(walletError.Message);
+            _logger.Warning(walletError.Exception, string.Empty);
+
+            getItemsPriceTask.SetResult(session, Messages.Statuses.RetrievingItemsPriceError);
+
+            return getNewRankDropsResult;
+        }
+
+        if (!getNewRankDropsResult.TryPickT0(out var newRankDrops, out _))
+        {
+            getItemsPriceTask.SetResult(session, Messages.Statuses.RetrievingItemsPriceError);
+            return getNewRankDropsResult;
+        }
+
+        getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
+
+        var items = newRankDrops.SelectMany(x => x.Items!);
+        await BindPricesAsync(items, session, getItemsPriceTask);
+
+        return OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>.FromT0(newRankDrops);
+    }
+
     public async Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx)
     {
         var account = session.Account!;
-        var getWalletCurrencyTask = ctx.AddTask(account, Messages.Statuses.RetrievingWalletInfo);
+
+        var getItemsPriceTask = ctx.AddTask(session, Messages.Statuses.RetrievingItemsPriceNotStarted);
 
         var tasks = new List<Task>
         {
-            _walletService.GetWalletInfoAsync(session),
+            _walletService.GetWalletInfoAsync(session, ctx),
             _newRankDropService.GetLastNewRankDropAsync(session, ctx)
         };
 
-        var getItemsPriceTask = ctx.AddTask(session, Messages.Statuses.RetrievingItemsPriceNotStarted);
         await Task.WhenAll(tasks);
 
         var getWalletInfoResult =
@@ -44,10 +86,7 @@ public class PricedNewRankDropService : INewRankDropService
         var getNewRankDropResult =
             ((Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
 
-        getWalletCurrencyTask.SetResult(session, getWalletInfoResult.IsT0 ?
-            Messages.Statuses.RetrievingWalletInfoOk : Messages.Statuses.RetrievingWalletInfoError);
-
-        if (getWalletInfoResult.TryPickT1(out var error, out var walletInfo))
+        if (getWalletInfoResult.TryPickT1(out var error, out _))
         {
             _logger.Warning(error.Message);
             _logger.Warning(error.Exception, string.Empty);
@@ -65,10 +104,19 @@ public class PricedNewRankDropService : INewRankDropService
 
         getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
 
-        var getItemsPriceResultIsWarning = false;
         var items = newRankDrop.Items!;
-        var itemPrices = await _marketService.GetItemsPriceAsync(items, walletInfo.CurrencyCode);
+        await BindPricesAsync(items, session, getItemsPriceTask);
 
+        return getNewRankDropResult;
+    }
+
+    private async Task BindPricesAsync(IEnumerable<CsgoItem> items, SteamSession session, IProgressTask task)
+    {
+        var walletInfo = session.WalletInfo;
+        var getItemsPriceResultIsWarning = false;
+        var itemPrices = await _marketService.GetItemsPriceAsync(items, walletInfo!.CurrencyCode);
+
+        // TODO: also check for distincts between items and itemPrices
         foreach (var price in itemPrices.Where(x => x.Value == 0))
         {
             // TODO: catch this situations one by one and analyze them, maybe there're just no offers for this item (probably won't happen with weekly drop items) and its not an error
@@ -76,7 +124,7 @@ public class PricedNewRankDropService : INewRankDropService
             _logger.Warning(Messages.Market.InvalidPriceRetrieved, price.MarketName, price.ProviderRaw);
         }
 
-        // TODO: extract item provider to use to config
+        // TODO: extract item provider to use to config (--price-provider)
         foreach (var price in itemPrices.Where(x => x.Provider == PriceProvider.Steam))
         {
             var item = items.FirstOrDefault(x => x.MarketName == price.MarketName);
@@ -86,12 +134,11 @@ public class PricedNewRankDropService : INewRankDropService
                 getItemsPriceResultIsWarning = true;
                 continue;
             }
+
             item.BindPrice(price);
         }
 
-        getItemsPriceTask.SetResult(session, (getItemsPriceResultIsWarning || !itemPrices.Any())
+        task.SetResult(session, (getItemsPriceResultIsWarning || !itemPrices.Any())
             ? Messages.Statuses.RetrievingItemsPriceError : Messages.Statuses.RetrievingItemsPriceOk);
-
-        return getNewRankDropResult;
     }
 }

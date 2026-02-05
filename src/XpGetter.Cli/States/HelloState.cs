@@ -3,6 +3,8 @@ using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Extensions;
+using XpGetter.Cli.Extensions;
+using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
@@ -46,6 +48,7 @@ public class HelloState : BaseState
         var choices = new List<string>
         {
             Messages.Start.GetActivityInfo,
+            Messages.Start.Statistics,
             Messages.Start.ManageAccounts,
             Messages.Start.CheckForUpdates,
             Messages.Common.Exit
@@ -55,12 +58,38 @@ public class HelloState : BaseState
                 .Title(Messages.Common.ChoiceOption)
                 .AddChoices(choices));
 
+#pragma warning disable CS8974
         return choice switch
         {
-            Messages.Start.GetActivityInfo => await GoTo<StartState>(new NamedParameter("configuration", _configuration)),
+            Messages.Start.GetActivityInfo => await GoTo<StartState>(new NamedParameter("configuration", _configuration),
+                                                                     new NamedParameter("postAuthenticationDelegate", GetActivityInfoDelegate)),
+            Messages.Start.Statistics => await GoTo<ChooseStatisticsPeriodState>(new NamedParameter("configuration", _configuration)),
             Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
             Messages.Start.CheckForUpdates => await GoTo<CheckUpdatesState>(new NamedParameter("configuration", _configuration)),
             _ => new ExitExecutionResult()
         };
+#pragma warning restore CS8974
+    }
+
+    private async Task<StateExecutionResult> GetActivityInfoDelegate(List<SteamSession> sessions)
+    {
+        var retrieveActivityStateResult = await AnsiConsole
+            .CreateProgressContext(async ansiConsoleCtx =>
+            {
+                var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
+                return (RetrieveActivityExecutionResult)await GoTo<RetrieveActivityState>(
+                    new NamedParameter("configuration", _configuration),
+                    new NamedParameter("sessions", sessions),
+                    new NamedParameter("ctx", ctx));
+            });
+
+        if (retrieveActivityStateResult.ActivityInfos.Any())
+        {
+            await GoTo<PrintActivityState>(
+                new NamedParameter("configuration", _configuration),
+                new NamedParameter("activityInfos", retrieveActivityStateResult.ActivityInfos));
+        }
+
+        return retrieveActivityStateResult;
     }
 }

@@ -11,10 +11,14 @@ namespace XpGetter.Cli.States;
 public class StartState : BaseState
 {
     private readonly AppConfigurationDto _configuration;
+    private readonly Func<List<SteamSession>, Task<StateExecutionResult>> _postAuthenticationDelegate;
 
-    public StartState(AppConfigurationDto configuration, StateContext context) : base(context)
+    public StartState(AppConfigurationDto configuration,
+                      Func<List<SteamSession>, Task<StateExecutionResult>> postAuthenticationDelegate,
+                      StateContext context) : base(context)
     {
         _configuration = configuration;
+        _postAuthenticationDelegate = postAuthenticationDelegate;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -32,6 +36,7 @@ public class StartState : BaseState
                 var authenticationExecutionResult = (AuthenticationExecutionResult)await GoTo<AuthenticaionState>(
                     new NamedParameter("configuration", _configuration),
                     new NamedParameter("ctx", ctx));
+
                 if (authenticationExecutionResult.Error is PanicExecutionResult)
                 {
                     return authenticationExecutionResult.Error;
@@ -40,6 +45,7 @@ public class StartState : BaseState
                 var authenticatedSessions = authenticationExecutionResult.AuthenticatedSessions;
                 if (authenticatedSessions.Count == 0)
                 {
+                    // some sessions were expired
                     if (!_configuration.Accounts.Any())
                     {
                         AnsiConsole.MarkupLine(Messages.Authentication.NoSavedAccounts);
@@ -70,26 +76,13 @@ public class StartState : BaseState
             familyViewPassedSessions = passFamilyViewResult.PassedSessions;
         }
 
-        RetrieveActivityExecutionResult? retrieveActivityStateResult = null;
+        // TODO: i should really rewrite this shit
+
+        StateExecutionResult? stateExecutionResult = null;
         if (familyViewPassedSessions.Count > 0)
         {
             AnsiConsole.MarkupLine(Messages.Start.SuccessAuthorization);
-            retrieveActivityStateResult = await AnsiConsole
-                .CreateProgressContext(async ansiConsoleCtx =>
-                {
-                    var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
-                    return (RetrieveActivityExecutionResult)await GoTo<RetrieveActivityState>(
-                        new NamedParameter("configuration", _configuration),
-                        new NamedParameter("sessions", familyViewPassedSessions),
-                        new NamedParameter("ctx", ctx));
-                });
-
-            if (retrieveActivityStateResult.ActivityInfos.Any())
-            {
-                await GoTo<PrintActivityState>(
-                    new NamedParameter("configuration", _configuration),
-                    new NamedParameter("activityInfos", retrieveActivityStateResult.ActivityInfos));
-            }
+            stateExecutionResult = await _postAuthenticationDelegate(familyViewPassedSessions);
         }
         else
         {
@@ -106,9 +99,9 @@ public class StartState : BaseState
             return passFamilyViewResult.Error;
         }
 
-        if (retrieveActivityStateResult?.Error is not null)
+        if (stateExecutionResult?.Error is not null)
         {
-            return retrieveActivityStateResult.Error;
+            return stateExecutionResult.Error;
         }
 
         AnsiConsole.WriteLine();

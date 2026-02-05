@@ -49,7 +49,7 @@ public class ActivityService : IActivityService
         var getXpAndRankTask = ctx.AddTask(session, Messages.Statuses.RetrievingXpAndRank);
         var tasks = new List<Task>
         {
-            // TODO: extract to external service (?)
+            // TODO: extract to external service (XpService or something)
             _steamHttpClient.GetHtmlAsync($"profiles/{account.Id}/gcpd/730?tab=accountmain", session.AuthCookie),
             _newRankDropService.GetLastNewRankDropAsync(session, ctx)
         };
@@ -78,6 +78,7 @@ public class ActivityService : IActivityService
             return new ActivityServiceError { Message = error.Message, Exception = error.Exception };
         }
 
+        // TODO: redundant if statement; remove
         if (remainder.TryPickT0(out var lastNewRankDrop, out _) || remainder.IsT1 || remainder.IsT2)
         {
             var additionalMessage = lastNewRankDrop is null ? (

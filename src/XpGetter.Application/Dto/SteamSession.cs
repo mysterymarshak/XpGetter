@@ -7,7 +7,8 @@ public class SteamSession
 {
     public event Action<SteamSession>? AccountBind;
 
-    public bool IsAuthenticated => Client.SessionID is not null;
+    public bool IsAuthenticated => Client is { SessionID: not null, SteamID: not null }
+        && Client.SteamID.ConvertToUInt64() > 0;
 
     public AuthCookie AuthCookie => new(this, _parentalCookie);
     public string Name { get; private set; }
@@ -16,6 +17,7 @@ public class SteamSession
     public SteamUser User { get; }
     public AccountDto? Account { get; private set; }
     public ParentalSettings? ParentalSettings { get; private set; }
+    public WalletInfo? WalletInfo { get; private set; }
 
     private string? _parentalCookie;
 
@@ -41,6 +43,11 @@ public class SteamSession
     public void BindParentalSettings(ParentalSettings? parentalSettings)
     {
         ParentalSettings = parentalSettings;
+    }
+
+    public void BindWalletInfo(WalletInfo walletInfo)
+    {
+        WalletInfo = walletInfo;
     }
 
     public void BindParentalCookie(string cookie)

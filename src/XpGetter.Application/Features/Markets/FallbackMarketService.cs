@@ -23,6 +23,7 @@ public class FallbackMarketService : IMarketService
     {
         var result = await _csgo.GetItemsPriceAsync(items, currency);
 
+        // TODO: try to obtain steam price for each failed item
         if (result.All(x => x.Value == 0))
         {
             _logger.Warning(Messages.Market.FallbackServiceUsedSteam, items.Select(x => x.MarketName));

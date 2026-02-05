@@ -10,4 +10,6 @@ public interface INewRankDropService
 {
     Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx);
+    Task<OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
+        GetNewRankDropsAsync(SteamSession session, DateTimeOffset limit, IProgressContext ctx);
 }

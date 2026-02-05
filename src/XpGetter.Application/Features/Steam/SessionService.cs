@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using OneOf;
 using Serilog;
 using SteamKit2;
@@ -14,7 +16,7 @@ public interface ISessionService : IDisposable
 
 public class SessionService : ISessionService
 {
-    private readonly Dictionary<ulong, SteamSession> _sessions = new();
+    private readonly ConcurrentDictionary<ulong, SteamSession> _sessions = new();
     private readonly ILogger _logger;
 
     public SessionService(ILogger logger)
@@ -125,14 +127,19 @@ public class SessionService : ISessionService
 
     private void OnAccountBounded(SteamSession session)
     {
-        if (!session.IsAuthenticated || session is { Client.SteamID: null })
+        session.AccountBind -= OnAccountBounded;
+
+        if (!session.IsAuthenticated)
         {
             _logger.Error(Messages.Session.BoundedSessionLogFormat, session.Name,
                 Messages.Session.UnauthenticatedAccountBind);
-            return;
+
+            throw new Exception($"Unauthenticated account is bounded. {session.Name}");
         }
 
-        _sessions.Add(session.Client.SteamID, session);
-        session.AccountBind -= OnAccountBounded;
+        if (!_sessions.TryAdd(session.Client.SteamID!, session))
+        {
+            // TODO: duplicated key
+        }
     }
 }

@@ -15,10 +15,12 @@ public static class Messages
         public const string SavedAccountFormat = "[steelblue1]{0}[/]";
         public const string SavedAccounts = "[green]Saved accounts: [[{0}]][/]";
         public const string GetActivityInfo = "Get activity info";
+        public const string Statistics = "Statistics";
         public const string ManageAccounts = "Manage accounts";
         public const string CheckForUpdates = "Check for updates";
         public const string Exited = "Exited.";
         public const string SuccessAuthorization = "Authorization: [green]success[/]. Retrieving activity info...";
+        public const string NoAuthenticatedAccounts = "[red]No authenticated accounts.[/]";
     }
 
     public static class Version
@@ -63,21 +65,25 @@ public static class Messages
         public const string Authenticated = "Authenticated [green]:)[/]";
         public const string RetrievingActivity = "Retrieving activity info...";
         public const string RetrievingLastNewRankDrop = "Retrieving last new rank drop...";
+        public const string RetrievingLastNewRankDropRateLimit = "Retrieving last new rank drop: rate limit, please wait...";
+        public const string RetrievingNewRankDrops = "Retrieving new rank drops for {0} days...";
+        public const string RetrievingNewRankDropsRateLimit = "Retrieving new rank drops: rate limit, please wait...";
         public const string RetrievingXpAndRank = "Retrieving xp and rank...";
         public const string RetrievingXpAndRankError = "Retrieving xp and rank: error [red]:([/]";
         public const string RetrievingXpAndRankOk = "Retrieving xp and rank: got! [green]:)[/]";
         public const string RetrievingActivityError = "Retrieving activity info: error [red]:([/]";
         public const string RetrievingActivityOk = "Retrieving activity info: got! [green]:)[/]";
-        public const string TooLongHistoryStatus = "New rank drop: too long inventory history! [red]:([/]";
+        public const string TooLongHistory = "New rank drop: too long inventory history! [red]:([/]";
+        public const string TooBigGapInHistory = "New rank drops: too long time gap between them! [red]:([/]";
         public const string NewRankDropError = "New rank drop: error [red]:([/]";
+        public const string NewRankDropsError = "New rank drops: error [red]:([/]";
         public const string NewRankDropOk = "New rank drop: got! [green]:)[/]";
+        public const string NewRankDropsOk = "New rank drops: got! [green]:)[/]";
         public const string NewRankDropNoResultsOnPage = "New rank drop: fetching more history...";
         public const string NewRankDropGotOnlyOne = "New rank drop: got with warnings [yellow]-_-;[/]";
         public const string NewRankDropMispaged = "New rank drop: mispaged. You're lucky!";
-        public const string NewRankDropNotFound = "New rank drop: not found. Are you new in cs2? [green]:)[/]";
-        public const string RetrievingWalletInfo = "Retrieving wallet info...";
-        public const string RetrievingWalletInfoError = "Retrieving wallet info: error [red]:([/]";
-        public const string RetrievingWalletInfoOk = "Retrieving wallet info: got! [green]:)[/]";
+        public const string NewRankDropNotFound = "New rank drop: not found; are you new in cs2? [green]:)[/]";
+        public const string NewRankDropsNotFound = "New rank drops: not found; are you new in cs2? [green]:)[/]";
         public const string RetrievingItemsPriceNotStarted = "Retrieving items price: awaiting wallet info & items...";
         public const string RetrievingItemsPrice = "Retrieving items price...";
         public const string RetrievingItemsPriceError = "Retrieving items price: error [red]:([/]";
@@ -178,6 +184,7 @@ public static class Messages
             public const string NoHistoryRowsForMispagedDropLogger = "Invalid mispaged drop html document: no 'tradehistoryrow' elements. Raw: {Html}";
             public const string CannotParseMispagedDrop = "Cannot parse mispaged drop. See details in logs.";
             public const string CannotParseMispagedDropLogger = "Cannot parse mispaged drop. Html: {Html}";
+            public const string CannotParseMarketName = "Cannot parse market name. Html: {Html}";
         }
     }
 
@@ -187,8 +194,9 @@ public static class Messages
         public const string NoNewRankDropInfo = "No new rank drop info were found. Are you new in cs2?";
         public const string SessionWithNoAccount = "Before requesting activity info session should be authorized and account should be bounded.";
         public const string TooLongHistory = "Too long inventory history! Scanned '{0}' items and nothing about new rank drops were found.";
+        public const string NoCursor = "No cursor found for retrieving mispaged drop.";
+        public const string NoCursorLog = "Cannot retrieve mispaged drop if cursor is null.";
         public const string GetActivityError = "[red]An error occurred while retrieving activity info.[/]";
-        public const string NullCursorForMispagedDrop = "Cannot retrieve mispaged drop if cursor is null.";
         public const string NotSuccessfulResultInLoadInventoryHistory = "Success: false while retrieving inventory history. See details in logs.";
         public const string NotSuccessfulResultInLoadInventoryHistoryLogger = "Success: false while retrieving inventory history. Raw response: {Response}";
         public const string AnyKeyToReturn = "Press any key to return to main menu...";
@@ -196,6 +204,9 @@ public static class Messages
 
     public static class Wallet
     {
+        public const string RetrievingWalletInfo = "Retrieving wallet info...";
+        public const string RetrievingWalletInfoError = "Retrieving wallet info: error [red]:([/]";
+        public const string RetrievingWalletInfoOk = "Retrieving wallet info: got! [green]:)[/]";
         public const string GetWalletInfoException = "An exception was thrown while retrieving wallet info.";
     }
 
@@ -225,5 +236,20 @@ public static class Messages
         public const string NothingToDo = "Nothing to do.";
         public const string Y = "y";
         public const string N = "n";
+    }
+
+    public static class Statistics
+    {
+        public const string GetStatisticsError = "[red]An error occurred while retrieving statistics.[/]";
+        public const string Days30 = "30 days";
+        public const string Days90 = "90 days";
+        public const string Days180 = "180 days";
+        public const string Days365 = "365 days";
+        public const string TableTitle = "[steelblue1]{0}[/]";
+        public const string ItemNameColumn = "Name";
+        public const string ItemPriceColumn = "Price";
+        public const string ItemQuantityColumn = "Quantity";
+        public const string FooterTotal = "Total";
+        public const string Done = "Here's your new rank drops statistics for {0} days:";
     }
 }

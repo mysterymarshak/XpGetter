@@ -9,20 +9,28 @@ namespace XpGetter.Application.Features.Steam.Http.Responses.Parsers;
 
 public class NewRankDropParser
 {
-    private const string NewRankDropRow = "Earned a new rank and got a drop";
+    public CursorInfo? Cursor { get; private set; }
+    public int ParsedPages { get; private set; }
+    public int ParsedItems { get; private set; }
+    public DateTimeOffset? LastEntryDateTime { get; private set; }
+    public bool ParseOnlyLastDrop { get; private set; }
+
+    private const string NewRankDropRow1 = "Earned a new rank and got a drop";
+    private const string NewRankDropRow2 = "Got an item drop";
+    private const string MarketNameDefault = "<unknown>";
 
     private readonly ILogger _logger;
 
-    private int _parsedPages;
-    private int _parsedItems;
+    private bool _skipNextNode;
 
-    public NewRankDropParser(ILogger logger)
+    public NewRankDropParser(ILogger logger, bool parseOnlyLastDrop = true)
     {
         _logger = logger;
+        ParseOnlyLastDrop = parseOnlyLastDrop;
     }
 
-    public OneOf<Dto.NewRankDrop, NoResultsOnPage, MispagedDrop, NoDropHistoryFound, NewRankDropParserError>
-        TryParseNext(InventoryHistoryResponse response)
+    public OneOf<IEnumerable<Dto.NewRankDrop>, NoResultsOnPage, MispagedDrop,
+        NoDropHistoryFound, NewRankDropParserError> TryParseNext(InventoryHistoryResponse response)
     {
         if (response.Html is null)
         {
@@ -47,11 +55,22 @@ public class NewRankDropParser
             };
         }
 
-        var dropItems = new List<CsgoItem>();
-        DateTimeOffset? lastEntryDateTime = null;
+        ParsedPages++;
+        Cursor = response.Cursor;
 
+        var newRankDrops = new List<Dto.NewRankDrop>(ParseOnlyLastDrop ? 1 : 4);
         foreach (var (i, row) in rows.Index())
         {
+            ParsedItems += 1;
+
+            if (_skipNextNode)
+            {
+                _skipNextNode = false;
+                continue;
+            }
+
+            var dropItems = new List<CsgoItem>();
+
             var parseDropItemResult = TryParseCsgoItemFromRow(response, row);
             if (parseDropItemResult.DateTime is null)
             {
@@ -59,7 +78,7 @@ public class NewRankDropParser
                 continue;
             }
 
-            lastEntryDateTime = parseDropItemResult.DateTime;
+            LastEntryDateTime = parseDropItemResult.DateTime;
 
             if (parseDropItemResult.DropItem is null)
                 continue;
@@ -69,7 +88,7 @@ public class NewRankDropParser
             var nextRowIndex = i + 1;
             if (rows.Count == nextRowIndex)
             {
-                return new MispagedDrop(lastEntryDateTime.Value, dropItems[0], response.Cursor);
+                return new MispagedDrop(LastEntryDateTime.Value, dropItems[0], response.Cursor, newRankDrops);
             }
 
             var nextDropItemNode = rows[i + 1];
@@ -83,22 +102,32 @@ public class NewRankDropParser
                 dropItems.Add(parseSecondDropItemResult.DropItem);
             }
 
-            return new Dto.NewRankDrop(lastEntryDateTime.Value, dropItems);
+            _skipNextNode = true;
+            newRankDrops.Add(new Dto.NewRankDrop(LastEntryDateTime.Value, dropItems));
+
+            if (ParseOnlyLastDrop)
+            {
+                return newRankDrops;
+            }
         }
 
-        if (lastEntryDateTime is null || response.Cursor is null)
+        if (LastEntryDateTime is null || response.Cursor is null)
         {
             return new NoDropHistoryFound();
         }
 
-        _parsedPages++;
-        _parsedItems += response.EntriesCount;
+        if (newRankDrops.Count == 0)
+        {
+            return new NoResultsOnPage(ParsedPages, LastEntryDateTime.Value, ParsedItems, Cursor);
+        }
 
-        return new NoResultsOnPage(_parsedPages, lastEntryDateTime.Value, _parsedItems, response.Cursor);
+        return newRankDrops;
     }
 
     public OneOf<CsgoItem?, NewRankDropParserError> TryParseMispagedDrop(InventoryHistoryResponse response)
     {
+        CsgoItem? result = null;
+
         var html = response.Html;
         if (html is null)
         {
@@ -115,11 +144,7 @@ public class NewRankDropParser
         if (rows is null or [])
         {
             _logger.Warning(Messages.ActivityParsers.Drop.NoHistoryRowsForMispagedDropLogger, html);
-
-            return new NewRankDropParserError
-            {
-                Message = Messages.ActivityParsers.Drop.NoHistoryRowsForMispagedDrop
-            };
+            return result;
         }
 
         var row = rows.First();
@@ -127,14 +152,13 @@ public class NewRankDropParser
         if (parseDropItemResult.DateTime is null || parseDropItemResult.DropItem is null)
         {
             _logger.Warning(Messages.ActivityParsers.Drop.CannotParseMispagedDropLogger, row.InnerHtml);
-
-            return new NewRankDropParserError
-            {
-                Message = Messages.ActivityParsers.Drop.CannotParseMispagedDrop
-            };
+            return result;
         }
 
-        return parseDropItemResult.DropItem;
+        _skipNextNode = true;
+        result = parseDropItemResult.DropItem;
+
+        return result;
     }
 
     private (CsgoItem? DropItem, DateTimeOffset? DateTime) TryParseCsgoItemFromRow(
@@ -147,7 +171,8 @@ public class NewRankDropParser
         }
 
         var descriptionNode = row.SelectSingleNode(".//div[@class='tradehistory_event_description']");
-        if (descriptionNode?.InnerText.Trim() != NewRankDropRow)
+        var innerTextTrimmed = descriptionNode?.InnerText.Trim();
+        if (innerTextTrimmed is not (NewRankDropRow1 or NewRankDropRow2))
         {
             return (null, parsedDateTime);
         }
@@ -159,7 +184,14 @@ public class NewRankDropParser
             return (null, parsedDateTime);
         }
 
-        return (ExtractCsgoItemFromNode(response, earnedItemNode), parsedDateTime);
+        var item = ExtractCsgoItemFromNode(response, earnedItemNode);
+        if (item.MarketName == MarketNameDefault)
+        {
+            _logger.Warning(Messages.ActivityParsers.Drop.CannotParseMarketName, earnedItemNode.InnerHtml);
+            return (null, parsedDateTime);
+        }
+
+        return (item, parsedDateTime);
     }
 
     private DateTimeOffset? TryParseDateTimeFromRow(HtmlNode row)
@@ -198,6 +230,6 @@ public class NewRankDropParser
         return new CsgoItem(name, GetMarketName(response, classId, instanceId), imgUrl, color);
     }
 
-    private string? GetMarketName(InventoryHistoryResponse response, ulong classId, ulong instanceId)
-        => response.Descriptions?["730"][$"{classId}_{instanceId}"].MarketName;
+    private string GetMarketName(InventoryHistoryResponse response, ulong classId, ulong instanceId)
+        => response.Descriptions?["730"][$"{classId}_{instanceId}"].MarketName ?? MarketNameDefault;
 }

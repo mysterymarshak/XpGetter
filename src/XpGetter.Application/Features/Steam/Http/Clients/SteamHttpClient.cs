@@ -1,6 +1,8 @@
+using System.Net;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using OneOf;
+using Polly;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
@@ -11,9 +13,10 @@ public interface ISteamHttpClient
 {
     Task<OneOf<HtmlDocument, SteamHttpClientError>> GetHtmlAsync(string requestUri, AuthCookie? authCookie = null);
     Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
-        string requestUri, AuthCookie? authCookie = null);
+        string requestUri, AuthCookie? authCookie = null, Action? onRateLimit = null);
     Task<HttpResponseMessage> PostAsync(string requestUri, AuthCookie authCookie, HttpContent content);
-    Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null);
+    Task<OneOf<string, SteamHttpClientError>> GetAsync(string requestUri, AuthCookie? authCookie = null,
+        Action? onRateLimit = null);
 }
 
 public class SteamHttpClient : ISteamHttpClient
@@ -31,11 +34,11 @@ public class SteamHttpClient : ISteamHttpClient
     }
 
     public async Task<OneOf<(T Deserialized, string Raw), SteamHttpClientError>> GetJsonAsync<T>(
-        string requestUri, AuthCookie? authCookie = null)
+        string requestUri, AuthCookie? authCookie = null, Action? onRateLimit = null)
     {
         try
         {
-            var getResult = await GetAsync(requestUri, authCookie);
+            var getResult = await GetAsync(requestUri, authCookie, onRateLimit);
             if (getResult.TryPickT1(out var error, out var contentAsString))
             {
                 return error;
@@ -104,7 +107,7 @@ public class SteamHttpClient : ISteamHttpClient
     }
 
     public async Task<OneOf<string, SteamHttpClientError>> GetAsync(
-        string requestUri, AuthCookie? authCookie = null)
+        string requestUri, AuthCookie? authCookie = null, Action? onRateLimit = null)
     {
         try
         {
@@ -114,8 +117,15 @@ public class SteamHttpClient : ISteamHttpClient
                 cookie += $"; {authCookie}";
             }
 
+            var context = new Context();
+            if (onRateLimit != null)
+            {
+                context["OnRateLimit"] = onRateLimit;
+            }
+
             using var message = new HttpRequestMessage(HttpMethod.Get, requestUri);
             message.Headers.Add("Cookie", cookie);
+            message.SetPolicyExecutionContext(context);
 
             using var result = await _client.SendAsync(message);
             result.EnsureSuccessStatusCode();
