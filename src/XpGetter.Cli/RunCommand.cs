@@ -12,7 +12,6 @@ namespace XpGetter.Cli;
 
 internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
 {
-    // TODO: add --prefer-personal-names
     // TODO: add --dont-use-currency-symbols
     // TODO: add --dont-encrypt-configuration
     // TODO: add --currency

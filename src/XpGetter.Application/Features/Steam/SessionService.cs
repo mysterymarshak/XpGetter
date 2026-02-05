@@ -138,7 +138,8 @@ public class SessionService : ISessionService
 
         if (!_sessions.TryAdd(session.Client.SteamID!, session))
         {
-            // TODO: duplicated key
+            throw new InvalidOperationException(string.Format(Messages.Session.DuplicatedSession,
+                                                              session.Client.SteamID));
         }
     }
 }

@@ -104,6 +104,7 @@ public static class Messages
         public const string Disconnected = "Disconnected from Steam.";
         public const string UnauthenticatedAccountBind = "Attempt to bind unauthenticated account.";
         public const string FailedSessionCreation = "[red]Error while creating session for client '{0}'[/]";
+        public const string DuplicatedSession = "Attempt to authenticate session that already exists. SteamID: '{0}'";
     }
 
     public static class Http
