@@ -35,6 +35,11 @@ public class SteamSession
 
     public string GetName(bool ignoreConfiguration = false)
     {
+        if (_name == DefaultName)
+        {
+            return _name;
+        }
+
         return _name.ToDisplayString(ignoreConfiguration);
     }
 
