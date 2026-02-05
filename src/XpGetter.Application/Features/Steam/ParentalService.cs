@@ -52,6 +52,14 @@ public class ParentalService : IParentalService
             return new InvalidPassword();
         }
 
+        if (deserialized.Result == UnlockFamilyViewResponse.WrongPasswordResultButNotReally)
+        {
+            // when you already unlocked your session steam somewhy sends
+            // the response like "success": false, result: 2, message: "nice attempt try again"
+            // and idk wtf is going here
+            return new Success();
+        }
+
         if (!deserialized.Success)
         {
             _logger.Error(Messages.Parental.NotOkLog);

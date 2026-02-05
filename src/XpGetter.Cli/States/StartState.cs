@@ -2,6 +2,7 @@ using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
+using XpGetter.Application.Features.Configuration;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
@@ -11,13 +12,15 @@ namespace XpGetter.Cli.States;
 public class StartState : BaseState
 {
     private readonly AppConfigurationDto _configuration;
+    private readonly IConfigurationService _configurationService;
     private readonly Func<List<SteamSession>, Task<StateExecutionResult>> _postAuthenticationDelegate;
 
-    public StartState(AppConfigurationDto configuration,
+    public StartState(AppConfigurationDto configuration, IConfigurationService configurationService,
                       Func<List<SteamSession>, Task<StateExecutionResult>> postAuthenticationDelegate,
                       StateContext context) : base(context)
     {
         _configuration = configuration;
+        _configurationService = configurationService;
         _postAuthenticationDelegate = postAuthenticationDelegate;
     }
 
@@ -71,6 +74,7 @@ public class StartState : BaseState
         if (familyViewProtected.Any())
         {
             passFamilyViewResult = (PassFamilyViewExecutionResult)await GoTo<PassFamilyViewState>(
+                new NamedParameter("configuration", _configuration),
                 new NamedParameter("sessions", sessions));
 
             familyViewPassedSessions = passFamilyViewResult.PassedSessions;

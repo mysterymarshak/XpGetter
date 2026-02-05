@@ -1,34 +1,49 @@
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
+using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Steam;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 
-// TODO: prompt to save pin
 public class UnlockFamilyViewState : BaseState
 {
+    private readonly AppConfigurationDto _configuration;
     private readonly SteamSession _session;
     private readonly IParentalService _parentalService;
+    private readonly IConfigurationService _configurationService;
 
-    public UnlockFamilyViewState(SteamSession session, IParentalService parentalService,
-        StateContext context) : base(context)
+    public UnlockFamilyViewState(AppConfigurationDto configuration, SteamSession session,
+        IParentalService parentalService, IConfigurationService configurationService,
+            StateContext context) : base(context)
     {
+        _configuration = configuration;
         _session = session;
         _parentalService = parentalService;
+        _configurationService = configurationService;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
+        var account = _session.Account!;
+        var savedPin = account.FamilyViewPin;
         string? pin = null;
+
         while (pin is null)
         {
-            pin = await AnsiConsole.PromptAsync(
-                new TextPrompt<string>(Messages.Parental.EnterThePin)
-                    .Secret('*')
-                    .AllowEmpty());
+            if (!string.IsNullOrWhiteSpace(savedPin))
+            {
+                pin = savedPin;
+            }
+            else
+            {
+                pin = await AnsiConsole.PromptAsync(
+                    new TextPrompt<string>(Messages.Parental.EnterThePin)
+                        .Secret('*')
+                        .AllowEmpty());
+            }
 
             if (string.IsNullOrWhiteSpace(pin))
             {
@@ -38,6 +53,15 @@ public class UnlockFamilyViewState : BaseState
             if (!ValidatePin(pin))
             {
                 pin = null;
+
+                if (!string.IsNullOrWhiteSpace(savedPin))
+                {
+                    ResetSavedPin();
+                    AnsiConsole.MarkupLine(Messages.Parental.CorruptedSavedPin);
+
+                    continue;
+                }
+
                 AnsiConsole.MarkupLine(Messages.Parental.InvalidPin);
                 continue;
             }
@@ -55,14 +79,48 @@ public class UnlockFamilyViewState : BaseState
             if (unlockResult.IsT1)
             {
                 pin = null;
-                AnsiConsole.MarkupLine(Messages.Parental.WrongPin);
+
+                if (!string.IsNullOrWhiteSpace(savedPin))
+                {
+                    ResetSavedPin();
+                    AnsiConsole.MarkupLine(Messages.Parental.WrongSavedPin);
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine(Messages.Parental.WrongPin);
+                }
+
                 continue;
             }
 
             AnsiConsole.MarkupLine(Messages.Parental.Unlocked);
+
+            if (pin != savedPin)
+            {
+                var savePinPrompt = new TextPrompt<string>(Messages.Parental.SavePinPrompt)
+                    .AddChoice(Messages.Common.Y)
+                    .AddChoice(Messages.Common.N)
+                    .DefaultValue(Messages.Common.Y);
+
+                var savePinPromptResult = await AnsiConsole.PromptAsync(savePinPrompt);
+                if (savePinPromptResult == Messages.Common.Y)
+                {
+                    account.FamilyViewPin = pin;
+                    _configurationService.WriteConfiguration(_configuration);
+
+                    AnsiConsole.MarkupLine(Messages.Parental.PinSaved);
+                }
+            }
         }
 
         return new UnlockFamilyViewExecutionResult { Success = true };
+
+        void ResetSavedPin()
+        {
+            savedPin = null;
+            account.FamilyViewPin = null;
+            _configurationService.WriteConfiguration(_configuration);
+        }
     }
 
     private bool ValidatePin(string pin) => pin.Length == 4 && pin.All(char.IsDigit);

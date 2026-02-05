@@ -15,6 +15,7 @@ public class AccountMapper
             WalletCurrency = entity.CacheData?.WalletCurrency,
             RefreshToken = entity.RefreshToken,
             Username = entity.Username,
+            FamilyViewPin = entity.FamilyViewPin,
             ActivityInfo = null // TODO: caching
         };
     }
@@ -36,6 +37,7 @@ public class AccountMapper
             RefreshToken = dto.RefreshToken,
             Id = dto.Id,
             Username = dto.Username,
+            FamilyViewPin = dto.FamilyViewPin,
             CacheData = cacheData
         };
     }

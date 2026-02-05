@@ -6,6 +6,7 @@ public class AccountDto
     public string AccessToken { get; set; } = null!;
     public string RefreshToken { get; set; } = null!;
     public string Username { get; set; } = null!;
+    public string? FamilyViewPin { get; set; }
     public string? PersonalName { get; set; }
     public string? WalletCurrency { get; set; }
     public ActivityInfo? ActivityInfo { get; set; }

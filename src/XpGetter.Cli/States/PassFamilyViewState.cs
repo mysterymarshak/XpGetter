@@ -9,10 +9,13 @@ namespace XpGetter.Cli.States;
 
 public class PassFamilyViewState : BaseState
 {
+    private readonly AppConfigurationDto _configuration;
     private readonly List<SteamSession> _sessions;
 
-    public PassFamilyViewState(List<SteamSession> sessions, StateContext context) : base(context)
+    public PassFamilyViewState(AppConfigurationDto configuration, List<SteamSession> sessions,
+                               StateContext context) : base(context)
     {
+        _configuration = configuration;
         _sessions = sessions;
     }
 
@@ -44,19 +47,28 @@ public class PassFamilyViewState : BaseState
             }
 
             AnsiConsole.MarkupLine(Messages.Parental.AccountIsLocked, session.Name);
-            var prompt = new TextPrompt<string>(Messages.Parental.PromptUnlocking)
-                .AddChoice(Messages.Common.Y)
-                .AddChoice(Messages.Common.N)
-                .DefaultValue(Messages.Common.Y);
 
-            var promptResult = await AnsiConsole.PromptAsync(prompt);
-            if (promptResult != Messages.Common.Y)
+            if (!string.IsNullOrWhiteSpace(session.Account!.FamilyViewPin))
             {
-                AnsiConsole.MarkupLine(Messages.Parental.SkipUnlocking);
-                continue;
+                AnsiConsole.MarkupLine(Messages.Parental.FoundSavedPin);
+            }
+            else
+            {
+                var prompt = new TextPrompt<string>(Messages.Parental.PromptUnlocking)
+                    .AddChoice(Messages.Common.Y)
+                    .AddChoice(Messages.Common.N)
+                    .DefaultValue(Messages.Common.Y);
+
+                var promptResult = await AnsiConsole.PromptAsync(prompt);
+                if (promptResult != Messages.Common.Y)
+                {
+                    AnsiConsole.MarkupLine(Messages.Parental.SkipUnlocking);
+                    continue;
+                }
             }
 
             var unlockResult = (UnlockFamilyViewExecutionResult)await GoTo<UnlockFamilyViewState>(
+                new NamedParameter("configuration", _configuration),
                 new NamedParameter("session", session));
 
             if (unlockResult.Success)

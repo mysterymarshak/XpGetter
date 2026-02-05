@@ -155,6 +155,7 @@ public static class Messages
         public const string NotOkLog = "Success: false is retrieved.";
         public const string ResponseLogDetails = "Response content: {ResponseContent}; Raw headers: {@RawHeaders}";
         public const string AccountIsLocked = "Account '[steelblue1]{0}[/]' is protected by family view. To retrieve activity info you should unlock it first.";
+        public const string FoundSavedPin = "[green]Found saved pin.[/]";
         public const string PromptUnlocking = "Unlock with password?";
         public const string SkipUnlocking = "Skip unlocking...";
         public const string EnterThePin = "4-digit pin (empty to skip):";
@@ -163,7 +164,11 @@ public static class Messages
         public const string Error = "[red]An error occurred while trying to unlock family view.[/]";
         public const string SkipUnlockingDueToError = "Skip unlocking because of the unknown error...";
         public const string WrongPin = "[red]Wrong pin. Try again.[/]";
+        public const string WrongSavedPin = "[red]Looks like you changed your pin. Try again.[/]";
+        public const string CorruptedSavedPin = "[red]Your saved pin is corrupted and was reset.[/]";
         public const string Unlocked = "[green]Unlocked![/]";
+        public const string SavePinPrompt = "Save pin for this account?";
+        public const string PinSaved = "[green]Saved![/]";
     }
 
     public static class ActivityParsers
@@ -223,7 +228,6 @@ public static class Messages
 
     public static class Common
     {
-
         public const string Done = "Done";
         public const string Dummy = "dummy";
         public const string ChoiceOption = "Choice option:";

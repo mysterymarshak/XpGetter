@@ -18,6 +18,9 @@ public class Account
     [JsonProperty("username")]
     public string Username { get; set; } = null!;
 
+    [JsonProperty("family_view_pin")]
+    public string? FamilyViewPin { get; set; }
+
     [JsonProperty("cache_data")]
     public AccountCacheData? CacheData { get; set; }
 
