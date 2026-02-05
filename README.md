@@ -4,7 +4,7 @@
 **Usage Demo:**  
 ![XpGetter_demo_activity_info](https://github.com/user-attachments/assets/625dd22e-e412-4d46-b542-7fa3d9571267)
 
-Since version `2.0.0` you can also see all of your new rank drops by some period (30, 90, 180, 365 days)
+Since version `0.2.0` you can also see all of your new rank drops by some period (30, 90, 180, 365 days)
 ![xpgetter_demo_statistics](https://github.com/user-attachments/assets/c069b48e-b5c9-44f7-974e-10a641655165)
 
 ## How to use
