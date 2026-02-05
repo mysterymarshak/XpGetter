@@ -214,6 +214,7 @@ public static class Messages
         public const string RetrievingWalletInfoError = "Retrieving wallet info: error [red]:([/]";
         public const string RetrievingWalletInfoOk = "Retrieving wallet info: got! [green]:)[/]";
         public const string GetWalletInfoException = "An exception was thrown while retrieving wallet info.";
+        public const string InvalidCurrencyLog = "Looks like you didn't use steam wallet yet (or its a steam bug, response corruption or whatever). In that case steam provides 'invalid' currency code so for that specific account ('{Username}') 'USD' will be used as a default currency";
     }
 
     public static class Market

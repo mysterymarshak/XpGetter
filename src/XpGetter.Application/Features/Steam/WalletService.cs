@@ -1,4 +1,5 @@
 using OneOf;
+using Serilog;
 using SteamKit2;
 using SteamKit2.Internal;
 using XpGetter.Application.Dto;
@@ -15,6 +16,13 @@ public interface IWalletService
 
 public class WalletService : IWalletService
 {
+    private readonly ILogger _logger;
+
+    public WalletService(ILogger logger)
+    {
+        _logger = logger;
+    }
+
     public async Task<OneOf<WalletInfo, WalletServiceError>> GetWalletInfoAsync(SteamSession session, IProgressContext ctx)
     {
         var task = ctx.AddTask(session, Messages.Wallet.RetrievingWalletInfo);
@@ -32,7 +40,14 @@ public class WalletService : IWalletService
             var userAccountService = steamUnifiedMessages.CreateService<UserAccount>();
             var response = await userAccountService.GetClientWalletDetails(request);
 
-            var walletInfo = new WalletInfo((ECurrencyCode)response.Body.currency_code);
+            var currency = (ECurrencyCode)response.Body.currency_code;
+            if (currency == ECurrencyCode.Invalid)
+            {
+                currency = ECurrencyCode.USD;
+                _logger.Warning(Messages.Wallet.InvalidCurrencyLog, session.Account!.Username);
+            }
+
+            var walletInfo = new WalletInfo(currency);
             task.SetResult(session, Messages.Wallet.RetrievingWalletInfoOk);
             session.BindWalletInfo(walletInfo);
 
