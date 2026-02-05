@@ -19,15 +19,22 @@ public class FallbackMarketService : IMarketService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<CsgoItem> items, ECurrencyCode currency)
+    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<string> names, ECurrencyCode currency)
     {
-        var result = await _csgo.GetItemsPriceAsync(items, currency);
+        var result = await _csgo.GetItemsPriceAsync(names, currency);
 
-        // TODO: try to obtain steam price for each failed item
-        if (result.All(x => x.Value == 0))
+        var failedItems = result
+            .Where(x => x.Value == 0)
+            .Select(x => x.MarketName)
+            .Concat(names.Where(x => result.All(y => y.MarketName != x)))
+            .ToList();
+
+        if (failedItems.Count > 0)
         {
-            _logger.Warning(Messages.Market.FallbackServiceUsedSteam, items.Select(x => x.MarketName));
-            result = await _steam.GetItemsPriceAsync(items, currency);
+            _logger.Warning(Messages.Market.FallbackServiceUsedSteam, failedItems);
+
+            var failedItemsResult = await _steam.GetItemsPriceAsync(failedItems, currency);
+            result = result.Concat(failedItemsResult);
         }
 
         _logger.Debug(Messages.Market.GotPricesLog, result);

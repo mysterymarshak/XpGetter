@@ -80,8 +80,7 @@ public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> 
         return lastReset > LastDateTime;
     }
 
-    // TODO: find better place
-    public static DateTimeOffset GetLastDropResetTime()
+    private static DateTimeOffset GetLastDropResetTime()
     {
         var utcNow = DateTime.UtcNow;
         var date = new DateTimeOffset(utcNow.Year, utcNow.Month, utcNow.Day, 2, 0, 0, TimeSpan.Zero);

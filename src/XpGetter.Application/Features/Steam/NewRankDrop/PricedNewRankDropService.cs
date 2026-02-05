@@ -1,3 +1,4 @@
+using System.Linq;
 using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
@@ -114,30 +115,34 @@ public class PricedNewRankDropService : INewRankDropService
     {
         var walletInfo = session.WalletInfo;
         var getItemsPriceResultIsWarning = false;
-        var itemPrices = await _marketService.GetItemsPriceAsync(items, walletInfo!.CurrencyCode);
+        var itemPrices = await _marketService.GetItemsPriceAsync(items.Select(x => x.MarketName), walletInfo!.CurrencyCode);
 
-        // TODO: also check for distincts between items and itemPrices
-        foreach (var price in itemPrices.Where(x => x.Value == 0))
-        {
-            // TODO: catch this situations one by one and analyze them, maybe there're just no offers for this item (probably won't happen with weekly drop items) and its not an error
-            getItemsPriceResultIsWarning = true;
-            _logger.Warning(Messages.Market.InvalidPriceRetrieved, price.MarketName, price.ProviderRaw);
-        }
+        getItemsPriceResultIsWarning = itemPrices.Any(x => x.Value == 0) ||
+            items.Any(x => itemPrices.All(y => y.MarketName != x.MarketName));
 
         // TODO: extract item provider to use to config (--price-provider)
         foreach (var price in itemPrices.Where(x => x.Provider == PriceProvider.Steam))
         {
-            var item = items.FirstOrDefault(x => x.MarketName == price.MarketName);
-            if (item is null)
+            var itemsToBind = items.Where(x => x.MarketName == price.MarketName);
+            foreach (var item in itemsToBind)
+            {
+                item.BindPrice(price);
+            }
+
+            if (!itemsToBind.Any())
             {
                 _logger.Warning(Messages.Market.CannotFindItemForPrice, price.MarketName, items.Select(x => x.MarketName));
                 getItemsPriceResultIsWarning = true;
                 continue;
             }
-
-            item.BindPrice(price);
         }
 
+        var taskResult = (getItemsPriceResultIsWarning, itemPrices.Any()) switch
+        {
+            (_, false) => Messages.Statuses.RetrievingItemsPriceError,
+            (true, _) => Messages.Statuses.RetrievingItemsPriceWarning,
+            _ => Messages.Statuses.RetrievingItemsPriceOk,
+        };
         task.SetResult(session, (getItemsPriceResultIsWarning || !itemPrices.Any())
             ? Messages.Statuses.RetrievingItemsPriceError : Messages.Statuses.RetrievingItemsPriceOk);
     }

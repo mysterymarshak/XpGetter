@@ -22,21 +22,17 @@ public class CsgoMarketService : IMarketService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<CsgoItem> items, ECurrencyCode currency)
+    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<string> names, ECurrencyCode currency)
     {
-        var names = items
-            .Where(x => !string.IsNullOrWhiteSpace(x.MarketName))
-            .Select(x => x.MarketName!)
-            .ToList();
-
-        if (names.Count == 0)
+        var namesList = names.ToList();
+        if (namesList.Count == 0)
         {
             return [];
         }
 
         try
         {
-            var payload = new ItemPriceRequest { ItemNames = names };
+            var payload = new ItemPriceRequest { ItemNames = namesList };
             var message = new HttpRequestMessage(HttpMethod.Post, $"?currency={currency}");
             message.Content = new StringContent(JsonConvert.SerializeObject(payload, Formatting.None),
                 Encoding.UTF8, "application/json");

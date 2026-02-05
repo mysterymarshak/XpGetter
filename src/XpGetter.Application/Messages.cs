@@ -87,6 +87,7 @@ public static class Messages
         public const string RetrievingItemsPriceNotStarted = "Retrieving items price: awaiting wallet info & items...";
         public const string RetrievingItemsPrice = "Retrieving items price...";
         public const string RetrievingItemsPriceError = "Retrieving items price: error [red]:([/]";
+        public const string RetrievingItemsPriceWarning = "Retrieving items price: got with warnings [yellow]-_-;[/]";
         public const string RetrievingItemsPriceOk = "Retrieving items price: got! [green]:)[/]";
         public const string RetrievingLatestVersion = "Retrieving lastest version...";
     }
@@ -215,7 +216,7 @@ public static class Messages
         public const string DeserializationError = "Cannot deserialize item price response json. Raw: {0}";
         public const string GetPriceException = "An exception was thrown while retrieving the items price. Item names: [{0}]";
         public const string CannotFindItemForPrice = "Cannot find original item from the name provided in price response. Item to find: '{MarketName}'. All items: '{@MarketNames}'";
-        public const string InvalidPriceRetrieved = "Invalid price for '{MarketName}' is retrieved. Used provider: {PriceProvider}. If there's no warning about using steam market instead of csgo market, then the second one service was used (as default).";
+        public const string CannotGetPriceRetrieved = "Cannot get price for '{MarketName}'.";
         public const string FallbackServiceUsedSteam = "Couldn't get items [{@ItemNames}] price via csgo market service. Trying to use steam one.";
         public const string GotPricesLog = "Got items' prices: {@Prices}";
     }
