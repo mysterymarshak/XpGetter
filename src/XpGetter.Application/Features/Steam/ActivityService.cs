@@ -49,6 +49,7 @@ public class ActivityService : IActivityService
         var getXpAndRankTask = ctx.AddTask(session, Messages.Statuses.RetrievingXpAndRank);
         var tasks = new List<Task>
         {
+            // TODO: cooldown service
             // TODO: extract to external service (XpService or something)
             _steamHttpClient.GetHtmlAsync($"profiles/{account.Id}/gcpd/730?tab=accountmain", session.AuthCookie),
             _newRankDropService.GetLastNewRankDropAsync(session, ctx)

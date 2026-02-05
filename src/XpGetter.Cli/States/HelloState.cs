@@ -45,6 +45,7 @@ public class HelloState : BaseState
             }
         }
 
+        // TODO: calendar
         var choices = new List<string>
         {
             Messages.Start.GetActivityInfo,
