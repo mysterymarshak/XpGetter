@@ -1,13 +1,13 @@
+using OneOf;
+using Serilog;
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Steam;
 using XpGetter.Application.Utils.Progress;
-using XpGetter.Cli.States.Results;
-using OneOf;
-using Serilog;
 using XpGetter.Cli.Extensions;
+using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 

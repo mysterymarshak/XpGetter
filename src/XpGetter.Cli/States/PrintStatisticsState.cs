@@ -3,7 +3,6 @@ using XpGetter.Application;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Extensions;
 using XpGetter.Cli.States.Results;
-using XpGetter.Cli.Utils;
 
 namespace XpGetter.Cli.States;
 

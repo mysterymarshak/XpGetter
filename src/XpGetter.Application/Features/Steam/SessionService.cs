@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using OneOf;
 using Serilog;
 using SteamKit2;

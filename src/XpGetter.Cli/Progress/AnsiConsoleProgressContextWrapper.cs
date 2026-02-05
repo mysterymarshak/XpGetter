@@ -1,7 +1,7 @@
 using Spectre.Console;
 using XpGetter.Application.Dto;
-using XpGetter.Cli.Extensions;
 using XpGetter.Application.Utils.Progress;
+using XpGetter.Cli.Extensions;
 
 namespace XpGetter.Cli.Progress;
 

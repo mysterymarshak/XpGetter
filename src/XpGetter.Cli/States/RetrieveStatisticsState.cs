@@ -1,19 +1,10 @@
-using Spectre.Console;
+using Serilog;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
-using XpGetter.Application.Features.Configuration;
-using XpGetter.Application.Features.Steam;
-using XpGetter.Application.Utils.Progress;
-using XpGetter.Cli.States.Results;
-using OneOf;
-using XpGetter.Cli.Extensions;
-using Serilog;
 using XpGetter.Application.Features.Statistics;
-using Autofac;
-using XpGetter.Cli.Progress;
-using XpGetter.Application.Extensions;
-using SteamKit2;
-using XpGetter.Application.Errors;
+using XpGetter.Application.Utils.Progress;
+using XpGetter.Cli.Extensions;
+using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 

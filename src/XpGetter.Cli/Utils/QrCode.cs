@@ -1,6 +1,6 @@
+using System.Text;
 using QRCoder;
 using Spectre.Console;
-using System.Text;
 using XpGetter.Application.Utils;
 
 namespace XpGetter.Cli.Utils;

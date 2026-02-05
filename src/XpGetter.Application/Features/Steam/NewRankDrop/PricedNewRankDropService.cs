@@ -1,4 +1,3 @@
-using System.Linq;
 using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;

@@ -1,7 +1,6 @@
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
-using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Steam;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.States.Results;

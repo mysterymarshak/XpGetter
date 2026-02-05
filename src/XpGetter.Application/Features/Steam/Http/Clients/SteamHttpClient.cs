@@ -1,4 +1,3 @@
-using System.Net;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
 using OneOf;
