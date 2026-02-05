@@ -54,7 +54,7 @@ public class PassFamilyViewState : BaseState
                 // TODO: could skip but no inventory history
             }
 
-            AnsiConsole.MarkupLine(Messages.Parental.AccountIsLocked, session.Name);
+            AnsiConsole.MarkupLine(Messages.Parental.AccountIsLocked, session.GetName());
 
             if (!string.IsNullOrWhiteSpace(session.Account!.FamilyViewPin))
             {
@@ -92,7 +92,7 @@ public class PassFamilyViewState : BaseState
                 continue;
             }
 
-            AnsiConsole.MarkupLine(Messages.Parental.SkipUnlocking, session.Name);
+            AnsiConsole.MarkupLine(Messages.Parental.SkipUnlocking, session.GetName());
         }
 
         _configurationService.WriteConfiguration(_configuration);

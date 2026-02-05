@@ -61,7 +61,8 @@ public class AuthenticaionState : BaseState
             return new AuthenticationExecutionResult { Error = new PanicExecutionResult(Messages.Authentication.UnauthenticatedSessions) };
         }
 
-        _logger.Debug(Messages.Authentication.SuccessfullyAuthenticated, authenticatedSessions.Select(x => x.Name));
+        _logger.Debug(Messages.Authentication.SuccessfullyAuthenticated,
+                      authenticatedSessions.Select(x => x.GetName(ignoreConfiguration: true)));
         return new AuthenticationExecutionResult { AuthenticatedSessions = authenticatedSessions, Error = combinedError };
     }
 
@@ -86,13 +87,16 @@ public class AuthenticaionState : BaseState
             _configuration.RemoveAccount(account.Id);
             _logger.Debug(Messages.Authentication.AccountRemoved, account.Username);
 
-            errorExecutionResult = new ErrorExecutionResult(() => AnsiConsole.MarkupLine(Messages.Authentication.SessionExpired, account.Username));
+            errorExecutionResult = new ErrorExecutionResult(() =>
+                AnsiConsole.MarkupLine(Messages.Authentication.SessionExpired, account.GetDisplayUsername()));
         }
         else if (authenticationResult.TryPickT2(out var authServiceError, out _))
         {
             authenticateTask.SetResult(session, Messages.Authentication.AuthenticationErrorStatus);
             errorExecutionResult =
-                new ErrorExecutionResult(() => authServiceError.DumpToConsole(Messages.Authentication.AuthenticationError, account.Username));
+                new ErrorExecutionResult(() =>
+                    authServiceError.DumpToConsole(Messages.Authentication.AuthenticationError,
+                        account.GetDisplayUsername()));
         }
 
         _configurationService.WriteConfiguration(_configuration);

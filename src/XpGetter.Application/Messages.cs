@@ -229,6 +229,7 @@ public static class Messages
 
     public static class Common
     {
+        public const string AnonymousName = "testswag";
         public const string Done = "Done";
         public const string Dummy = "dummy";
         public const string ChoiceOption = "Choice option:";

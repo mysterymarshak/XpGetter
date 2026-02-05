@@ -10,25 +10,38 @@ using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli;
 
-internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
+internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
 {
     // TODO: add --prefer-personal-names
     // TODO: add --dont-use-currency-symbols
     // TODO: add --dont-encrypt-configuration
     // TODO: add --currency
     // TODO: add --price-provider (CSGO Market | Steam)
-    public sealed class Arguments : CommandSettings
+    public sealed class RuntimeArguments : CommandSettings
     {
         [CommandOption("--skip-menu")]
         [Description("Skips start menu")]
         [DefaultValue(false)]
         public bool SkipMenu { get; init; }
+
+        [CommandOption("--censored")]
+        [Description("Censors usernames in terminal output (logs are still uncensored)")]
+        [DefaultValue(true)]
+        public bool Censor { get; init; }
+
+        [CommandOption("--anonymize")]
+        [Description("Anonymizes all usernames in terminal output (logs are still unanonymized)")]
+        [DefaultValue(false)]
+        public bool Anonymize { get; init; }
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext commandContext, Arguments arguments, CancellationToken cancellationToken)
+    public override async Task<int> ExecuteAsync(CommandContext commandContext,
+                                                 RuntimeArguments arguments, CancellationToken cancellationToken)
     {
         try
         {
+            InitializeRuntimeConfiguration(arguments);
+
             var containerBuilder = new ContainerBuilder();
             containerBuilder.RegisterModule<ApplicationModule>();
             containerBuilder.RegisterModule<CliModule>();
@@ -43,12 +56,8 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
             var configurationService = container.Resolve<IConfigurationService>();
             var configuration = configurationService.GetConfiguration();
             var configurationParameter = new NamedParameter("configuration", configuration);
-
-            var initialState = (BaseState)(arguments.SkipMenu switch
-            {
-                true => context.ResolveState<StartState>(configurationParameter),
-                false => context.ResolveState<HelloState>(configurationParameter)
-            });
+            var skipToStartParameter = new NamedParameter("skipToStart", arguments.SkipMenu);
+            var initialState = context.ResolveState<HelloState>(configurationParameter, skipToStartParameter);
 
             var result = await initialState.TransferControl();
             if (result is PanicExecutionResult panicExecutionResult)
@@ -82,6 +91,12 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.Arguments>
 
             return 1;
         }
+    }
+
+    private void InitializeRuntimeConfiguration(RuntimeArguments arguments)
+    {
+        RuntimeConfiguration.AnonymizeUsernames = arguments.Anonymize;
+        RuntimeConfiguration.CensorUsernames = arguments.Censor;
     }
 
     private void WaitForAnyKeyToExit()

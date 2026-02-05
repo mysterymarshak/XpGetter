@@ -10,12 +10,12 @@ public static class ProgressTaskExtensions
     {
         public void Description(AccountDto account, string description)
         {
-            task.Description($"{account.Username.Censor()}: {description}");
+            task.Description($"{account.GetDisplayUsername()}: {description}");
         }
 
         public void Description(SteamSession session, string description)
         {
-            task.Description($"{session.Name.Censor()}: {description}");
+            task.Description($"{session.GetName()}: {description}");
         }
 
         public void SetResult(string result)

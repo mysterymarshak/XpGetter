@@ -1,3 +1,6 @@
+using XpGetter.Application.Extensions;
+using XpGetter.Application.Features.Configuration;
+
 namespace XpGetter.Application.Dto;
 
 public class AccountDto
@@ -10,4 +13,14 @@ public class AccountDto
     public string? PersonalName { get; set; }
     public string? WalletCurrency { get; set; }
     public ActivityInfo? ActivityInfo { get; set; }
+
+    public string GetDisplayUsername()
+    {
+        return Username.ToDisplayString(false);
+    }
+
+    public string? GetDisplayPersonalName()
+    {
+        return PersonalName?.AnonymizeIfNeeded();
+    }
 }

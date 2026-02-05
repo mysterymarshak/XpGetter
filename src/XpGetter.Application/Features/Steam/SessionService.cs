@@ -26,7 +26,7 @@ public class SessionService : ISessionService
     public async Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(
         string? clientName = null, AccountDto? account = null)
     {
-        clientName ??= "<unnamed>";
+        clientName ??= SteamSession.DefaultName;
 
         if (account is not null && _sessions.TryGetValue(account.Id, out var session))
         {
@@ -130,10 +130,10 @@ public class SessionService : ISessionService
 
         if (!session.IsAuthenticated)
         {
-            _logger.Error(Messages.Session.BoundedSessionLogFormat, session.Name,
+            _logger.Error(Messages.Session.BoundedSessionLogFormat, session.GetName(ignoreConfiguration: true),
                 Messages.Session.UnauthenticatedAccountBind);
 
-            throw new Exception($"Unauthenticated account is bounded. {session.Name}");
+            throw new InvalidOperationException(Messages.Session.UnauthenticatedAccountBind);
         }
 
         if (!_sessions.TryAdd(session.Client.SteamID!, session))

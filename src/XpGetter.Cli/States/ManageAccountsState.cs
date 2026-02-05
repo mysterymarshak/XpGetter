@@ -18,7 +18,7 @@ public class ManageAccountsState : BaseState
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
         var choices = _configuration.Accounts
-            .Select(x => x.Username);
+            .Select(x => x.GetDisplayUsername());
 
         if (_configuration.Accounts.Count() < Constants.MaxAccounts)
         {

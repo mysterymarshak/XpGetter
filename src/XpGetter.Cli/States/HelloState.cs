@@ -14,13 +14,16 @@ public class HelloState : BaseState
     private readonly AppConfigurationDto _configuration;
     private readonly bool _skipHelloMessage;
     private readonly bool _checkAndPrintAccounts;
+    private readonly bool _skipToStart;
 
     public HelloState(AppConfigurationDto configuration, StateContext context,
-                      bool skipHelloMessage = false, bool checkAndPrintAccounts = true) : base(context)
+                      bool skipHelloMessage = false, bool checkAndPrintAccounts = true,
+                      bool skipToStart = false) : base(context)
     {
         _configuration = configuration;
         _skipHelloMessage = skipHelloMessage;
         _checkAndPrintAccounts = checkAndPrintAccounts;
+        _skipToStart = skipToStart;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -36,13 +39,18 @@ public class HelloState : BaseState
             {
                 AnsiConsole.MarkupLine(Messages.Start.SavedAccounts,
                     string.Join(", ", _configuration.Accounts.Select(x =>
-                        string.Format((string)Messages.Start.SavedAccountFormat, (object?)x.Username.Censor()))));
+                        string.Format((string)Messages.Start.SavedAccountFormat, (object?)x.GetDisplayUsername()))));
             }
             else
             {
                 AnsiConsole.MarkupLine(Messages.Start.NoAccounts);
                 return await GoTo<AddAccountState>();
             }
+        }
+
+        if (_skipToStart)
+        {
+            return await GoToStartState();
         }
 
         // TODO: calendar
@@ -59,16 +67,21 @@ public class HelloState : BaseState
                 .Title(Messages.Common.ChoiceOption)
                 .AddChoices(choices));
 
-#pragma warning disable CS8974
         return choice switch
         {
-            Messages.Start.GetActivityInfo => await GoTo<StartState>(new NamedParameter("configuration", _configuration),
-                                                                     new NamedParameter("postAuthenticationDelegate", GetActivityInfoDelegate)),
+            Messages.Start.GetActivityInfo => await GoToStartState(),
             Messages.Start.Statistics => await GoTo<ChooseStatisticsPeriodState>(new NamedParameter("configuration", _configuration)),
             Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
             Messages.Start.CheckForUpdates => await GoTo<CheckUpdatesState>(new NamedParameter("configuration", _configuration)),
             _ => new ExitExecutionResult()
         };
+
+#pragma warning disable CS8974
+        ValueTask<StateExecutionResult> GoToStartState()
+        {
+            return GoTo<StartState>(new NamedParameter("configuration", _configuration),
+                                    new NamedParameter("postAuthenticationDelegate", GetActivityInfoDelegate));
+        }
 #pragma warning restore CS8974
     }
 

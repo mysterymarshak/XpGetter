@@ -40,7 +40,7 @@ public class AddAccountViaPasswordState : BaseState
             await _authenticationService.AuthenticateByUsernameAndPasswordAsync(session, username, password);
         if (authenticationResult.TryPickT3(out var authError, out _))
         {
-            authError.DumpToConsole(Messages.Authentication.AuthenticationError, session.Name);
+            authError.DumpToConsole(Messages.Authentication.AuthenticationError, session.GetName());
             return await GoTo<AddAccountState>();
         }
 
@@ -61,12 +61,12 @@ public class AddAccountViaPasswordState : BaseState
         var addAccountResult = _configurationService.TryAddAccount(configuration, account);
         if (addAccountResult.IsT1)
         {
-            AnsiConsole.MarkupLine(Messages.AddAccount.AccountAlreadyExists, account.Username);
+            AnsiConsole.MarkupLine(Messages.AddAccount.AccountAlreadyExists, account.GetDisplayUsername());
         }
         else
         {
             _configurationService.WriteConfiguration(configuration);
-            AnsiConsole.MarkupLine(Messages.AddAccount.SuccessfullyAdded, account.Username);
+            AnsiConsole.MarkupLine(Messages.AddAccount.SuccessfullyAdded, account.GetDisplayUsername());
         }
 
         return await GoTo<HelloState>(new NamedParameter("configuration", configuration));
