@@ -10,7 +10,8 @@ app.Configure(config =>
 
     config.AddExample("--skip-menu");
     config.AddExample("--anonymize", "--currency USD");
-    config.AddExample("--censore false");
+    config.AddExample("--censor false");
+    config.AddExample("--censor false --currency RUB --dont-use-currency-symbols");
 });
 
 return await app.RunAsync(args);

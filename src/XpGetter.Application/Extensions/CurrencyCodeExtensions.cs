@@ -1,5 +1,6 @@
 using System.Globalization;
 using SteamKit2;
+using XpGetter.Application.Features.Configuration;
 
 namespace XpGetter.Application.Extensions;
 
@@ -65,6 +66,11 @@ public static class CurrencyCodeExtensions
         if (!CultureMap.TryGetValue(currency, out var culture))
         {
             culture = CultureInfo.InvariantCulture;
+        }
+
+        if (RuntimeConfiguration.DontUseCurrencySymbols)
+        {
+            return string.Format(culture, "{0:N2} {1}", value, currency);
         }
 
         return value.ToString("C", culture);

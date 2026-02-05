@@ -14,9 +14,7 @@ namespace XpGetter.Cli;
 
 internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
 {
-    // TODO: add --dont-use-currency-symbols
     // TODO: add --dont-encrypt-configuration
-    // TODO: add --price-provider (CSGO Market | Steam)
     public sealed class RuntimeArguments : CommandSettings
     {
         [CommandOption("--skip-menu")]
@@ -34,6 +32,11 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
         [DefaultValue(false)]
         public bool Anonymize { get; init; }
 
+        [CommandOption("--dont-use-currency-symbols")]
+        [Description("Uses 'USD' instead of '$' and so one")]
+        [DefaultValue(false)]
+        public bool DontUseCurrencySymbols { get; init; }
+
         [CommandOption("--currency")]
         [Description("Overrides currency in all price requests")]
         [DefaultValue(null)]
@@ -41,7 +44,7 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
 
         [CommandOption("--price-provider")]
         [Description("Changes the price provider")]
-        [DefaultValue(PriceProvider.MarketCsgo)]
+        [DefaultValue(PriceProvider.Steam)]
         public PriceProvider PriceProvider { get; init; }
 
         public override ValidationResult Validate()
@@ -124,6 +127,7 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
         RuntimeConfiguration.CensorUsernames = arguments.Censor;
         RuntimeConfiguration.ForceCurrency = arguments.Currency;
         RuntimeConfiguration.PriceProvider = arguments.PriceProvider;
+        RuntimeConfiguration.DontUseCurrencySymbols = arguments.DontUseCurrencySymbols;
     }
 
     private void WaitForAnyKeyToExit()
