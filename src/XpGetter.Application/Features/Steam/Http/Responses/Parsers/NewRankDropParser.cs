@@ -95,7 +95,8 @@ public class NewRankDropParser
             var parseSecondDropItemResult = TryParseCsgoItemFromRow(response, nextDropItemNode);
             if (parseSecondDropItemResult.DateTime is null || parseSecondDropItemResult.DropItem is null)
             {
-                _logger.Warning(Messages.ActivityParsers.Drop.CannotParseSecondItem, row.InnerHtml);
+                _logger.Warning(Messages.ActivityParsers.Drop.CannotParseSecondItem,
+                                row.InnerHtml, nextDropItemNode.InnerHtml);
             }
             else
             {

@@ -74,7 +74,7 @@ public static class Messages
         public const string RetrievingActivityError = "Retrieving activity info: error [red]:([/]";
         public const string RetrievingActivityOk = "Retrieving activity info: got! [green]:)[/]";
         public const string TooLongHistory = "New rank drop: too long inventory history! [red]:([/]";
-        public const string TooBigGapInHistory = "New rank drops: too long time gap between them! [red]:([/]";
+        public const string TooBigGapInHistory = "New rank drops: too long time gap between them; retrieved data up until {0} [red]:([/]";
         public const string NewRankDropError = "New rank drop: error [red]:([/]";
         public const string NewRankDropsError = "New rank drops: error [red]:([/]";
         public const string NewRankDropOk = "New rank drop: got! [green]:)[/]";
@@ -185,7 +185,7 @@ public static class Messages
             public const string NoHistoryRows = "Invalid html document: no 'tradehistoryrow' elements. See details in logs.";
             public const string NoHistoryRowsLogger = "Invalid html document: no 'tradehistoryrow' elements. Raw: {Html}";
             public const string CannotParseDateTimeEntry = "Cannot parse datetime. Html: {Html}";
-            public const string CannotParseSecondItem = "Cannot parse second drop item. Html: {Html}";
+            public const string CannotParseSecondItem = "Cannot parse second drop item. First item node html: {Html1}; Second: {Html2}";
             public const string EmptyMispagedDropHtml = "Cannot parse second mispaged drop item. Empty html.";
             public const string NoHistoryRowsForMispagedDrop = "Invalid mispaged drop html document: no 'tradehistoryrow' elements. See details in logs.";
             public const string NoHistoryRowsForMispagedDropLogger = "Invalid mispaged drop html document: no 'tradehistoryrow' elements. Raw: {Html}";
@@ -205,7 +205,7 @@ public static class Messages
         public const string NoCursorLog = "Cannot retrieve mispaged drop if cursor is null.";
         public const string GetActivityError = "[red]An error occurred while retrieving activity info.[/]";
         public const string NotSuccessfulResultInLoadInventoryHistory = "Success: false while retrieving inventory history. See details in logs.";
-        public const string NotSuccessfulResultInLoadInventoryHistoryLogger = "Success: false while retrieving inventory history. Raw response: {Response}";
+        public const string NotSuccessfulResultInLoadInventoryHistoryLogger = "Success: false while retrieving inventory history. Raw response: {Response}. Cursor: {@Cursor}";
         public const string AnyKeyToReturn = "Press any key to return to main menu...";
     }
 

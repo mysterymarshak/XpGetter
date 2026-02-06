@@ -47,6 +47,11 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
         [DefaultValue(PriceProvider.Steam)]
         public PriceProvider PriceProvider { get; init; }
 
+        [CommandOption("--no-page-limit")]
+        [Description("Ignores '{Constants.MaxInventoryHistoryPagesToLoad * 50}' (150) items limit and loads history up until the result. Use only if you really need that (e.g. if you made a lot of trades in the past and now you cannot load the year statistics)")]
+        [DefaultValue(false)]
+        public bool IgnorePageLimit { get; init; }
+
         public override ValidationResult Validate()
         {
             if (Currency == ECurrencyCode.Invalid)
@@ -128,6 +133,7 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
         RuntimeConfiguration.ForceCurrency = arguments.Currency;
         RuntimeConfiguration.PriceProvider = arguments.PriceProvider;
         RuntimeConfiguration.DontUseCurrencySymbols = arguments.DontUseCurrencySymbols;
+        RuntimeConfiguration.IgnorePageLimit = arguments.IgnorePageLimit;
     }
 
     private void WaitForAnyKeyToExit()

@@ -2,6 +2,8 @@ using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
+using XpGetter.Application.Extensions;
+using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Steam.Http.Clients;
 using XpGetter.Application.Features.Steam.Http.Responses;
 using XpGetter.Application.Features.Steam.Http.Responses.Parsers;
@@ -62,7 +64,8 @@ public class NewRankDropService : INewRankDropService
 
         result.Switch(
             newRankDrops => task.SetResult(session, Messages.Statuses.NewRankDropsOk),
-            tooLongHistory => task.SetResult(session, Messages.Statuses.TooBigGapInHistory),
+            tooLongHistory => task.SetResult(session,
+                string.Format(Messages.Statuses.TooBigGapInHistory, tooLongHistory.LastEntryDateTime.ToString("dd.MM.yyyy"))),
             noDropHistory => task.SetResult(session, Messages.Statuses.NewRankDropsNotFound),
             error => task.SetResult(session, Messages.Statuses.NewRankDropsError));
 
@@ -137,13 +140,19 @@ public class NewRankDropService : INewRankDropService
                 continue;
             }
 
-            if (remainder.TryPickT0(out _, out var remainder1))
+            if (remainder.TryPickT0(out var noResultsOnPage, out var remainder1))
             {
+                if (noResultsOnPage.LastEntryDateTime < limit)
+                {
+                    return result;
+                }
+
                 loadedPagesWithNoResults++;
 
-                if (loadedPagesWithNoResults > Constants.MaxInventoryHistoryPagesToLoad)
+                if (loadedPagesWithNoResults > Constants.MaxInventoryHistoryPagesToLoad &&
+                    !RuntimeConfiguration.IgnorePageLimit)
                 {
-                    return new TooLongHistory(parser.LastEntryDateTime!.Value, parser.ParsedItems);
+                    return new TooLongHistory(parser.LastEntryDateTime!.Value, parser.ParsedItems, result);
                 }
 
                 task.Description(session, Messages.Statuses.NewRankDropNoResultsOnPage);
@@ -192,7 +201,10 @@ public class NewRankDropService : INewRankDropService
 
         if (!result.Deserialized.Success)
         {
-            _logger.Error(Messages.Activity.NotSuccessfulResultInLoadInventoryHistoryLogger, result.Raw);
+            _logger.Error(
+                Messages.Activity.NotSuccessfulResultInLoadInventoryHistoryLogger.BindSession(session),
+                result.Raw,
+                cursor);
 
             return new NewRankDropServiceError
             {

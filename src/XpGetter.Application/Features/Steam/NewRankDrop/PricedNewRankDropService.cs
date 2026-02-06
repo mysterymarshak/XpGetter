@@ -53,7 +53,17 @@ public class PricedNewRankDropService : INewRankDropService
             return getNewRankDropsResult;
         }
 
-        if (!getNewRankDropsResult.TryPickT0(out var newRankDrops, out _))
+        IReadOnlyList<Dto.NewRankDrop>? newRankDrops = null;
+
+        if (getNewRankDropsResult.TryPickT1(out var tooLongHistory, out _))
+        {
+            newRankDrops = tooLongHistory.RetrievedNewRankDrops;
+            if (newRankDrops.Count == 0)
+            {
+                return tooLongHistory;
+            }
+        }
+        else if (!getNewRankDropsResult.TryPickT0(out newRankDrops, out _))
         {
             getItemsPriceTask.SetResult(session, Messages.Statuses.RetrievingItemsPriceError);
             return getNewRankDropsResult;

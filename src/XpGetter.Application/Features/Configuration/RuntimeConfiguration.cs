@@ -10,4 +10,5 @@ public static class RuntimeConfiguration
     public static bool DontUseCurrencySymbols { get; set; }
     public static ECurrencyCode? ForceCurrency { get; set; } = null;
     public static PriceProvider PriceProvider { get; set; }
+    public static bool IgnorePageLimit { get; set; }
 }
