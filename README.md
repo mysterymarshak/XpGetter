@@ -43,9 +43,14 @@ The output is formatted to be easily readable (but I have plans to add custom fo
 
 ## Statistics
 You can get your new rank drops statistics by some period for all of your accounts!  
-But don't do that multiple times in a row, otherwise you will get `429 (Too many requests)` error  
-And it may also happen if your inventory history (trades, market operations) is very long and you seek it for like 3-5 accounts for 365 days  
-But even in case of `429` error `XpGetter` will show results for you after a bit of waiting  
+> [!WARNING]
+> Don't do that multiple times in a row, otherwise you will get `429 (Too many requests)` error  
+> And it may also happen if your inventory history (trades, market operations) is very long and you seek it for like 3-5 accounts for 365 days  
+> But even in case of `429` error `XpGetter` will show results for you after a bit of waiting
+
+> [!TIP]
+> If you got `TooLongHistory` result see [--no-page-limit](#flags) flag
+
 The real demo of 90 days statistics:
 <img width="2022" height="588" alt="image" src="https://github.com/user-attachments/assets/059d2a99-d425-4b58-a2c4-f994b065ed36" />
 
