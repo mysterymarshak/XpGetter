@@ -14,6 +14,11 @@ public record StatisticsDto(IEnumerable<NewRankDrop> NewRankDrops)
 
     public double GetTotalItemPrice()
     {
+        if (ItemsCount == 0)
+        {
+            return 0;
+        }
+
         return NewRankDrops.SelectMany(x => x.Items.Select(y => y.Price?.Value ?? 0)).Aggregate((x, y) => x + y);
     }
 }
