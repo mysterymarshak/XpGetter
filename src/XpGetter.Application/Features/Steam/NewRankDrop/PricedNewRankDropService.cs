@@ -142,7 +142,6 @@ public class PricedNewRankDropService : INewRankDropService
             (true, _) => Messages.Statuses.RetrievingItemsPriceWarning,
             _ => Messages.Statuses.RetrievingItemsPriceOk,
         };
-        task.SetResult(session, (getItemsPriceResultIsWarning || !itemPrices.Any())
-            ? Messages.Statuses.RetrievingItemsPriceError : Messages.Statuses.RetrievingItemsPriceOk);
+        task.SetResult(session, taskResult);
     }
 }
