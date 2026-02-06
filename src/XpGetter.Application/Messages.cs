@@ -223,8 +223,9 @@ public static class Messages
         public const string DeserializationError = "Cannot deserialize item price response json. Raw: {0}";
         public const string GetPriceException = "An exception was thrown while retrieving the items price. Item names: [{0}]";
         public const string CannotFindItemForPrice = "Cannot find original item from the name provided in price response. Item to find: '{MarketName}'. All items: '{@MarketNames}'";
-        public const string CannotGetPriceRetrieved = "Cannot get price for '{MarketName}'.";
-        public const string FallbackServiceUsedSteam = "Couldn't get items [{@ItemNames}] price via csgo market service. Trying to use steam one.";
+        public const string CannotGetPriceRetrieved = "Cannot get price for '{MarketName}'";
+        public const string FallbackServiceUsedSteam = "Couldn't get items [{@ItemNames}] price via csgo market service. Trying to use steam one";
+        public const string FallbackServiceResult = "Got the price for failed items [{@ItemNames}] via steam market";
         public const string GotPricesLog = "Got items' prices: {@Prices}";
     }
 

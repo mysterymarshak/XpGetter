@@ -11,7 +11,7 @@ app.Configure(config =>
     config.AddExample("--skip-menu");
     config.AddExample("--anonymize", "--currency USD");
     config.AddExample("--censor false");
-    config.AddExample("--censor false --currency RUB --dont-use-currency-symbols");
+    config.AddExample("--price-provider MarketCsgo --currency RUB --dont-use-currency-symbols");
 });
 
 return await app.RunAsync(args);

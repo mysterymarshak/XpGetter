@@ -35,6 +35,8 @@ public class FallbackMarketService : IMarketService
 
             var failedItemsResult = await _steam.GetItemsPriceAsync(failedItems, currency);
             result = result.Concat(failedItemsResult);
+
+            _logger.Debug(Messages.Market.FallbackServiceResult, failedItemsResult);
         }
 
         _logger.Debug(Messages.Market.GotPricesLog, result);
