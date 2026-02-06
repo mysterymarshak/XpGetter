@@ -22,10 +22,9 @@ public class SteamMarketService : IMarketService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<string> names, ECurrencyCode currency)
+    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names, ECurrencyCode currency)
     {
-        var namesList = names.ToList();
-        if (namesList.Count == 0)
+        if (names.Count == 0)
         {
             return [];
         }
@@ -37,14 +36,14 @@ public class SteamMarketService : IMarketService
         {
             if (itemPriceResult.TryPickT1(out var error, out _))
             {
-                var itemName = namesList[i];
+                var itemName = names[i];
                 _logger.Error(Messages.Market.GetPriceException, itemName);
                 _logger.LogError(error);
             }
         }
 
         var successResults = getItemPriceResults
-            .Select((x, i) => new { Result = x, ItemName = namesList[i] })
+            .Select((x, i) => new { Result = x, ItemName = names[i] })
             .Where(x => x.Result.IsT0)
             .Select(x => (x.Result.AsT0.Deserialized, x.ItemName))
             .Where(x => x.Deserialized.Success)

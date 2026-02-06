@@ -124,16 +124,17 @@ public class PricedNewRankDropService : INewRankDropService
     private async Task BindPricesAsync(IEnumerable<CsgoItem> items, SteamSession session, IProgressTask task)
     {
         var walletInfo = session.WalletInfo;
-        var getItemsPriceResultIsWarning = false;
         var marketableItems = items
             .Where(x => x.IsMarketable)
-            .Select(x => x.MarketName);
+            .Select(x => x.MarketName)
+            .Distinct()
+            .ToList();
         var itemPrices = await _marketService.GetItemsPriceAsync(marketableItems, walletInfo!.CurrencyCode);
         itemPrices = itemPrices
             .Where(x => x.Provider == RuntimeConfiguration.PriceProvider)
             .ToList();
 
-        getItemsPriceResultIsWarning = itemPrices.Any(x => x.Value == 0) ||
+        var getItemsPriceResultIsWarning = itemPrices.Any(x => x.Value == 0) ||
             items.Where(x => x.IsMarketable).Any(x => itemPrices.All(y => y.MarketName != x.MarketName));
 
         foreach (var price in itemPrices)
@@ -150,7 +151,6 @@ public class PricedNewRankDropService : INewRankDropService
             {
                 _logger.Warning(Messages.Market.CannotFindItemForPrice, price.MarketName, items.Select(x => x.MarketName));
                 getItemsPriceResultIsWarning = true;
-                continue;
             }
         }
 

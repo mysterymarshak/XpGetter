@@ -19,7 +19,7 @@ public class FallbackMarketService : IMarketService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IEnumerable<string> names, ECurrencyCode currency)
+    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names, ECurrencyCode currency)
     {
         var result = await _csgo.GetItemsPriceAsync(names, currency);
 
