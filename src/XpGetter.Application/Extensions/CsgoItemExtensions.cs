@@ -43,7 +43,7 @@ public static class CsgoItemExtensions
 
             if (includeMarkup) builder.Append("[/]");
 
-            if (item.Price is not null && includePrice)
+            if (item is { Price: not null, IsMarketable: true } && includePrice)
             {
                 if (includeMarkup)
                 {

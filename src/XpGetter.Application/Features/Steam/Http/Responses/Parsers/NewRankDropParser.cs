@@ -227,9 +227,18 @@ public class NewRankDropParser
         var imgNode = node?.SelectSingleNode(".//img[@class='tradehistory_received_item_img']");
         var imgUrl = imgNode?.GetAttributeValue("src", null!);
 
-        return new CsgoItem(name, GetMarketName(response, classId, instanceId), imgUrl, color);
+        var description = GetItemDescription(response, classId, instanceId);
+        var marketName = description?.MarketName ?? MarketNameDefault;
+        var isMarketable = description?.Marketable ?? false;
+
+        return new CsgoItem(
+            name,
+            marketName,
+            isMarketable,
+            imgUrl,
+            color);
     }
 
-    private string GetMarketName(InventoryHistoryResponse response, ulong classId, ulong instanceId)
-        => response.Descriptions?["730"][$"{classId}_{instanceId}"].MarketName ?? MarketNameDefault;
+    private ItemDescription? GetItemDescription(InventoryHistoryResponse response, ulong classId, ulong instanceId)
+        => response.Descriptions?["730"][$"{classId}_{instanceId}"];
 }

@@ -42,9 +42,12 @@ public class PrintStatisticsState : BaseState
 
             foreach (var group in statistics.GroupedItems)
             {
-                table.AddRow($"[{group.Key.Color}]{group.Key.Format(includePrice: false)}[/]",
-                             $"[green]{currency?.FormatValue(group.Key.Price?.Value ?? 0)}[/]",
-                             $"x{group.Count()}");
+                var nameColumn = $"[{group.Key.Color}]{group.Key.Format(includePrice: false)}[/]";
+                var priceColumn = group.Key.IsMarketable
+                    ? $"[green]{currency?.FormatValue(group.Key.Price?.Value ?? 0)}[/]"
+                    : string.Empty;
+                var quantityColumn = $"x{group.Count()}";
+                table.AddRow(nameColumn, priceColumn, quantityColumn);
             }
 
             table.Columns[0].Footer = new Text(Messages.Statistics.FooterTotal, new Style(foreground: Color.Yellow));

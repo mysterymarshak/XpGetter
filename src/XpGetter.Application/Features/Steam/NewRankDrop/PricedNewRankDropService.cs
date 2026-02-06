@@ -115,13 +115,16 @@ public class PricedNewRankDropService : INewRankDropService
     {
         var walletInfo = session.WalletInfo;
         var getItemsPriceResultIsWarning = false;
-        var itemPrices = await _marketService.GetItemsPriceAsync(items.Select(x => x.MarketName), walletInfo!.CurrencyCode);
+        var marketableItems = items
+            .Where(x => x.IsMarketable)
+            .Select(x => x.MarketName);
+        var itemPrices = await _marketService.GetItemsPriceAsync(marketableItems, walletInfo!.CurrencyCode);
         itemPrices = itemPrices
             .Where(x => x.Provider == RuntimeConfiguration.PriceProvider)
             .ToList();
 
         getItemsPriceResultIsWarning = itemPrices.Any(x => x.Value == 0) ||
-            items.Any(x => itemPrices.All(y => y.MarketName != x.MarketName));
+            items.Where(x => x.IsMarketable).Any(x => itemPrices.All(y => y.MarketName != x.MarketName));
 
         foreach (var price in itemPrices)
         {

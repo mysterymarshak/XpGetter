@@ -1,6 +1,6 @@
 namespace XpGetter.Application.Dto;
 
-public record CsgoItem(string Name, string MarketName, string? IconUrl, string? Color)
+public record CsgoItem(string Name, string MarketName, bool IsMarketable, string? IconUrl, string? Color)
 {
     public PriceDto? Price { get; private set; }
 
