@@ -49,7 +49,7 @@ You can get your new rank drops statistics by some period for all of your accoun
 > But even in case of `429` error `XpGetter` will show results for you after a bit of waiting
 
 > [!TIP]
-> If you got `TooLongHistory` result see [--no-page-limit](#flags) flag
+> If you got `TooLongHistory` result see [--no-page-limit](#flags-parameters) flag
 
 The real demo of 90 days statistics:
 <img width="2022" height="588" alt="image" src="https://github.com/user-attachments/assets/059d2a99-d425-4b58-a2c4-f994b065ed36" />
