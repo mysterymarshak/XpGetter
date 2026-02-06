@@ -33,7 +33,7 @@ To manage them (add new or remove old ones), go to the "Manage accounts" section
 ### 3. Activity Status
 This section shows what the application is processing in real-time  
 * **Success:** `:)`
-* **Errors/Warnings:** `:( ` or `-_-;`
+* **Errors/Warnings:** `:( ` / `-_-;`
 
 If you encounter non-OK statuses, check the log files automatically generated in the same folder as the executable
 
@@ -59,6 +59,7 @@ You can get all of the actual parameters with their descriptions by running `XpG
 | `--dont-use-currency-symbols` | — | Replaces symbols (e.g., `$`) with ISO codes (e.g., `USD`) |
 | `--currency` | — | Overrides the currency for all price requests |
 | `--price-provider` | `Steam` | Sets the provider used for item price fetching |
+| `--no-page-limit` | - | Ignores inventory history items limit (`150` by default) to receive (use *only* if you really need that) |
 
 Some usage examples:
 ```
