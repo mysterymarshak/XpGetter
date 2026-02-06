@@ -65,7 +65,7 @@ Some usage examples:
 ./XpGetter --skip-menu
 ./XpGetter --anonymize --currency USD
 ./XpGetter --censor false
-./XpGetter --censor false --currency RUB --dont-use-currency-symbols
+./XpGetter --price-provider MarketCsgo --currency RUB --dont-use-currency-symbols
 ```
 
 ## Installation
