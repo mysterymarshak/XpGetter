@@ -6,6 +6,7 @@ using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.ExchangeRates;
+using XpGetter.Application.Utils.Progress;
 
 namespace XpGetter.Application.Features.Markets.CsgoMarket;
 
@@ -39,33 +40,68 @@ public class CsgoMarketService : IMarketService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names, ECurrencyCode currency)
+    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names,
+        ECurrencyCode currency, SteamSession session, IProgressContext ctx)
     {
         if (names.Count == 0)
         {
             return [];
         }
 
+        IProgressTask? getExchangeRateTask = null;
+        var tasks = new List<Task>(2);
+
         var originalCurrency = currency;
         var needConversion = false;
+
         if (UnsupportedCurrencies.Contains(currency))
         {
             _logger.Warning(Messages.Market.UnsupportedCurrency, currency, DefaultCurrency);
             currency = DefaultCurrency;
             needConversion = true;
+
+            getExchangeRateTask = ctx.AddTask(session, Messages.Statuses.RetrievingExchangeRate);
+            var exchangeTask = _exchangeRateService.GetExchangeRateAsync(currency, originalCurrency,
+                                                                         session, getExchangeRateTask);
+            tasks.Add(exchangeTask);
         }
 
+        var requestTaskIndex = tasks.Count;
+        tasks.Add(GetPricesAsync(names, currency));
+
+        await Task.WhenAll(tasks);
+
+        var pricesResult = ((Task<List<ItemPriceResponse>>)tasks[requestTaskIndex]).Result;
+        if (pricesResult.Count == 0)
+        {
+            return [];
+        }
+
+        if (needConversion)
+        {
+            var exchangeRate = ((Task<ExchangeRateDto?>)tasks[0]).Result;
+            PatchPrices(exchangeRate, pricesResult, ref currency, ref originalCurrency, session, getExchangeRateTask!);
+        }
+
+        return pricesResult
+            .Select(x => x.Prices.Select(y => new PriceDto(x.ItemName, y.Value, y.Provider, currency)))
+            .SelectMany(x => x)
+            .ToList();
+    }
+
+    private async Task<List<ItemPriceResponse>> GetPricesAsync(IReadOnlyList<string> names, ECurrencyCode currency)
+    {
         try
         {
             var payload = new ItemPriceRequest { ItemNames = names };
             var message = new HttpRequestMessage(HttpMethod.Post, $"?currency={currency}");
             message.Content = new StringContent(JsonConvert.SerializeObject(payload, Formatting.None),
-                Encoding.UTF8, "application/json");
+                                                Encoding.UTF8, "application/json");
 
-            var result = await _client.SendAsync(message);
-            result.EnsureSuccessStatusCode();
+            var response = await _client.SendAsync(message);
+            response.EnsureSuccessStatusCode();
 
-            var contentAsString = await result.Content.ReadAsStringAsync();
+            var contentAsString = await response.Content.ReadAsStringAsync();
 
             var deserialized = JsonConvert.DeserializeObject<List<ItemPriceResponse>>(contentAsString);
             if (deserialized is null)
@@ -79,34 +115,7 @@ public class CsgoMarketService : IMarketService
                 return [];
             }
 
-            if (needConversion)
-            {
-                var exchangeRate = await _exchangeRateService.GetExchangeRateAsync(currency, originalCurrency);
-                if (exchangeRate is not null)
-                {
-                    _logger.Debug(Messages.Market.SuccessfullyConverted, currency, originalCurrency, exchangeRate);
-                    currency = originalCurrency;
-
-                    foreach (var item in deserialized)
-                    {
-                        foreach (var itemPrice in item.Prices)
-                        {
-                            itemPrice.Value *= exchangeRate.Value;
-                        }
-                    }
-                }
-                else
-                {
-                    _logger.Warning(Messages.Market.FailedToGetExchangeRate, currency,
-                                    originalCurrency, DefaultCurrency);
-                }
-            }
-
-            return deserialized
-                .Select(x => x.Prices.Select(y =>
-                    new PriceDto(x.ItemName, y.Value, y.Provider, currency)))
-                .SelectMany(x => x)
-                .ToList();
+            return deserialized;
         }
         catch (Exception exception)
         {
@@ -120,5 +129,31 @@ public class CsgoMarketService : IMarketService
         }
 
         return [];
+    }
+
+    private void PatchPrices(ExchangeRateDto? exchangeRate, List<ItemPriceResponse> pricesResult,
+                             ref ECurrencyCode currency, ref ECurrencyCode originalCurrency,
+                             SteamSession session, IProgressTask task)
+    {
+        if (exchangeRate is not null)
+        {
+            _logger.Debug(Messages.Market.SuccessfullyConverted, currency, originalCurrency, exchangeRate);
+            task.SetResult(session, Messages.Statuses.RetrievingExchangeRateOk);
+            currency = originalCurrency;
+
+            foreach (var item in pricesResult)
+            {
+                foreach (var itemPrice in item.Prices)
+                {
+                    itemPrice.Value *= exchangeRate.Value;
+                }
+            }
+        }
+        else
+        {
+            _logger.Warning(Messages.Market.FailedToGetExchangeRate, currency,
+                            originalCurrency, DefaultCurrency);
+            task.SetResult(session, Messages.Statuses.RetrievingExchangeRateError);
+        }
     }
 }

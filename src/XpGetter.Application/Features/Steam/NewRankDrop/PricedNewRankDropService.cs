@@ -72,7 +72,7 @@ public class PricedNewRankDropService : INewRankDropService
         getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
 
         var items = newRankDrops.SelectMany(x => x.Items);
-        await BindPricesAsync(items, session, getItemsPriceTask);
+        await BindPricesAsync(items, session, getItemsPriceTask, ctx);
 
         return OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>.FromT0(newRankDrops);
     }
@@ -116,12 +116,13 @@ public class PricedNewRankDropService : INewRankDropService
         getItemsPriceTask.Description(session, Messages.Statuses.RetrievingItemsPrice);
 
         var items = newRankDrop.Items;
-        await BindPricesAsync(items, session, getItemsPriceTask);
+        await BindPricesAsync(items, session, getItemsPriceTask, ctx);
 
         return getNewRankDropResult;
     }
 
-    private async Task BindPricesAsync(IEnumerable<CsgoItem> items, SteamSession session, IProgressTask task)
+    private async Task BindPricesAsync(IEnumerable<CsgoItem> items, SteamSession session,
+                                   IProgressTask task, IProgressContext ctx)
     {
         var walletInfo = session.WalletInfo;
         var marketableItems = items
@@ -129,7 +130,8 @@ public class PricedNewRankDropService : INewRankDropService
             .Select(x => x.MarketName)
             .Distinct()
             .ToList();
-        var itemPrices = await _marketService.GetItemsPriceAsync(marketableItems, walletInfo!.CurrencyCode);
+        var itemPrices = await _marketService.GetItemsPriceAsync(marketableItems, walletInfo!.CurrencyCode,
+                                                                 session, ctx);
         itemPrices = itemPrices
             .Where(x => x.Provider == RuntimeConfiguration.PriceProvider)
             .ToList();

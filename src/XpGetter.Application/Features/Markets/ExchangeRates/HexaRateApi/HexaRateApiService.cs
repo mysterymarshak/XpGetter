@@ -4,6 +4,7 @@ using SteamKit2;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
+using XpGetter.Application.Utils.Progress;
 
 namespace XpGetter.Application.Features.ExchangeRates.HexaRateApi;
 
@@ -21,7 +22,11 @@ public class HexaRateApiService : IExchangeRateService
         _logger = logger;
     }
 
-    public async Task<ExchangeRateDto?> GetExchangeRateAsync(ECurrencyCode source, ECurrencyCode target)
+    public Task<ExchangeRateDto?> GetExchangeRateAsync(ECurrencyCode source, ECurrencyCode target,
+                                                       SteamSession session, IProgressTask task)
+        => GetExchangeRateInternalAsync(source, target);
+
+    private async Task<ExchangeRateDto?> GetExchangeRateInternalAsync(ECurrencyCode source, ECurrencyCode target)
     {
         try
         {

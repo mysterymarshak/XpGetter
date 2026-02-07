@@ -89,6 +89,10 @@ public static class Messages
         public const string RetrievingItemsPriceError = "Retrieving items price: error [red]:([/]";
         public const string RetrievingItemsPriceWarning = "Retrieving items price: got with warnings [yellow]-_-;[/]";
         public const string RetrievingItemsPriceOk = "Retrieving items price: got! [green]:)[/]";
+        public const string RetrievingExchangeRate = "Retrieving exchange rate...";
+        public const string RetrievingExchangeRateOk = "Retrieving exchange rate: got! [green]:)[/]";
+        public const string RetrievingExchangeRateFallback = "Retrieving exchange rate: fail, trying fallback service...";
+        public const string RetrievingExchangeRateError = "Retrieving exchange rate: error! [red]:([/]";
         public const string RetrievingLatestVersion = "Retrieving lastest version...";
     }
 

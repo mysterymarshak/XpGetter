@@ -6,6 +6,7 @@ using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Steam.Http.Clients;
+using XpGetter.Application.Utils.Progress;
 
 namespace XpGetter.Application.Features.Markets.SteamMarket;
 
@@ -22,7 +23,12 @@ public class SteamMarketService : IMarketService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names, ECurrencyCode currency)
+    public Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names,
+        ECurrencyCode currency, SteamSession session, IProgressContext ctx)
+        => GetItemsPriceInternalAsync(names, currency);
+
+    private async Task<IEnumerable<PriceDto>> GetItemsPriceInternalAsync(IReadOnlyList<string> names,
+                                                                         ECurrencyCode currency)
     {
         if (names.Count == 0)
         {

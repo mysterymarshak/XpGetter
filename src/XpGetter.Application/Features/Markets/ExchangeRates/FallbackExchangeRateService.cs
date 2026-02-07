@@ -3,6 +3,7 @@ using SteamKit2;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Features.ExchangeRates.ExchangeRateApi;
 using XpGetter.Application.Features.ExchangeRates.HexaRateApi;
+using XpGetter.Application.Utils.Progress;
 
 namespace XpGetter.Application.Features.ExchangeRates;
 
@@ -20,15 +21,17 @@ public class FallbackExchangeRateService : IExchangeRateService
         _logger = logger;
     }
 
-    public async Task<ExchangeRateDto?> GetExchangeRateAsync(ECurrencyCode source, ECurrencyCode target)
+    public async Task<ExchangeRateDto?> GetExchangeRateAsync(ECurrencyCode source, ECurrencyCode target,
+                                                             SteamSession session, IProgressTask task)
     {
-        var result = await _exchangeRateApi.GetExchangeRateAsync(source, target);
+        var result = await _exchangeRateApi.GetExchangeRateAsync(source, target, session, task);
 
         if (result is null)
         {
+            task.Description(session, Messages.Statuses.RetrievingExchangeRateFallback);
             _logger.Warning(Messages.ExchangeRates.FallbackServiceUsedHexa, source, target);
 
-            result = await _hexaRateApi.GetExchangeRateAsync(source, target);
+            result = await _hexaRateApi.GetExchangeRateAsync(source, target, session, task);
 
             _logger.Debug(Messages.ExchangeRates.FallbackServiceResult, source, target, result);
         }

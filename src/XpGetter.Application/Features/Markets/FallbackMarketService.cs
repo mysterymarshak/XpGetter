@@ -3,6 +3,7 @@ using SteamKit2;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Features.Markets.CsgoMarket;
 using XpGetter.Application.Features.Markets.SteamMarket;
+using XpGetter.Application.Utils.Progress;
 
 namespace XpGetter.Application.Features.Markets;
 
@@ -19,9 +20,10 @@ public class FallbackMarketService : IMarketService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names, ECurrencyCode currency)
+    public async Task<IEnumerable<PriceDto>> GetItemsPriceAsync(IReadOnlyList<string> names,
+        ECurrencyCode currency, SteamSession session, IProgressContext ctx)
     {
-        var result = await _csgo.GetItemsPriceAsync(names, currency);
+        var result = await _csgo.GetItemsPriceAsync(names, currency, session, ctx);
 
         var failedItems = result
             .Where(x => x.Value == 0)
@@ -33,7 +35,7 @@ public class FallbackMarketService : IMarketService
         {
             _logger.Warning(Messages.Market.FallbackServiceUsedSteam, failedItems);
 
-            var failedItemsResult = await _steam.GetItemsPriceAsync(failedItems, currency);
+            var failedItemsResult = await _steam.GetItemsPriceAsync(failedItems, currency, session, ctx);
             result = result.Concat(failedItemsResult);
 
             _logger.Debug(Messages.Market.FallbackServiceResult, failedItemsResult);
