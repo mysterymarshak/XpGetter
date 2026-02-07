@@ -227,6 +227,33 @@ public static class Messages
         public const string FallbackServiceUsedSteam = "Couldn't get items [{@ItemNames}] price via csgo market service. Trying to use steam one";
         public const string FallbackServiceResult = "Got the price for failed items [{@ItemNames}] via steam market";
         public const string GotPricesLog = "Got items' prices: {@Prices}";
+        public const string UnsupportedCurrency = "CsgoMarket doesn't support currency {Currency}. Trying to get prices in {DefaultCurrency} and then convert to {Currency}";
+        public const string SuccessfullyConverted = "Succesfully retrieved exchange rate for source {Source} and target {Target}: {@ExchangeRate}";
+        public const string FailedToGetExchangeRate = "Cannot get exchange rate for source {Source} and target {Target} so bind prince in {DefaultCurrency} instead";
+    }
+
+    public static class Statistics
+    {
+        public const string GetStatisticsError = "[red]An error occurred while retrieving statistics.[/]";
+        public const string Days30 = "30 days";
+        public const string Days90 = "90 days";
+        public const string Days180 = "180 days";
+        public const string Days365 = "365 days";
+        public const string TableTitle = "[steelblue1]{0}[/]";
+        public const string ItemNameColumn = "Name";
+        public const string ItemPriceColumn = "Price";
+        public const string ItemQuantityColumn = "Quantity";
+        public const string FooterTotal = "Total";
+        public const string Done = "Here's your new rank drops statistics for {0} days:";
+    }
+
+    public static class ExchangeRates
+    {
+        public const string DeserializationError = "Cannot deserialize exchange rate response. Raw json: {0}";
+        public const string CurrencyNotFoundError = "Cannot found exchange rate for '{0}'. Raw json: {1}";
+        public const string Exception = "An exception was thrown while retrieving exchange rates for source '{0}' and target '{1}'";
+        public const string FallbackServiceUsedHexa = "Cannot get exchange rate for source {Source} and target {Target} via ExchangeRateApi. Trying to use Hexa one";
+        public const string FallbackServiceResult = "Got exchange rate for source {Source} and target {Target}: {@ExchangeRate}";
     }
 
     public static class Common
@@ -245,20 +272,5 @@ public static class Messages
         public const string NothingToDo = "Nothing to do.";
         public const string Y = "y";
         public const string N = "n";
-    }
-
-    public static class Statistics
-    {
-        public const string GetStatisticsError = "[red]An error occurred while retrieving statistics.[/]";
-        public const string Days30 = "30 days";
-        public const string Days90 = "90 days";
-        public const string Days180 = "180 days";
-        public const string Days365 = "365 days";
-        public const string TableTitle = "[steelblue1]{0}[/]";
-        public const string ItemNameColumn = "Name";
-        public const string ItemPriceColumn = "Price";
-        public const string ItemQuantityColumn = "Quantity";
-        public const string FooterTotal = "Total";
-        public const string Done = "Here's your new rank drops statistics for {0} days:";
     }
 }

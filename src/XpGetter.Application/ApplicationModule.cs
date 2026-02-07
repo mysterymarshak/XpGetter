@@ -9,6 +9,9 @@ using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Configuration.Repositories;
 using XpGetter.Application.Features.Configuration.Repositories.FileOperationStrategies;
+using XpGetter.Application.Features.ExchangeRates;
+using XpGetter.Application.Features.ExchangeRates.ExchangeRateApi;
+using XpGetter.Application.Features.ExchangeRates.HexaRateApi;
 using XpGetter.Application.Features.Markets;
 using XpGetter.Application.Features.Markets.CsgoMarket;
 using XpGetter.Application.Features.Markets.SteamMarket;
@@ -87,6 +90,18 @@ public class ApplicationModule : Module
 
         builder.RegisterType<FallbackMarketService>()
             .As<IMarketService>()
+            .SingleInstance();
+
+        builder.RegisterType<ExchangeRateApiService>()
+            .AsSelf()
+            .SingleInstance();
+
+        builder.RegisterType<HexaRateApiService>()
+            .AsSelf()
+            .SingleInstance();
+
+        builder.RegisterType<FallbackExchangeRateService>()
+            .As<IExchangeRateService>()
             .SingleInstance();
 
         builder.RegisterType<ConfigurationService>()
