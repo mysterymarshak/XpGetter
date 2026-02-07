@@ -5,7 +5,7 @@ using SteamKit2;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
-using XpGetter.Application.Features.ExchangeRates;
+using XpGetter.Application.Features.Markets.ExchangeRates;
 using XpGetter.Application.Utils.Progress;
 
 namespace XpGetter.Application.Features.Markets.CsgoMarket;

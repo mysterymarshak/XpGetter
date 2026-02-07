@@ -1,5 +1,4 @@
 using XpGetter.Application.Extensions;
-using XpGetter.Application.Features.Configuration;
 
 namespace XpGetter.Application.Dto;
 

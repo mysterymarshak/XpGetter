@@ -1,7 +1,6 @@
 using SteamKit2;
 using SteamKit2.Internal;
 using XpGetter.Application.Extensions;
-using XpGetter.Application.Features.Configuration;
 
 namespace XpGetter.Application.Dto;
 

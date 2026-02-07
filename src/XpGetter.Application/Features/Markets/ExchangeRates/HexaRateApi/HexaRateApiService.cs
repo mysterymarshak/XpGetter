@@ -6,7 +6,7 @@ using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
 using XpGetter.Application.Utils.Progress;
 
-namespace XpGetter.Application.Features.ExchangeRates.HexaRateApi;
+namespace XpGetter.Application.Features.Markets.ExchangeRates.HexaRateApi;
 
 public class HexaRateApiService : IExchangeRateService
 {

@@ -2,7 +2,6 @@ using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
-using XpGetter.Application.Extensions;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;

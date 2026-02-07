@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace XpGetter.Application.Features.ExchangeRates.HexaRateApi;
+namespace XpGetter.Application.Features.Markets.ExchangeRates.HexaRateApi;
 
 public class Rate
 {
