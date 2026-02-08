@@ -86,7 +86,8 @@ public class ActivityService : IActivityService
                 remainder.IsT1 ? remainder.AsT1.Message :
                 remainder.IsT2 ? Messages.Activity.NoNewRankDropInfo : null) : null;
 
-            lastNewRankDrop?.BindExternal(remainder.IsT2 ? true : null,
+            lastNewRankDrop ??= new Dto.NewRankDrop(null, []);
+            lastNewRankDrop.BindExternal(remainder.IsT2 ? true : null,
                 remainder.IsT1 ? remainder.AsT1.LastEntryDateTime : null);
 
             var parseActivityResult = _activityInfoParser.ParseActivityInfoFromHtml(document);
@@ -108,7 +109,7 @@ public class ActivityService : IActivityService
                 Account = account,
                 AdditionalMessage = additionalMessage,
                 XpData = xpData,
-                LastNewRankDrop = lastNewRankDrop ?? new Dto.NewRankDrop(null, [])
+                LastNewRankDrop = lastNewRankDrop
             };
         }
 

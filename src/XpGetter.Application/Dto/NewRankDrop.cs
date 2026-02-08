@@ -75,6 +75,13 @@ public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> 
 
             return null;
         }
+        else
+        {
+            if (!LastDateTime.HasValue)
+            {
+                return null;
+            }
+        }
 
         return lastReset > LastDateTime;
     }
