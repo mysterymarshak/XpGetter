@@ -20,10 +20,18 @@ public class PrintStatisticsState : BaseState
 
     public override ValueTask<StateExecutionResult> OnExecuted()
     {
+        var allGroupedItems = _statistics
+            .SelectMany(x => x.GroupedItems);
+
+        if (!allGroupedItems.Any())
+        {
+            AnsiConsole.MarkupLine(Messages.Common.NothingToDo);
+            return ValueTask.FromResult<StateExecutionResult>(new SuccessExecutionResult());
+        }
+
         var tables = new List<Table>();
         var maxItems = _statistics.Max(x => x.GroupedItemsCount);
-        var longestNameLength = _statistics
-            .SelectMany(x => x.GroupedItems)
+        var longestNameLength = allGroupedItems
             .Max(x => x.Key.Format(includePrice: false, includeMarkup: false).Length);
         var dummyString = new string(' ', longestNameLength);
 
