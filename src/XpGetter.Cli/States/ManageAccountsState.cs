@@ -17,15 +17,18 @@ public class ManageAccountsState : BaseState
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        var choices = _configuration.Accounts
+        var usernames = _configuration.Accounts
+            .Select(x => x.Username);
+
+        var choicesEnumerable = _configuration.Accounts
             .Select(x => x.GetDisplayUsername());
 
         if (_configuration.Accounts.Count() < Constants.MaxAccounts)
         {
-            choices = choices.Append(Messages.ManageAccounts.AddNew);
+            choicesEnumerable = choicesEnumerable.Append(Messages.ManageAccounts.AddNew);
         }
 
-        choices = choices
+        var choices = choicesEnumerable
             .Append(Messages.Common.Back)
             .Append(Messages.Common.Exit)
             .ToList();
@@ -45,8 +48,10 @@ public class ManageAccountsState : BaseState
                 new NamedParameter("checkAndPrintAccounts", false),
                 new NamedParameter("skipHelloMessage", true)),
             Messages.Common.Exit => new ExitExecutionResult(),
-            _ => await GoTo<ManageAccountState>(
-                new NamedParameter("username", choice), new NamedParameter("configuration", _configuration))
+            _ when choices.IndexOf(choice) is var index and > 0 => await GoTo<ManageAccountState>(
+                new NamedParameter("username", usernames.ElementAt(index)),
+                    new NamedParameter("configuration", _configuration)),
+            _ => throw new ArgumentOutOfRangeException(nameof(choice))
         };
     }
 }

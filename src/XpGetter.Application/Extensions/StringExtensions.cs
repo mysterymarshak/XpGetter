@@ -18,8 +18,8 @@ public static class StringExtensions
             return (ignoreConfiguration, RuntimeConfiguration.AnonymizeUsernames, RuntimeConfiguration.CensorUsernames) switch
             {
                 (true, _, _) => @string,
-                (_, true, true) => "testswag".Censor(),
-                (_, true, false) => "testswag",
+                (_, true, true) => Messages.Common.AnonymousName.Censor(),
+                (_, true, false) => Messages.Common.AnonymousName,
                 (_, false, true) => @string.Censor(),
                 _ => @string
             };

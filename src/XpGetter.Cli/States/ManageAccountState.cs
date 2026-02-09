@@ -26,7 +26,9 @@ public class ManageAccountState : BaseState
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        var account = _configuration.Accounts.FirstOrDefault(x => x.Username == _username);
+        var account = _configuration.Accounts
+            .FirstOrDefault(x => x.Username == _username);
+
         if (account is null)
         {
             AnsiConsole.MarkupLine(Messages.ManageAccounts.AccountWasNotFound, _username);
@@ -36,7 +38,7 @@ public class ManageAccountState : BaseState
         var choices = new List<string> { Messages.ManageAccounts.Remove, Messages.Common.Back, Messages.Common.Exit };
         var choice = await AnsiConsole.PromptAsync(
             new SelectionPrompt<string>()
-                .Title(string.Format(Messages.ManageAccounts.AccountFormat, _username))
+                .Title(string.Format(Messages.ManageAccounts.AccountFormat, account.GetDisplayUsername()))
                 .AddChoices(choices));
 
         return choice switch
@@ -52,7 +54,7 @@ public class ManageAccountState : BaseState
         _configuration.RemoveAccount(account.Id);
         _configurationService.WriteConfiguration(_configuration);
 
-        AnsiConsole.MarkupLine(Messages.ManageAccounts.AccountRemoved, _username);
+        AnsiConsole.MarkupLine(Messages.ManageAccounts.AccountRemoved, account.GetDisplayUsername());
         _logger.Debug(Messages.ManageAccounts.AccountRemoved, account.Username);
 
         return await GoTo<HelloState>(
