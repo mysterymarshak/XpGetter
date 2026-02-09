@@ -63,6 +63,8 @@ public static class Messages
         public const string SessionCreationError = "Session creation error [red]:([/]";
         public const string Authenticating = "Authenticating...";
         public const string Authenticated = "Authenticated [green]:)[/]";
+        public const string AuthenticationErrorStatus = "Authentication error [red]:([/]";
+        public const string SessionExpiredStatus = "Session expired [red]:([/]";
         public const string RetrievingActivity = "Retrieving activity info...";
         public const string RetrievingLastNewRankDrop = "Retrieving last new rank drop...";
         public const string RetrievingLastNewRankDropRateLimit = "Retrieving last new rank drop: rate limit, please wait...";
@@ -74,7 +76,7 @@ public static class Messages
         public const string RetrievingActivityError = "Retrieving activity info: error [red]:([/]";
         public const string RetrievingActivityOk = "Retrieving activity info: got! [green]:)[/]";
         public const string TooLongHistory = "New rank drop: too long inventory history! [red]:([/]";
-        public const string TooBigGapInHistory = "New rank drops: too long time gap between them; retrieved data up until {0} [red]:([/]";
+        public const string TooBigGapInHistory = "New rank drops: too long gap between them; retrieved data up until {0} [red]:([/]";
         public const string NewRankDropError = "New rank drop: error [red]:([/]";
         public const string NewRankDropsError = "New rank drops: error [red]:([/]";
         public const string NewRankDropOk = "New rank drop: got! [green]:)[/]";
@@ -139,11 +141,9 @@ public static class Messages
         public const string AccessRenewingException = "An exception was thrown while renewing access token.";
         public const string CannotCreateSteamSession = "[red]Cannot create steam session. Check your internet connection.[/]";
         public const string SessionExpired = "[yellow]Session for '{0}' is expired. You need to log in into account again.[/]";
-        public const string SessionExpiredStatus = "Session expired [red]:([/]";
         public const string AuthenticationError = "[red]An error occurred while logging in into account '{0}'[/]";
-        public const string AuthenticationErrorStatus = "Authentication error [red]:([/]";
         public const string AccountRemoved = "[yellow]Account '{0}' removed because it's session is expired.[/]";
-        public const string NoSavedAccounts = "[yellow]You need to log in again.[/]";
+        public const string LogInAgain = "[yellow]You need to log in again.[/]";
         public const string UnauthenticatedSessions = "[red]There're unauthenticated, not expired sessions for some reason.[/]";
         public const string SuccessfullyAuthenticated = "Successfully authenticated sessions: {@SessionNames}";
         public const string InvalidPassword = "[red]Invalid password. Try again.[/]";
@@ -249,6 +249,7 @@ public static class Messages
         public const string ItemQuantityColumn = "Quantity";
         public const string FooterTotal = "Total";
         public const string Done = "Here's your new rank drops statistics for {0} days:";
+        public const string NothingToShow = "There's no new rank drops statistics for {0} days.";
     }
 
     public static class ExchangeRates

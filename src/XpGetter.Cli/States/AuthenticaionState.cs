@@ -58,12 +58,20 @@ public class AuthenticaionState : BaseState
 
         if (authenticatedSessions.Any(x => !x.IsAuthenticated))
         {
-            return new AuthenticationExecutionResult { Error = new PanicExecutionResult(Messages.Authentication.UnauthenticatedSessions) };
+            return new AuthenticationExecutionResult
+            {
+                Error = new PanicExecutionResult(Messages.Authentication.UnauthenticatedSessions)
+            };
         }
 
         _logger.Debug(Messages.Authentication.SuccessfullyAuthenticated,
                       authenticatedSessions.Select(x => x.GetName(ignoreConfiguration: true)));
-        return new AuthenticationExecutionResult { AuthenticatedSessions = authenticatedSessions, Error = combinedError };
+
+        return new AuthenticationExecutionResult
+        {
+            AuthenticatedSessions = authenticatedSessions,
+            Error = combinedError
+        };
     }
 
     private async Task<OneOf<SteamSession, ErrorExecutionResult, PanicExecutionResult>> CreateAndAuthenticateSession(AccountDto account)
@@ -82,7 +90,7 @@ public class AuthenticaionState : BaseState
         var authenticationResult = await _authenticationService.AuthenticateSessionAsync(session, account);
         if (authenticationResult.TryPickT1(out _, out _))
         {
-            authenticateTask.SetResult(session, Messages.Authentication.SessionExpiredStatus);
+            authenticateTask.SetResult(session, Messages.Statuses.SessionExpiredStatus);
 
             _configuration.RemoveAccount(account.Id);
             _logger.Debug(Messages.Authentication.AccountRemoved, account.Username);
@@ -92,7 +100,7 @@ public class AuthenticaionState : BaseState
         }
         else if (authenticationResult.TryPickT2(out var authServiceError, out _))
         {
-            authenticateTask.SetResult(session, Messages.Authentication.AuthenticationErrorStatus);
+            authenticateTask.SetResult(session, Messages.Statuses.AuthenticationErrorStatus);
             errorExecutionResult =
                 new ErrorExecutionResult(() =>
                     authServiceError.DumpToConsole(Messages.Authentication.AuthenticationError,

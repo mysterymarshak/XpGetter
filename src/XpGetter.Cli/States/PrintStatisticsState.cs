@@ -20,12 +20,13 @@ public class PrintStatisticsState : BaseState
 
     public override ValueTask<StateExecutionResult> OnExecuted()
     {
+        var days = _statistics.First().TimeSpan.Days;
         var allGroupedItems = _statistics
             .SelectMany(x => x.GroupedItems);
 
         if (!allGroupedItems.Any())
         {
-            AnsiConsole.MarkupLine(Messages.Common.NothingToDo);
+            AnsiConsole.MarkupLine(Messages.Statistics.NothingToShow, days);
             return ValueTask.FromResult<StateExecutionResult>(new SuccessExecutionResult());
         }
 
@@ -79,7 +80,7 @@ public class PrintStatisticsState : BaseState
             .Padding(2, 0, 2, 0)
             .Collapse();
 
-        AnsiConsole.MarkupLine(string.Format(Messages.Statistics.Done, _statistics.First().TimeSpan.Days));
+        AnsiConsole.MarkupLine(Messages.Statistics.Done, days);
         AnsiConsole.WriteLine();
         AnsiConsole.Write(columns);
 

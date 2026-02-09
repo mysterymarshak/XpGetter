@@ -106,8 +106,11 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
             }
             else if (result is ErrorExecutionResult errorExecutionResult)
             {
+                AnsiConsole.WriteLine();
                 errorExecutionResult.DumpError();
 
+                // TODO: goto HelloState
+                // or maybe StartState should handle error execution results
                 WaitForAnyKeyToExit();
                 return 1;
             }

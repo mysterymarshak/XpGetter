@@ -48,10 +48,11 @@ public class StartState : BaseState
                 var authenticatedSessions = authenticationExecutionResult.AuthenticatedSessions;
                 if (authenticatedSessions.Count == 0)
                 {
-                    // some sessions were expired
+                    // all sessions were expired
                     if (!_configuration.Accounts.Any())
                     {
-                        AnsiConsole.MarkupLine(Messages.Authentication.NoSavedAccounts);
+                        AnsiConsole.MarkupLine(Messages.Authentication.LogInAgain);
+                        // TODO: must be outside of context
                         return await GoTo<AddAccountState>();
                     }
 
