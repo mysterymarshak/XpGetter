@@ -37,7 +37,7 @@ public class NewRankDropParser
         {
             return new NewRankDropParserError
             {
-                Message = Messages.ActivityParsers.Drop.EmptyHtml
+                Message = Messages.ActivityParsers.EmptyHtml
             };
         }
 
@@ -92,7 +92,7 @@ public class NewRankDropParser
                 return new MispagedDrop(LastEntryDateTime.Value, dropItems[0], response.Cursor, newRankDrops);
             }
 
-            var nextDropItemNode = rows[i + 1];
+            var nextDropItemNode = rows[nextRowIndex];
             var parseSecondDropItemResult = TryParseCsgoItemFromRow(response, nextDropItemNode);
             if (parseSecondDropItemResult.DateTime is null || parseSecondDropItemResult.DropItem is null)
             {

@@ -46,6 +46,10 @@ public class ApplicationModule : Module
             .As<IActivityService>()
             .SingleInstance();
 
+        builder.RegisterType<MatchmakingService>()
+            .As<IMatchmakingService>()
+            .SingleInstance();
+
         builder.RegisterType<SessionService>()
             .As<ISessionService>()
             .SingleInstance();
