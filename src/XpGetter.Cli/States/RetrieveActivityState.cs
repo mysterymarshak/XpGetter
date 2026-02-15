@@ -41,6 +41,10 @@ public class RetrieveActivityState : BaseState
             .Select(x => x.AsT0)
             .ToList();
 
-        return new RetrieveActivityExecutionResult { ActivityInfos = successResults, Error = errorResult };
+        return new RetrieveActivityExecutionResult
+        {
+            ActivityInfos = successResults,
+            Error = errorResult
+        };
     }
 }

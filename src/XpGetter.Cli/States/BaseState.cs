@@ -1,10 +1,13 @@
 using Autofac.Core;
+using XpGetter.Application.Dto;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 
 public abstract class BaseState
 {
+    protected AppConfigurationDto Configuration => _context.Configuration;
+
     private readonly StateContext _context;
 
     public BaseState(StateContext context)

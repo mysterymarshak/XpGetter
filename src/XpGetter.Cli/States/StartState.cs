@@ -11,33 +11,30 @@ namespace XpGetter.Cli.States;
 
 public class StartState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
     private readonly IConfigurationService _configurationService;
     private readonly Func<List<SteamSession>, Task<StateExecutionResult>> _postAuthenticationDelegate;
 
-    public StartState(AppConfigurationDto configuration, IConfigurationService configurationService,
+    public StartState(IConfigurationService configurationService,
                       Func<List<SteamSession>, Task<StateExecutionResult>> postAuthenticationDelegate,
                       StateContext context) : base(context)
     {
-        _configuration = configuration;
-        _configurationService = configurationService;
+         _configurationService = configurationService;
         _postAuthenticationDelegate = postAuthenticationDelegate;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        if (!_configuration.Accounts.Any())
+        if (!Configuration.Accounts.Any())
         {
             AnsiConsole.MarkupLine(Messages.Start.NoAccounts);
             return await GoTo<AddAccountState>();
         }
 
         var authenticationResult = await AnsiConsole
-            .CreateProgressContext(async ansiConsoleCtx =>
+            .CreateProgressContext<StateExecutionResult>(async ansiConsoleCtx =>
             {
                 var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
                 var authenticationExecutionResult = (AuthenticationExecutionResult)await GoTo<AuthenticaionState>(
-                    new NamedParameter("configuration", _configuration),
                     new NamedParameter("ctx", ctx));
 
                 if (authenticationExecutionResult.Error is PanicExecutionResult)
@@ -46,26 +43,20 @@ public class StartState : BaseState
                 }
 
                 var authenticatedSessions = authenticationExecutionResult.AuthenticatedSessions;
-                if (authenticatedSessions.Count == 0)
-                {
-                    // all sessions were expired
-                    if (!_configuration.Accounts.Any())
-                    {
-                        AnsiConsole.MarkupLine(Messages.Authentication.LogInAgain);
-                        // TODO: must be outside of context
-                        return await GoTo<AddAccountState>();
-                    }
-
-                    authenticationExecutionResult.Error?.DumpError();
-                    return new PanicExecutionResult();
-                }
-
                 return authenticationExecutionResult;
             });
 
         if (authenticationResult is not AuthenticationExecutionResult authenticationExecutionResult)
         {
             return authenticationResult;
+        }
+
+        if (!authenticationExecutionResult.AuthenticatedSessions.Any())
+        {
+            authenticationExecutionResult.Error?.DumpError();
+
+            AnsiConsole.MarkupLine(Messages.Authentication.LogInAgain);
+            return await GoTo<AddAccountState>();
         }
 
         var sessions = authenticationExecutionResult.AuthenticatedSessions;
@@ -75,13 +66,10 @@ public class StartState : BaseState
         if (familyViewProtected.Any())
         {
             passFamilyViewResult = (PassFamilyViewExecutionResult)await GoTo<PassFamilyViewState>(
-                new NamedParameter("configuration", _configuration),
                 new NamedParameter("sessions", sessions));
 
             familyViewPassedSessions = passFamilyViewResult.PassedSessions;
         }
-
-        // TODO: i should really rewrite this shit
 
         StateExecutionResult? stateExecutionResult = null;
         if (familyViewPassedSessions.Count > 0)
@@ -94,28 +82,20 @@ public class StartState : BaseState
             AnsiConsole.MarkupLine(Messages.Common.NothingToDo);
         }
 
-        if (authenticationExecutionResult.Error is not null)
-        {
-            return authenticationExecutionResult.Error;
-        }
+        var aggregatedError = authenticationExecutionResult.Error
+            .CombineOrCreate(passFamilyViewResult?.Error)
+            .CombineOrCreate(stateExecutionResult?.Error);
 
-        if (passFamilyViewResult?.Error is not null)
+        if (aggregatedError is not null)
         {
-            return passFamilyViewResult.Error;
-        }
-
-        if (stateExecutionResult?.Error is not null)
-        {
-            return stateExecutionResult.Error;
+            return aggregatedError;
         }
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine(Messages.Activity.AnyKeyToReturn);
         Console.ReadKey();
-
         AnsiConsole.MarkupLine(Messages.Common.Gap);
-        return await GoTo<HelloState>(
-            new NamedParameter("configuration", _configuration),
-            new NamedParameter("skipHelloMessage", true));
+
+        return new SuccessExecutionResult();
     }
 }

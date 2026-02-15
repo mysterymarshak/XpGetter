@@ -1,29 +1,26 @@
 using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
-using XpGetter.Application.Dto;
+using XpGetter.Cli.Extensions;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 
 public class ManageAccountsState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
-
-    public ManageAccountsState(AppConfigurationDto configuration, StateContext context) : base(context)
+    public ManageAccountsState(StateContext context) : base(context)
     {
-        _configuration = configuration;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        var usernames = _configuration.Accounts
+        var usernames = Configuration.Accounts
             .Select(x => x.Username);
 
-        var choicesEnumerable = _configuration.Accounts
+        var choicesEnumerable = Configuration.Accounts
             .Select(x => x.GetDisplayUsername());
 
-        if (_configuration.Accounts.Count() < Constants.MaxAccounts)
+        if (Configuration.Accounts.Count() < Constants.MaxAccounts)
         {
             choicesEnumerable = choicesEnumerable.Append(Messages.ManageAccounts.AddNew);
         }
@@ -38,19 +35,15 @@ public class ManageAccountsState : BaseState
                 .Title(Messages.Common.ChoiceOption)
                 .AddChoices(choices));
 
-        var backOption = () => GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration));
+        var backOption = () => GoTo<ManageAccountsState>();
 
         return choice switch
         {
             Messages.ManageAccounts.AddNew => await GoTo<AddAccountState>(new NamedParameter("backOption", backOption)),
-            Messages.Common.Back => await GoTo<HelloState>(
-                new NamedParameter("configuration", _configuration),
-                new NamedParameter("checkAndPrintAccounts", false),
-                new NamedParameter("skipHelloMessage", true)),
+            Messages.Common.Back => SuccessExecutionResult.WithoutAccountsPrint(),
             Messages.Common.Exit => new ExitExecutionResult(),
-            _ when choices.IndexOf(choice) is var index and > 0 => await GoTo<ManageAccountState>(
-                new NamedParameter("username", usernames.ElementAt(index)),
-                    new NamedParameter("configuration", _configuration)),
+            _ when choices.IndexOf(choice) is var index and >= 0 => await GoTo<ManageAccountState>(
+                new NamedParameter("username", usernames.ElementAt(index))),
             _ => throw new ArgumentOutOfRangeException(nameof(choice))
         };
     }

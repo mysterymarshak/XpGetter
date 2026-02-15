@@ -6,12 +6,12 @@ public static class AnsiConsoleExtensions
 {
     extension(AnsiConsole)
     {
-        public static Task<T> CreateProgressContext<T>(Func<ProgressContext, Task<T>> func)
+        public static Task<T> CreateProgressContext<T>(Func<ProgressContext, Task<T>> func, bool autoClear = false)
         {
             return AnsiConsole
                 .Progress()
                 .AutoRefresh(true)
-                .AutoClear(false)
+                .AutoClear(autoClear)
                 .HideCompleted(false)
                 .Columns(new TaskDescriptionColumn { Alignment = Justify.Left }, new SpinnerColumn(Spinner.Known.Flip),
                     new ElapsedTimeColumn())

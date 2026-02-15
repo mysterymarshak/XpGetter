@@ -10,14 +10,12 @@ namespace XpGetter.Cli.States;
 
 public class PassFamilyViewState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
     private readonly List<SteamSession> _sessions;
     private readonly IConfigurationService _configurationService;
 
-    public PassFamilyViewState(AppConfigurationDto configuration, List<SteamSession> sessions,
-                               IConfigurationService configurationService, StateContext context) : base(context)
+    public PassFamilyViewState(List<SteamSession> sessions, IConfigurationService configurationService,
+                               StateContext context) : base(context)
     {
-        _configuration = configuration;
         _sessions = sessions;
         _configurationService = configurationService;
     }
@@ -76,7 +74,6 @@ public class PassFamilyViewState : BaseState
             }
 
             var unlockResult = (UnlockFamilyViewExecutionResult)await GoTo<UnlockFamilyViewState>(
-                new NamedParameter("configuration", _configuration),
                 new NamedParameter("session", session));
 
             if (unlockResult.Success)
@@ -95,7 +92,12 @@ public class PassFamilyViewState : BaseState
             AnsiConsole.MarkupLine(Messages.Parental.SkipUnlocking, session.GetName());
         }
 
-        _configurationService.WriteConfiguration(_configuration);
-        return new PassFamilyViewExecutionResult { PassedSessions = passedSession, Error =  errorExecutionResult };
+        _configurationService.WriteConfiguration(Configuration);
+
+        return new PassFamilyViewExecutionResult
+        {
+            PassedSessions = passedSession,
+            Error = errorExecutionResult
+        };
     }
 }

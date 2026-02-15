@@ -10,13 +10,10 @@ namespace XpGetter.Cli.States;
 
 public class ChooseStatisticsPeriodState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
-
     private TimeSpan _timeSpan;
 
-    public ChooseStatisticsPeriodState(AppConfigurationDto configuration, StateContext context) : base(context)
+    public ChooseStatisticsPeriodState(StateContext context) : base(context)
     {
-        _configuration = configuration;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -37,10 +34,7 @@ public class ChooseStatisticsPeriodState : BaseState
 
         if (choice == Messages.Common.Back)
         {
-            return await GoTo<HelloState>(
-                new NamedParameter("configuration", _configuration),
-                new NamedParameter("checkAndPrintAccounts", false),
-                new NamedParameter("skipHelloMessage", true));
+            return SuccessExecutionResult.WithoutAccountsPrint();
         }
 
         _timeSpan = choice switch
@@ -53,8 +47,7 @@ public class ChooseStatisticsPeriodState : BaseState
         };
 
 #pragma warning disable CS8974
-        return await GoTo<StartState>(new NamedParameter("configuration", _configuration),
-                                      new NamedParameter("postAuthenticationDelegate", StatisticsDelegate));
+        return await GoTo<StartState>(new NamedParameter("postAuthenticationDelegate", StatisticsDelegate));
 #pragma warning restore CS8974
     }
 
@@ -65,7 +58,6 @@ public class ChooseStatisticsPeriodState : BaseState
             {
                 var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
                 return (StatisticsExecutionResult)await GoTo<RetrieveStatisticsState>(
-                    new NamedParameter("configuration", _configuration),
                     new NamedParameter("sessions", sessions),
                     new NamedParameter("timeSpan", _timeSpan),
                     new NamedParameter("ctx", ctx));
@@ -74,7 +66,6 @@ public class ChooseStatisticsPeriodState : BaseState
         if (retrieveStatisticsStateResult.Statistics.Any())
         {
             return await GoTo<PrintStatisticsState>(
-                    new NamedParameter("configuration", _configuration),
                     new NamedParameter("statistics", retrieveStatisticsStateResult.Statistics));
         }
 

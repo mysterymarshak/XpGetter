@@ -8,13 +8,10 @@ namespace XpGetter.Cli.States;
 
 public class PrintStatisticsState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
     private readonly List<StatisticsDto> _statistics;
 
-    public PrintStatisticsState(AppConfigurationDto configuration, List<StatisticsDto> statistics,
-                                StateContext context) : base(context)
+    public PrintStatisticsState(List<StatisticsDto> statistics, StateContext context) : base(context)
     {
-        _configuration = configuration;
         _statistics = statistics;
     }
 

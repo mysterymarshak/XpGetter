@@ -7,24 +7,17 @@ namespace XpGetter.Cli.States;
 
 public class PrintActivityState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
     private readonly IEnumerable<ActivityInfo> _activityInfos;
 
-    public PrintActivityState(AppConfigurationDto configuration, IEnumerable<ActivityInfo> activityInfos,
-        StateContext context) : base(context)
+    public PrintActivityState(IEnumerable<ActivityInfo> activityInfos, StateContext context) : base(context)
     {
-        _configuration = configuration;
         _activityInfos = activityInfos.ToList();
     }
 
     public override ValueTask<StateExecutionResult> OnExecuted()
     {
-        PrintActivityInfo();
-        return new ValueTask<StateExecutionResult>(new SuccessExecutionResult());
-    }
+        // TODO: formatting
 
-    private void PrintActivityInfo()
-    {
         foreach (var (i, info) in _activityInfos.Index())
         {
             var newRankDrop = info.LastNewRankDrop;
@@ -43,7 +36,6 @@ public class PrintActivityState : BaseState
             {
                 AnsiConsole.MarkupLine($"[yellow]{info.AdditionalMessage}[/]");
             }
-            // TODO: formatting
             ProgressBar.Print(xpData.Xp, 5000);
 
             if (i != _activityInfos.Count() - 1)
@@ -51,5 +43,7 @@ public class PrintActivityState : BaseState
                 AnsiConsole.WriteLine();
             }
         }
+
+        return ValueTask.FromResult<StateExecutionResult>(new SuccessExecutionResult());
     }
 }

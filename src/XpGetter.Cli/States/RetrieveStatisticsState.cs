@@ -10,23 +10,19 @@ namespace XpGetter.Cli.States;
 
 public class RetrieveStatisticsState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
     private readonly List<SteamSession> _sessions;
     private readonly TimeSpan _timeSpan;
     private readonly IStatisticsService _statisticsService;
     private readonly IProgressContext _ctx;
-    private readonly ILogger _logger;
 
-    public RetrieveStatisticsState(AppConfigurationDto configuration, List<SteamSession> sessions, TimeSpan timeSpan,
+    public RetrieveStatisticsState(List<SteamSession> sessions, TimeSpan timeSpan,
                            IStatisticsService statisticsService, StateContext context,
-                           IProgressContext ctx, ILogger logger) : base(context)
+                           IProgressContext ctx) : base(context)
     {
-        _configuration = configuration;
         _sessions = sessions;
         _timeSpan = timeSpan;
         _statisticsService = statisticsService;
         _ctx = ctx;
-        _logger = logger;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -49,6 +45,10 @@ public class RetrieveStatisticsState : BaseState
             .Select(x => x.AsT0)
             .ToList();
 
-        return new StatisticsExecutionResult { Statistics = statistics, Error = errorResult };
+        return new StatisticsExecutionResult
+        {
+            Statistics = statistics,
+            Error = errorResult
+        };
     }
 }

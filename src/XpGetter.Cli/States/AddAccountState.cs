@@ -8,18 +8,28 @@ public class AddAccountState : BaseState
 {
     private readonly Func<ValueTask<StateExecutionResult>>? _backOption;
 
-    public AddAccountState(StateContext context, Func<ValueTask<StateExecutionResult>>? backOption = null) : base(context)
+    public AddAccountState(StateContext context,
+                           Func<ValueTask<StateExecutionResult>>? backOption = null) : base(context)
     {
         _backOption = backOption;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        var choices = new List<string>(4) { Messages.AddAccount.ViaPassword, Messages.AddAccount.ViaQrCode };
+        // Start label to simplify retry logic
+        Start:
+
+        var choices = new List<string>(4)
+        {
+            Messages.AddAccount.ViaPassword,
+            Messages.AddAccount.ViaQrCode
+        };
+
         if (_backOption is not null)
         {
             choices.Add(Messages.Common.Back);
         }
+
         choices.Add(Messages.Common.Exit);
 
         var choice = await AnsiConsole.PromptAsync(
@@ -27,12 +37,20 @@ public class AddAccountState : BaseState
                 .Title(Messages.AddAccount.LogInWay)
                 .AddChoices(choices));
 
-        return choice switch
+        var result = choice switch
         {
             Messages.AddAccount.ViaPassword => await GoTo<AddAccountViaPasswordState>(),
             Messages.AddAccount.ViaQrCode => await GoTo<AddAccountViaQrState>(),
             Messages.Common.Back => await _backOption!.Invoke(),
             _ => new ExitExecutionResult()
         };
+
+        if (result is RetryExecutionResult)
+        {
+            goto Start;
+        }
+
+        return result;
+        // end of Start label
     }
 }

@@ -80,38 +80,30 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
             containerBuilder.RegisterModule<CliModule>();
             using var container = containerBuilder.Build();
 
+            var configurationService = container.Resolve<IConfigurationService>();
+            var configuration = configurationService.GetConfiguration();
+
             var statesResolver = container.Resolve<IStatesResolver>();
             var logger = container.Resolve<ILogger>();
-            var context = new StateContext(statesResolver);
+            var context = new StateContext(statesResolver, configuration);
 
             logger.Debug(Messages.Start.HelloLog);
 
-            var configurationService = container.Resolve<IConfigurationService>();
-            var configuration = configurationService.GetConfiguration();
-            var configurationParameter = new NamedParameter("configuration", configuration);
             var skipToStartParameter = new NamedParameter("skipToStart", arguments.SkipMenu);
-            var initialState = context.ResolveState<HelloState>(configurationParameter, skipToStartParameter);
+            var initialState = context.ResolveState<HelloState>(skipToStartParameter);
 
             var result = await initialState.TransferControl();
             if (result is PanicExecutionResult panicExecutionResult)
             {
                 panicExecutionResult.DumpError();
+
                 if (!string.IsNullOrWhiteSpace(panicExecutionResult.Message))
                 {
                     AnsiConsole.MarkupLine(panicExecutionResult.Message);
                 }
+
                 AnsiConsole.MarkupLine(Messages.Common.FatalError);
 
-                return 1;
-            }
-            else if (result is ErrorExecutionResult errorExecutionResult)
-            {
-                AnsiConsole.WriteLine();
-                errorExecutionResult.DumpError();
-
-                // TODO: goto HelloState
-                // or maybe StartState should handle error execution results
-                WaitForAnyKeyToExit();
                 return 1;
             }
 

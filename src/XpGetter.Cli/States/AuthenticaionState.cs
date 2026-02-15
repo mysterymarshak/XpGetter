@@ -13,18 +13,18 @@ namespace XpGetter.Cli.States;
 
 public class AuthenticaionState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
     private readonly IProgressContext _ctx;
     private readonly IConfigurationService _configurationService;
     private readonly ISessionService _sessionService;
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger _logger;
 
-    public AuthenticaionState(AppConfigurationDto configuration, IProgressContext ctx,
-        IConfigurationService configurationService, ISessionService sessionService,
-        IAuthenticationService authenticationService, StateContext context, ILogger logger) : base(context)
+    public AuthenticaionState(IProgressContext ctx,
+                              IConfigurationService configurationService,
+                              ISessionService sessionService,
+                              IAuthenticationService authenticationService,
+                              StateContext context, ILogger logger) : base(context)
     {
-        _configuration = configuration;
         _ctx = ctx;
         _configurationService = configurationService;
         _sessionService = sessionService;
@@ -34,7 +34,7 @@ public class AuthenticaionState : BaseState
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        var accounts = _configuration.Accounts.ToList();
+        var accounts = Configuration.Accounts.ToList();
 
         var createAndAuthenticateSessionTasks = accounts.Select(CreateAndAuthenticateSession);
         var createAndAuthenticateSessionResults = await Task.WhenAll(createAndAuthenticateSessionTasks);
@@ -92,7 +92,7 @@ public class AuthenticaionState : BaseState
         {
             authenticateTask.SetResult(session, Messages.Statuses.SessionExpiredStatus);
 
-            _configuration.RemoveAccount(account.Id);
+            Configuration.RemoveAccount(account.Id);
             _logger.Debug(Messages.Authentication.AccountRemoved, account.Username);
 
             errorExecutionResult = new ErrorExecutionResult(() =>
@@ -107,7 +107,7 @@ public class AuthenticaionState : BaseState
                         account.GetDisplayUsername()));
         }
 
-        _configurationService.WriteConfiguration(_configuration);
+        _configurationService.WriteConfiguration(Configuration);
 
         if (errorExecutionResult is not null)
         {

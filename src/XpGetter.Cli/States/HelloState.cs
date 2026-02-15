@@ -10,79 +10,93 @@ namespace XpGetter.Cli.States;
 
 public class HelloState : BaseState
 {
-    private readonly AppConfigurationDto _configuration;
-    private readonly bool _skipHelloMessage;
-    private readonly bool _checkAndPrintAccounts;
-    private readonly bool _skipToStart;
+    private bool _skipToStart;
+    private bool _helloSaid;
 
-    public HelloState(AppConfigurationDto configuration, StateContext context,
-                      bool skipHelloMessage = false, bool checkAndPrintAccounts = true,
-                      bool skipToStart = false) : base(context)
+    public HelloState(StateContext context, bool skipToStart = false) : base(context)
     {
-        _configuration = configuration;
-        _skipHelloMessage = skipHelloMessage;
-        _checkAndPrintAccounts = checkAndPrintAccounts;
         _skipToStart = skipToStart;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
-        if (!_skipHelloMessage)
-        {
-            AnsiConsole.MarkupLine(Messages.Start.Hello);
-        }
+        StateExecutionResult? lastExecutionResult = null;
 
-        if (_checkAndPrintAccounts)
+        while (true)
         {
-            if (_configuration.Accounts.Any())
+            if (lastExecutionResult is ErrorExecutionResult errorExecutionResult)
             {
-                AnsiConsole.MarkupLine(Messages.Start.SavedAccounts,
-                    string.Join(", ", _configuration.Accounts.Select(x =>
-                        string.Format((string)Messages.Start.SavedAccountFormat, (object?)x.GetDisplayUsername()))));
+                AnsiConsole.WriteLine();
+                errorExecutionResult.DumpError();
             }
-            else
+
+            if (lastExecutionResult is ExitExecutionResult)
             {
-                AnsiConsole.MarkupLine(Messages.Start.NoAccounts);
-                return await GoTo<AddAccountState>();
+                return lastExecutionResult;
             }
+
+            if (!_helloSaid)
+            {
+                AnsiConsole.MarkupLine(Messages.Start.Hello);
+                _helloSaid = true;
+            }
+
+            if (lastExecutionResult?.CheckAndPrintAccounts is true or null)
+            {
+                if (Configuration.Accounts.Any())
+                {
+                    var savedAccounts = string.Join(
+                        ", ",
+                        Configuration.Accounts.Select(x => string.Format(
+                                                           (string)Messages.Start.SavedAccountFormat,
+                                                           (object?)x.GetDisplayUsername())));
+                    AnsiConsole.MarkupLine(Messages.Start.SavedAccounts, savedAccounts);
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine(Messages.Start.NoAccounts);
+                    lastExecutionResult = await GoTo<AddAccountState>();
+                    continue;
+                }
+            }
+
+            if (_skipToStart)
+            {
+                lastExecutionResult = await GoToStartState();
+                continue;
+            }
+
+            // TODO: calendar
+            var choices = new List<string>
+            {
+                Messages.Start.GetActivityInfo,
+                Messages.Start.Statistics,
+                Messages.Start.ManageAccounts,
+                Messages.Start.CheckForUpdates,
+                Messages.Common.Exit
+            };
+
+            var choice = await AnsiConsole.PromptAsync(new SelectionPrompt<string>()
+                                                       .Title(Messages.Common.ChoiceOption)
+                                                       .AddChoices(choices));
+
+            lastExecutionResult = choice switch
+            {
+                Messages.Start.GetActivityInfo => await GoToStartState(),
+                Messages.Start.Statistics => await GoTo<ChooseStatisticsPeriodState>(),
+                Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(),
+                Messages.Start.CheckForUpdates => await GoTo<CheckUpdatesState>(),
+                _ => new ExitExecutionResult()
+            };
         }
-
-        if (_skipToStart)
-        {
-            return await GoToStartState();
-        }
-
-        // TODO: calendar
-        var choices = new List<string>
-        {
-            Messages.Start.GetActivityInfo,
-            Messages.Start.Statistics,
-            Messages.Start.ManageAccounts,
-            Messages.Start.CheckForUpdates,
-            Messages.Common.Exit
-        };
-        var choice = await AnsiConsole.PromptAsync(
-            new SelectionPrompt<string>()
-                .Title(Messages.Common.ChoiceOption)
-                .AddChoices(choices));
-
-        return choice switch
-        {
-            Messages.Start.GetActivityInfo => await GoToStartState(),
-            Messages.Start.Statistics => await GoTo<ChooseStatisticsPeriodState>(new NamedParameter("configuration", _configuration)),
-            Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(new NamedParameter("configuration", _configuration)),
-            Messages.Start.CheckForUpdates => await GoTo<CheckUpdatesState>(new NamedParameter("configuration", _configuration)),
-            _ => new ExitExecutionResult()
-        };
+    }
 
 #pragma warning disable CS8974
-        ValueTask<StateExecutionResult> GoToStartState()
-        {
-            return GoTo<StartState>(new NamedParameter("configuration", _configuration),
-                                    new NamedParameter("postAuthenticationDelegate", GetActivityInfoDelegate));
-        }
-#pragma warning restore CS8974
+    private ValueTask<StateExecutionResult> GoToStartState()
+    {
+        return GoTo<StartState>(new NamedParameter("postAuthenticationDelegate", GetActivityInfoDelegate));
     }
+#pragma warning restore CS8974
 
     private async Task<StateExecutionResult> GetActivityInfoDelegate(List<SteamSession> sessions)
     {
@@ -91,7 +105,6 @@ public class HelloState : BaseState
             {
                 var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
                 return (RetrieveActivityExecutionResult)await GoTo<RetrieveActivityState>(
-                    new NamedParameter("configuration", _configuration),
                     new NamedParameter("sessions", sessions),
                     new NamedParameter("ctx", ctx));
             });
@@ -99,7 +112,6 @@ public class HelloState : BaseState
         if (retrieveActivityStateResult.ActivityInfos.Any())
         {
             await GoTo<PrintActivityState>(
-                new NamedParameter("configuration", _configuration),
                 new NamedParameter("activityInfos", retrieveActivityStateResult.ActivityInfos));
         }
 
