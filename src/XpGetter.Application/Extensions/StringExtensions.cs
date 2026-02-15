@@ -13,23 +13,23 @@ public static class StringExtensions
                 session.Account?.Username ?? forceName ?? session.GetName(ignoreConfiguration: true), @string);
         }
 
-        public string ToDisplayString(bool ignoreConfiguration)
+        public string ToDisplayUsername(bool ignoreConfiguration)
         {
             return (ignoreConfiguration, RuntimeConfiguration.AnonymizeUsernames, RuntimeConfiguration.CensorUsernames) switch
             {
                 (true, _, _) => @string,
-                (_, true, true) => Messages.Common.AnonymousName.Censor(),
-                (_, true, false) => Messages.Common.AnonymousName,
+                (_, true, true) => Messages.Common.AnonymousUsername.Censor(),
+                (_, true, false) => Messages.Common.AnonymousUsername,
                 (_, false, true) => @string.Censor(),
                 _ => @string
             };
         }
 
-        public string AnonymizeIfNeeded()
+        public string ToDisplayPersonalName(int accountNumber)
         {
             if (RuntimeConfiguration.AnonymizeUsernames)
             {
-                return Messages.Common.AnonymousName;
+                return string.Format(Messages.Common.AnonymousPersonalName, accountNumber);
             }
 
             return @string;

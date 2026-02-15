@@ -263,7 +263,8 @@ public static class Messages
 
     public static class Common
     {
-        public const string AnonymousName = "testswag";
+        public const string AnonymousUsername = "testswag";
+        public const string AnonymousPersonalName = "Your anime nickname #{0}";
         public const string Dummy = "dummy";
         public const string ChoiceOption = "Choice option:";
         public const string Back = "Back";

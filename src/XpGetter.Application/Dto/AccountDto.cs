@@ -15,11 +15,11 @@ public class AccountDto
 
     public string GetDisplayUsername()
     {
-        return Username.ToDisplayString(false);
+        return Username.ToDisplayUsername(false);
     }
 
-    public string? GetDisplayPersonalName()
+    public string? GetDisplayPersonalName(int accountNumber)
     {
-        return PersonalName?.AnonymizeIfNeeded();
+        return PersonalName?.ToDisplayPersonalName(accountNumber);
     }
 }

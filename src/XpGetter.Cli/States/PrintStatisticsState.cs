@@ -38,7 +38,7 @@ public class PrintStatisticsState : BaseState
             var session = statistics.Session;
             var account = session.Account!;
             var table = new Table()
-                .Title(string.Format(Messages.Statistics.TableTitle, $"[link=https://steamcommunity.com/profiles/{account.Id}]{account.GetDisplayPersonalName()}[/]"))
+                .Title(string.Format(Messages.Statistics.TableTitle, $"[link=https://steamcommunity.com/profiles/{account.Id}]{account.GetDisplayPersonalName(i + 1)}[/]"))
                 .AddColumn(Messages.Statistics.ItemNameColumn)
                 .AddColumn(Messages.Statistics.ItemPriceColumn)
                 .AddColumn(Messages.Statistics.ItemQuantityColumn);

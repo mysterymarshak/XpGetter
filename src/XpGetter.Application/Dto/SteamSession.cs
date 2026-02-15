@@ -39,7 +39,7 @@ public class SteamSession
             return _name;
         }
 
-        return _name.ToDisplayString(ignoreConfiguration);
+        return _name.ToDisplayUsername(ignoreConfiguration);
     }
 
     public void BindAccount(AccountDto account)
