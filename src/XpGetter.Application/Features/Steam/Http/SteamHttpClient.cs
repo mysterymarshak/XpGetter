@@ -6,7 +6,7 @@ using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 
-namespace XpGetter.Application.Features.Steam.Http.Clients;
+namespace XpGetter.Application.Features.Steam.Http;
 
 public interface ISteamHttpClient
 {

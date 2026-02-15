@@ -1,6 +1,6 @@
 using Spectre.Console;
 using XpGetter.Application;
-using XpGetter.Application.Features.Versions;
+using XpGetter.Application.Features.Versioning;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
@@ -9,11 +9,11 @@ namespace XpGetter.Cli.States;
 
 public class CheckUpdatesState : BaseState
 {
-    private readonly IVersionService _versionService;
+    private readonly IVersioningService _versioningService;
 
-    public CheckUpdatesState(IVersionService versionService, StateContext context) : base(context)
+    public CheckUpdatesState(IVersioningService versioningService, StateContext context) : base(context)
     {
-        _versionService = versionService;
+        _versioningService = versioningService;
     }
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
@@ -23,7 +23,7 @@ public class CheckUpdatesState : BaseState
             var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
 
             var task = ctx.AddTask(Messages.Statuses.RetrievingLatestVersion);
-            var version = await _versionService.GetLatestVersionAsync();
+            var version = await _versioningService.GetLatestVersionAsync();
 
             task.SetResult(Messages.Common.Dummy);
             return version;

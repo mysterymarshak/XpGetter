@@ -4,26 +4,26 @@ using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Configuration;
-using XpGetter.Application.Features.Steam.Http.Clients;
+using XpGetter.Application.Features.Steam.Http;
+using XpGetter.Application.Features.Steam.Http.Parsers;
 using XpGetter.Application.Features.Steam.Http.Responses;
-using XpGetter.Application.Features.Steam.Http.Responses.Parsers;
 using XpGetter.Application.Results;
 using XpGetter.Application.Utils.Progress;
 
-namespace XpGetter.Application.Features.Steam.NewRankDrop;
+namespace XpGetter.Application.Features.Activity.NewRankDrops;
 
-public class NewRankDropService : INewRankDropService
+public class NewRankDropsService : INewRankDropsService
 {
     private readonly ISteamHttpClient _steamHttpClient;
     private readonly ILogger _logger;
 
-    public NewRankDropService(ISteamHttpClient steamHttpClient, ILogger logger)
+    public NewRankDropsService(ISteamHttpClient steamHttpClient, ILogger logger)
     {
         _steamHttpClient = steamHttpClient;
         _logger = logger;
     }
 
-    public async Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
+    public async Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx)
     {
         var task = ctx.AddTask(session, Messages.Statuses.RetrievingLastNewRankDrop);
@@ -45,14 +45,14 @@ public class NewRankDropService : INewRankDropService
             noDropHistory => task.SetResult(session, Messages.Statuses.NewRankDropNotFound),
             error => task.SetResult(session, Messages.Statuses.NewRankDropError));
 
-        return result.Match<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>(
+        return result.Match<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>(
             newRankDrops => newRankDrops.First(),
             tooLongHistory => tooLongHistory,
             noDropHistory => noDropHistory,
             error => error);
     }
 
-    public async Task<OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
+    public async Task<OneOf<IReadOnlyList<NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetNewRankDropsAsync(SteamSession session, DateTimeOffset limit, IProgressContext ctx)
     {
         var daysLimit = (DateTimeOffset.UtcNow - limit).Days;
@@ -72,11 +72,11 @@ public class NewRankDropService : INewRankDropService
         return result;
     }
 
-    private async Task<OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
+    private async Task<OneOf<IReadOnlyList<NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetNewRankDropsInternalAsync(SteamSession session, DateTimeOffset? limit, IProgressTask task,
             Action onRateLimit, NewRankDropParser parser)
     {
-        var result = new List<Dto.NewRankDrop>();
+        var result = new List<NewRankDrop>();
         MispagedDrop? mispagedDrop = null;
         var loadedPagesWithNoResults = 0;
 
@@ -99,7 +99,7 @@ public class NewRankDropService : INewRankDropService
                         items.Add(secondItem);
                     }
 
-                    var mispagedNewRankDrop = new Dto.NewRankDrop(mispagedDrop.DateTime, items);
+                    var mispagedNewRankDrop = new NewRankDrop(mispagedDrop.DateTime, items);
                     if (mispagedNewRankDrop.LastDateTime > limit)
                     {
                         result.Add(mispagedNewRankDrop);

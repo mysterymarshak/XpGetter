@@ -4,7 +4,7 @@ using OneOf;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 
-namespace XpGetter.Application.Features.Steam.Http.Responses.Parsers;
+namespace XpGetter.Application.Features.Steam.Http.Parsers;
 
 public class ActivityInfoParser
 {

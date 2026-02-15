@@ -6,20 +6,20 @@ using Polly;
 using Polly.Extensions.Http;
 using Serilog;
 using XpGetter.Application.Extensions;
+using XpGetter.Application.Features.Activity;
+using XpGetter.Application.Features.Activity.NewRankDrops;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Configuration.Repositories;
 using XpGetter.Application.Features.Configuration.Repositories.FileOperationStrategies;
+using XpGetter.Application.Features.ExchangeRates;
+using XpGetter.Application.Features.ExchangeRates.ExchangeRateApi;
+using XpGetter.Application.Features.ExchangeRates.HexaRateApi;
 using XpGetter.Application.Features.Markets;
 using XpGetter.Application.Features.Markets.CsgoMarket;
-using XpGetter.Application.Features.Markets.ExchangeRates;
-using XpGetter.Application.Features.Markets.ExchangeRates.ExchangeRateApi;
-using XpGetter.Application.Features.Markets.ExchangeRates.HexaRateApi;
 using XpGetter.Application.Features.Markets.SteamMarket;
-using XpGetter.Application.Features.Statistics;
 using XpGetter.Application.Features.Steam;
-using XpGetter.Application.Features.Steam.Http.Clients;
-using XpGetter.Application.Features.Steam.NewRankDrop;
-using XpGetter.Application.Features.Versions;
+using XpGetter.Application.Features.Steam.Http;
+using XpGetter.Application.Features.Versioning;
 using XpGetter.Application.Mappers;
 
 namespace XpGetter.Application;
@@ -116,18 +116,18 @@ public class ApplicationModule : Module
             .AsSelf()
             .SingleInstance();
 
-        builder.RegisterType<NewRankDropService>()
-            .As<INewRankDropService>()
+        builder.RegisterType<NewRankDropsService>()
+            .As<INewRankDropsService>()
             .SingleInstance();
 
-        builder.RegisterDecorator<PricedNewRankDropService, INewRankDropService>();
+        builder.RegisterDecorator<PricedNewRankDropsService, INewRankDropsService>();
 
         builder.RegisterType<EncryptedFileOperationStrategy>()
             .As<IFileOperationStrategy>()
             .SingleInstance();
 
-        builder.RegisterType<VersionService>()
-            .As<IVersionService>()
+        builder.RegisterType<VersioningService>()
+            .As<IVersioningService>()
             .SingleInstance();
 
         builder.RegisterType<ParentalService>()

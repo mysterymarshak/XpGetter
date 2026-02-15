@@ -4,28 +4,29 @@ using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Markets;
+using XpGetter.Application.Features.Steam;
 using XpGetter.Application.Results;
 using XpGetter.Application.Utils.Progress;
 
-namespace XpGetter.Application.Features.Steam.NewRankDrop;
+namespace XpGetter.Application.Features.Activity.NewRankDrops;
 
-public class PricedNewRankDropService : INewRankDropService
+public class PricedNewRankDropsService : INewRankDropsService
 {
-    private readonly INewRankDropService _newRankDropService;
+    private readonly INewRankDropsService _newRankDropsService;
     private readonly IWalletService _walletService;
     private readonly IMarketService _marketService;
     private readonly ILogger _logger;
 
-    public PricedNewRankDropService(INewRankDropService newRankDropService, IWalletService walletService,
+    public PricedNewRankDropsService(INewRankDropsService newRankDropsService, IWalletService walletService,
         IMarketService marketService, ILogger logger)
     {
-        _newRankDropService = newRankDropService;
+        _newRankDropsService = newRankDropsService;
         _walletService = walletService;
         _marketService = marketService;
         _logger = logger;
     }
 
-    public async Task<OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
+    public async Task<OneOf<IReadOnlyList<NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetNewRankDropsAsync(SteamSession session, DateTimeOffset limit, IProgressContext ctx)
     {
         var getItemsPriceTask = ctx.AddTask(session, Messages.Statuses.RetrievingItemsPriceNotStarted);
@@ -33,7 +34,7 @@ public class PricedNewRankDropService : INewRankDropService
         var tasks = new List<Task>
         {
             _walletService.GetWalletInfoAsync(session, ctx),
-            _newRankDropService.GetNewRankDropsAsync(session, limit, ctx)
+            _newRankDropsService.GetNewRankDropsAsync(session, limit, ctx)
         };
 
         await Task.WhenAll(tasks);
@@ -41,7 +42,7 @@ public class PricedNewRankDropService : INewRankDropService
         var getWalletInfoResult =
             ((Task<OneOf<WalletInfo, WalletServiceError>>)tasks[0]).Result;
         var getNewRankDropsResult =
-            ((Task<OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
+            ((Task<OneOf<IReadOnlyList<NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
 
         if (getWalletInfoResult.TryPickT1(out var walletError, out _))
         {
@@ -53,7 +54,7 @@ public class PricedNewRankDropService : INewRankDropService
             return getNewRankDropsResult;
         }
 
-        IReadOnlyList<Dto.NewRankDrop>? newRankDrops = null;
+        IReadOnlyList<NewRankDrop>? newRankDrops = null;
 
         if (getNewRankDropsResult.TryPickT1(out var tooLongHistory, out _))
         {
@@ -74,10 +75,10 @@ public class PricedNewRankDropService : INewRankDropService
         var items = newRankDrops.SelectMany(x => x.Items);
         await BindPricesAsync(items, session, getItemsPriceTask, ctx);
 
-        return OneOf<IReadOnlyList<Dto.NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>.FromT0(newRankDrops);
+        return OneOf<IReadOnlyList<NewRankDrop>, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>.FromT0(newRankDrops);
     }
 
-    public async Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
+    public async Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx)
     {
         var account = session.Account!;
@@ -87,7 +88,7 @@ public class PricedNewRankDropService : INewRankDropService
         var tasks = new List<Task>
         {
             _walletService.GetWalletInfoAsync(session, ctx),
-            _newRankDropService.GetLastNewRankDropAsync(session, ctx)
+            _newRankDropsService.GetLastNewRankDropAsync(session, ctx)
         };
 
         await Task.WhenAll(tasks);
@@ -95,7 +96,7 @@ public class PricedNewRankDropService : INewRankDropService
         var getWalletInfoResult =
             ((Task<OneOf<WalletInfo, WalletServiceError>>)tasks[0]).Result;
         var getNewRankDropResult =
-            ((Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
+            ((Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
 
         if (getWalletInfoResult.TryPickT1(out var error, out _))
         {

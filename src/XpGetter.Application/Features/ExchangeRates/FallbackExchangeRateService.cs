@@ -1,11 +1,11 @@
 using Serilog;
 using SteamKit2;
 using XpGetter.Application.Dto;
-using XpGetter.Application.Features.Markets.ExchangeRates.ExchangeRateApi;
-using XpGetter.Application.Features.Markets.ExchangeRates.HexaRateApi;
+using XpGetter.Application.Features.ExchangeRates.ExchangeRateApi;
+using XpGetter.Application.Features.ExchangeRates.HexaRateApi;
 using XpGetter.Application.Utils.Progress;
 
-namespace XpGetter.Application.Features.Markets.ExchangeRates;
+namespace XpGetter.Application.Features.ExchangeRates;
 
 public class FallbackExchangeRateService : IExchangeRateService
 {

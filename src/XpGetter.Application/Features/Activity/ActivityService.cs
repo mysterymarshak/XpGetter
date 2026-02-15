@@ -3,13 +3,13 @@ using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
-using XpGetter.Application.Features.Steam.Http.Clients;
-using XpGetter.Application.Features.Steam.Http.Responses.Parsers;
-using XpGetter.Application.Features.Steam.NewRankDrop;
+using XpGetter.Application.Features.Activity.NewRankDrops;
+using XpGetter.Application.Features.Steam.Http;
+using XpGetter.Application.Features.Steam.Http.Parsers;
 using XpGetter.Application.Results;
 using XpGetter.Application.Utils.Progress;
 
-namespace XpGetter.Application.Features.Steam;
+namespace XpGetter.Application.Features.Activity;
 
 public interface IActivityService
 {
@@ -20,13 +20,13 @@ public class ActivityService : IActivityService
 {
     private readonly ISteamHttpClient _steamHttpClient;
     private readonly ILogger _logger;
-    private readonly INewRankDropService _newRankDropService;
+    private readonly INewRankDropsService _newRankDropsService;
     private readonly ActivityInfoParser _activityInfoParser;
 
-    public ActivityService(ISteamHttpClient steamHttpClient, INewRankDropService newRankDropService, ILogger logger)
+    public ActivityService(ISteamHttpClient steamHttpClient, INewRankDropsService newRankDropsService, ILogger logger)
     {
         _steamHttpClient = steamHttpClient;
-        _newRankDropService = newRankDropService;
+        _newRankDropsService = newRankDropsService;
         _logger = logger;
         _activityInfoParser = new ActivityInfoParser();
     }
@@ -52,14 +52,14 @@ public class ActivityService : IActivityService
             // TODO: cooldown service
             // TODO: extract to external service (XpService or something)
             _steamHttpClient.GetHtmlAsync($"profiles/{account.Id}/gcpd/730?tab=accountmain", session.AuthCookie),
-            _newRankDropService.GetLastNewRankDropAsync(session, ctx)
+            _newRankDropsService.GetLastNewRankDropAsync(session, ctx)
         };
         await Task.WhenAll(tasks);
 
         var getDocumentResult =
             ((Task<OneOf<HtmlDocument, SteamHttpClientError>>)tasks[0]).Result;
         var getLastNewRankDropResult =
-            ((Task<OneOf<Dto.NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
+            ((Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>)tasks[1]).Result;
 
         if (getDocumentResult.TryPickT1(out var httpClientError, out var document))
         {
@@ -86,7 +86,7 @@ public class ActivityService : IActivityService
                 remainder.IsT1 ? remainder.AsT1.Message :
                 remainder.IsT2 ? Messages.Activity.NoNewRankDropInfo : null) : null;
 
-            lastNewRankDrop ??= new Dto.NewRankDrop(null, []);
+            lastNewRankDrop ??= new NewRankDrop(null, []);
             lastNewRankDrop.BindExternal(remainder.IsT2 ? true : null,
                 remainder.IsT1 ? remainder.AsT1.LastEntryDateTime : null);
 

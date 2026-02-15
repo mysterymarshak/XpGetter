@@ -4,7 +4,7 @@ using OneOf.Types;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
-using XpGetter.Application.Features.Steam.Http.Clients;
+using XpGetter.Application.Features.Steam.Http;
 using XpGetter.Application.Features.Steam.Http.Responses;
 using XpGetter.Application.Results;
 

@@ -3,9 +3,10 @@ using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
+using XpGetter.Application.Features.Steam.Http.Responses;
 using XpGetter.Application.Results;
 
-namespace XpGetter.Application.Features.Steam.Http.Responses.Parsers;
+namespace XpGetter.Application.Features.Steam.Http.Parsers;
 
 public class NewRankDropParser
 {
@@ -29,7 +30,7 @@ public class NewRankDropParser
         ParseOnlyLastDrop = parseOnlyLastDrop;
     }
 
-    public OneOf<IEnumerable<Dto.NewRankDrop>, NoResultsOnPage, MispagedDrop,
+    public OneOf<IEnumerable<NewRankDrop>, NoResultsOnPage, MispagedDrop,
         NoDropHistoryFound, NewRankDropParserError> TryParseNext(InventoryHistoryResponse response)
     {
         if (response.Html is null)
@@ -58,7 +59,7 @@ public class NewRankDropParser
         ParsedPages++;
         Cursor = response.Cursor;
 
-        var newRankDrops = new List<Dto.NewRankDrop>(ParseOnlyLastDrop ? 1 : 4);
+        var newRankDrops = new List<NewRankDrop>(ParseOnlyLastDrop ? 1 : 4);
         foreach (var (i, row) in rows.Index())
         {
             ParsedItems += 1;
@@ -104,7 +105,7 @@ public class NewRankDropParser
             }
 
             _skipNextNode = true;
-            newRankDrops.Add(new Dto.NewRankDrop(LastEntryDateTime.Value, dropItems));
+            newRankDrops.Add(new NewRankDrop(LastEntryDateTime.Value, dropItems));
 
             if (ParseOnlyLastDrop)
             {

@@ -2,10 +2,10 @@ using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
-using XpGetter.Application.Features.Steam.NewRankDrop;
+using XpGetter.Application.Features.Activity.NewRankDrops;
 using XpGetter.Application.Utils.Progress;
 
-namespace XpGetter.Application.Features.Statistics;
+namespace XpGetter.Application.Features.Activity;
 
 public interface IStatisticsService
 {
@@ -15,19 +15,19 @@ public interface IStatisticsService
 
 public class StatisticsService : IStatisticsService
 {
-    private readonly INewRankDropService _newRankDropService;
+    private readonly INewRankDropsService _newRankDropsService;
     private readonly ILogger _logger;
 
-    public StatisticsService(INewRankDropService newRankDropService, ILogger logger)
+    public StatisticsService(INewRankDropsService newRankDropsService, ILogger logger)
     {
-        _newRankDropService = newRankDropService;
+        _newRankDropsService = newRankDropsService;
         _logger = logger;
     }
 
     public async Task<OneOf<StatisticsDto, NewRankDropServiceError>> GetStatisticsAsync(SteamSession session,
         TimeSpan timeSpan, IProgressContext ctx)
     {
-        var result = await _newRankDropService.GetNewRankDropsAsync(session, DateTimeOffset.UtcNow - timeSpan, ctx);
+        var result = await _newRankDropsService.GetNewRankDropsAsync(session, DateTimeOffset.UtcNow - timeSpan, ctx);
         var loweredResult = result.Match(
             OneOf<IEnumerable<NewRankDrop>, NewRankDropServiceError>.FromT0,
             tooLongHistory => OneOf<IEnumerable<NewRankDrop>, NewRankDropServiceError>.FromT0(Enumerable.Empty<NewRankDrop>()),

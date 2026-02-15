@@ -1,20 +1,20 @@
 using Serilog;
 
-namespace XpGetter.Application.Features.Versions;
+namespace XpGetter.Application.Features.Versioning;
 
-public interface IVersionService
+public interface IVersioningService
 {
     Task<Version?> GetLatestVersionAsync();
 }
 
-public class VersionService : IVersionService
+public class VersioningService : IVersioningService
 {
     private const string Url = $"https://cdn.jsdelivr.net/gh/{Constants.Author}/{Constants.ProgramName}@{Constants.MasterBranch}/version";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger _logger;
 
-    public VersionService(HttpClient httpClient, ILogger logger)
+    public VersioningService(HttpClient httpClient, ILogger logger)
     {
         httpClient.BaseAddress = new Uri(Url);
         _httpClient = httpClient;
