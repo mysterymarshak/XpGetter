@@ -98,7 +98,8 @@ public class AuthenticationService : IAuthenticationService
         {
             return new AuthenticationServiceError
             {
-                Message = Messages.Authentication.AuthenticateViaTokenException.BindSession(session),
+                Message = Messages.Authentication.AuthenticateViaTokenException.BindSession(
+                    session, logging: false),
                 Exception = exception
             };
         }
@@ -118,7 +119,7 @@ public class AuthenticationService : IAuthenticationService
                 {
                     Message = string
                         .Format(Messages.Authentication.LogOnNotOk, callback.Result, callback.ExtendedResult)
-                        .BindSession(session)
+                        .BindSession(session, logging: false)
                 };
 
                 cts.Cancel();
@@ -236,7 +237,7 @@ public class AuthenticationService : IAuthenticationService
                 {
                     Message = string
                         .Format(Messages.Authentication.LogOnNotOk, callback.Result, callback.ExtendedResult)
-                        .BindSession(session)
+                        .BindSession(session, logging: false)
                 };
 
                 cts.Cancel();
@@ -366,7 +367,7 @@ public class AuthenticationService : IAuthenticationService
                     {
                         Message = string
                             .Format(Messages.Authentication.LogOnNotOkTimeout, callback.Result, callback.ExtendedResult)
-                            .BindSession(session, account!.Username)
+                            .BindSession(session, account!.Username, logging: false)
                     };
                 }
 
@@ -374,7 +375,7 @@ public class AuthenticationService : IAuthenticationService
                 {
                     Message = string
                         .Format(Messages.Authentication.LogOnNotOk, callback.Result, callback.ExtendedResult)
-                        .BindSession(session, account!.Username)
+                        .BindSession(session, account!.Username, logging: false)
                 };
 
                 cts.Cancel();
@@ -498,7 +499,8 @@ public class AuthenticationService : IAuthenticationService
         {
             return new AuthenticationServiceError
             {
-                Message = Messages.Authentication.AccessRenewingException.BindSession(session),
+                Message = Messages.Authentication.AccessRenewingException.BindSession(
+                    session, logging: false),
                 Exception = exception
             };
         }

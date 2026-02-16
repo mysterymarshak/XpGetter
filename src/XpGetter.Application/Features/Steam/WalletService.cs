@@ -64,7 +64,7 @@ public class WalletService : IWalletService
             task.SetResult(session, Messages.Wallet.RetrievingWalletInfoError);
             return new WalletServiceError
             {
-                Message = Messages.Wallet.GetWalletInfoException.BindSession(session),
+                Message = Messages.Wallet.GetWalletInfoException.BindSession(session, logging: false),
                 Exception = exception
             };
         }

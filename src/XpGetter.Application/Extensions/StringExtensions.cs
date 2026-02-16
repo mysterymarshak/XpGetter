@@ -7,10 +7,16 @@ public static class StringExtensions
 {
     extension(string @string)
     {
-        public string BindSession(SteamSession session, string? forceName = null)
+        public string BindSession(SteamSession session, string? forceName = null, bool logging = true)
         {
+            if (logging)
+            {
+                return string.Format(Messages.Session.BoundedSessionLogFormat,
+                    session.Account?.Username ?? forceName ?? session.GetName(ignoreConfiguration: true), @string);
+            }
+
             return string.Format(Messages.Session.BoundedSessionLogFormat,
-                session.Account?.Username ?? forceName ?? session.GetName(ignoreConfiguration: true), @string);
+                session.Account?.GetDisplayUsername() ?? forceName ?? session.GetName(ignoreConfiguration: false), @string);
         }
 
         public string ToDisplayUsername(bool ignoreConfiguration)
