@@ -28,7 +28,6 @@ public class PrintActivityState : BaseState
             var dropAvailableColor = isDropAvailable is null ? "white" : (isDropAvailable.Value ? "green" : "red");
             AnsiConsole.MarkupLine(
                 $"[blue][link=https://steamcommunity.com/profiles/{info.Account.Id}]{info.Account.GetDisplayPersonalName(i + 1)}[/][/]");
-            // TODO: prime status
             AnsiConsole.MarkupLine($"Rank: {matchmakingData.XpData.Rank}");
             AnsiConsole.MarkupLine($"Last drop time: {info.LastNewRankDrop.GetLastDropTime()}");
             AnsiConsole.MarkupLine($"Last drop: {newRankDrop.GetPreviousLoot()}");
