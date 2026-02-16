@@ -30,7 +30,14 @@ public class SessionService : ISessionService
 
         if (account is not null && _sessions.TryGetValue(account.Id, out var session))
         {
-            return session;
+            if (session is { Client.IsConnected: false })
+            {
+                _sessions.Remove(account.Id, out _);
+            }
+            else
+            {
+                return session;
+            }
         }
 
         var steamClient = new SteamClient();
