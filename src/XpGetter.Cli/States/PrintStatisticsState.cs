@@ -57,7 +57,8 @@ public class PrintStatisticsState : BaseState
             }
 
             table.Columns[0].Footer = new Text(Messages.Statistics.FooterTotal, new Style(foreground: Color.Yellow));
-            // force setting the constant width to alignment purposes
+            table.Columns[0].Width = dummyString.Length;
+            // force setting some constant width to alignment purposes
             table.Columns[1].Width = 12;
             table.Columns[1].Footer = new Text(currency?.FormatValue(Math.Round(total, 2)) ?? string.Empty, new Style(foreground: Color.Green, decoration: Decoration.Bold));
             table.Columns[2].Footer = new Text(statistics.ItemsCount.ToString(), new Style(foreground: Color.Yellow));
