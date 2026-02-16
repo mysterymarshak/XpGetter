@@ -79,6 +79,7 @@ public static class Messages
         public const string RetrievingMatchmakingDataOk = "Matchmaking data: [green]:)[/]";
         public const string RetrievingActivityError = "Activity info: error [red]:([/]";
         public const string RetrievingActivityOk = "Activity info: success [green]:)[/]";
+        public const string RetrievingActivityWarning = "Activity info: got with warnings [yellow]-_-;[/]";
         public const string TooLongHistory = "New rank drop: too long inventory history [red]:([/]";
         public const string TooBigGapInHistory = "New rank drops: too long gap between them; retrieved data up until {0} [red]:([/]";
         public const string NewRankDropError = "New rank drop: error [red]:([/]";

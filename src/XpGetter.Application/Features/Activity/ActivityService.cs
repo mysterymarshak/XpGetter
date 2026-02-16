@@ -2,6 +2,7 @@ using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
+using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Activity.NewRankDrops;
 using XpGetter.Application.Features.Steam.Http.Parsers;
 using XpGetter.Application.Results;
@@ -68,11 +69,6 @@ public class ActivityService : IActivityService
         if (getLastNewRankDropResult.TryPickT3(out var newRankDropServiceError, out var remainder))
         {
             getActivityInfoTask.SetResult(session, Messages.Statuses.RetrievingActivityError);
-            return new ActivityServiceError
-            {
-                Message = newRankDropServiceError.Message,
-                Exception = newRankDropServiceError.Exception
-            };
         }
 
         var lastNewRankDrop = remainder.IsT0 ? remainder.AsT0 : null;
@@ -84,7 +80,9 @@ public class ActivityService : IActivityService
         lastNewRankDrop.BindExternal(remainder.IsT2 ? true : null,
                                      remainder.IsT1 ? remainder.AsT1.LastEntryDateTime : null);
 
-        getActivityInfoTask.SetResult(session, Messages.Statuses.RetrievingActivityOk);
+        getActivityInfoTask.SetResult(session, newRankDropServiceError is null
+                                      ? Messages.Statuses.RetrievingActivityOk
+                                      : Messages.Statuses.RetrievingActivityWarning);
         return new ActivityInfo
         {
             Account = account,

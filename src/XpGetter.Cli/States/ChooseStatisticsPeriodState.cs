@@ -65,7 +65,7 @@ public class ChooseStatisticsPeriodState : BaseState
 
         if (retrieveStatisticsStateResult.Statistics.Any())
         {
-            return await GoTo<PrintStatisticsState>(
+            await GoTo<PrintStatisticsState>(
                     new NamedParameter("statistics", retrieveStatisticsStateResult.Statistics));
         }
 
