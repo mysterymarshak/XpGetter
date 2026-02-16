@@ -4,6 +4,7 @@ using Serilog;
 using SteamKit2;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
+using XpGetter.Application.Extensions;
 
 namespace XpGetter.Application.Features.Steam;
 
@@ -26,7 +27,9 @@ public class SessionService : ISessionService
     public async Task<OneOf<SteamSession, SessionServiceError>> GetOrCreateSessionAsync(
         string? clientName = null, AccountDto? account = null)
     {
+        var displayName = clientName?.ToDisplayUsername(ignoreConfiguration: false);
         clientName ??= SteamSession.DefaultName;
+        displayName ??= clientName;
 
         if (account is not null && _sessions.TryGetValue(account.Id, out var session))
         {
@@ -66,7 +69,7 @@ public class SessionService : ISessionService
             steamClient.Disconnect();
             return new SessionServiceError
             {
-                ClientName = clientName,
+                ClientName = displayName,
                 Message = Messages.Session.ConnectingException,
                 Exception = exception
             };
@@ -84,9 +87,9 @@ public class SessionService : ISessionService
                     {
                         return new SessionServiceError
                         {
-                            ClientName = clientName,
-                            Message = string.Format(Messages.Session.BoundedSessionLogFormat, clientName,
-                                Messages.Session.TooManyRetryAttempts)
+                            ClientName = displayName,
+                            Message = Messages.Session.TooManyRetryAttempts.BindSession(
+                                forceName: displayName, logging: false)
                         };
                     }
 

@@ -48,7 +48,7 @@ public class NewRankDropParser
         if (rows is null)
         {
             // TODO: what if new account
-            _logger.Error(Messages.ActivityParsers.Drop.NoHistoryRowsLogger, response.Html);
+            _logger.Error(Messages.ActivityParsers.Drop.NoHistoryRowsLog, response.Html);
 
             return new NewRankDropParserError
             {
@@ -145,7 +145,7 @@ public class NewRankDropParser
         var rows = document.DocumentNode.SelectNodes("//div[@class='tradehistoryrow']");
         if (rows is null or [])
         {
-            _logger.Warning(Messages.ActivityParsers.Drop.NoHistoryRowsForMispagedDropLogger, html);
+            _logger.Warning(Messages.ActivityParsers.Drop.NoHistoryRowsForMispagedDropLog, html);
             return result;
         }
 
@@ -153,7 +153,7 @@ public class NewRankDropParser
         var parseDropItemResult = TryParseCsgoItemFromRow(response, row);
         if (parseDropItemResult.DateTime is null || parseDropItemResult.DropItem is null)
         {
-            _logger.Warning(Messages.ActivityParsers.Drop.CannotParseMispagedDropLogger, row.InnerHtml);
+            _logger.Warning(Messages.ActivityParsers.Drop.CannotParseMispagedDropLog, row.InnerHtml);
             return result;
         }
 

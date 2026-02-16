@@ -20,7 +20,6 @@ public static class Messages
         public const string CheckForUpdates = "Check for updates";
         public const string Exited = "Exited.";
         public const string SuccessAuthorization = "Authorization: [green]success[/]";
-        public const string NoAuthenticatedAccounts = "[red]No authenticated accounts.[/]";
     }
 
     public static class Version
@@ -35,9 +34,7 @@ public static class Messages
     public static class ManageAccounts
     {
         public const string AddNew = "Add new";
-        public const string AccountWasNotFound
-            = "[red]Account with username '{0}' was not found in configuration. (This should be technically impossible — please report a bug.)[/]";
-
+        public const string AccountWasNotFound = "[red]Account with username '{0}' was not found in configuration. (This should be technically impossible — please report a bug.)[/]";
         public const string AccountRemoved = "Account '{0}' was removed.";
         public const string Remove = "Remove";
         public const string AccountFormat = "{0}:";
@@ -188,14 +185,12 @@ public static class Messages
         public static class Drop
         {
             public const string NoHistoryRows = "Invalid html document: no 'tradehistoryrow' elements. See details in logs.";
-            public const string NoHistoryRowsLogger = "Invalid html document: no 'tradehistoryrow' elements. Raw: {Html}";
+            public const string NoHistoryRowsLog = "Invalid html document: no 'tradehistoryrow' elements. Raw: {Html}";
             public const string CannotParseDateTimeEntry = "Cannot parse datetime. Html: {Html}";
             public const string CannotParseSecondItem = "Cannot parse second drop item. First item node html: {Html1}; Second: {Html2}";
             public const string EmptyMispagedDropHtml = "Cannot parse second mispaged drop item. Empty html.";
-            public const string NoHistoryRowsForMispagedDrop = "Invalid mispaged drop html document: no 'tradehistoryrow' elements. See details in logs.";
-            public const string NoHistoryRowsForMispagedDropLogger = "Invalid mispaged drop html document: no 'tradehistoryrow' elements. Raw: {Html}";
-            public const string CannotParseMispagedDrop = "Cannot parse mispaged drop. See details in logs.";
-            public const string CannotParseMispagedDropLogger = "Cannot parse mispaged drop. Html: {Html}";
+            public const string NoHistoryRowsForMispagedDropLog = "Invalid mispaged drop html document: no 'tradehistoryrow' elements. Raw: {Html}";
+            public const string CannotParseMispagedDropLog = "Cannot parse mispaged drop. Html: {Html}";
             public const string CannotParseMarketName = "Cannot parse market name. Html: {Html}";
         }
     }
@@ -210,7 +205,7 @@ public static class Messages
         public const string NoCursorLog = "Cannot retrieve mispaged drop if cursor is null.";
         public const string GetActivityError = "[red]An error occurred while retrieving activity info.[/]";
         public const string NotSuccessfulResultInLoadInventoryHistory = "Success: false while retrieving inventory history. See details in logs.";
-        public const string NotSuccessfulResultInLoadInventoryHistoryLogger = "Success: false while retrieving inventory history. Raw response: {Response}. Cursor: {@Cursor}";
+        public const string NotSuccessfulResultInLoadInventoryHistoryLog = "Success: false while retrieving inventory history. Raw response: {Response}. Cursor: {@Cursor}";
         public const string AnyKeyToReturn = "Press any key to return to main menu...";
     }
 
@@ -228,7 +223,6 @@ public static class Messages
         public const string DeserializationError = "Cannot deserialize item price response json. Raw: {0}";
         public const string GetPriceException = "An exception was thrown while retrieving the items price. Item names: [{0}]";
         public const string CannotFindItemForPrice = "Cannot find original item from the name provided in price response. Item to find: '{MarketName}'. All items: '{@MarketNames}'";
-        public const string CannotGetPriceRetrieved = "Cannot get price for '{MarketName}'";
         public const string FallbackServiceUsedSteam = "Couldn't get items [{@ItemNames}] price via csgo market service. Trying to use steam one";
         public const string FallbackServiceResult = "Got the price for failed items [{@ItemNames}] via steam market";
         public const string GotPricesLog = "Got items' prices: {@Prices}";

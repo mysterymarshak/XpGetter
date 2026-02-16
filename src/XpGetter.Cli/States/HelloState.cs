@@ -26,8 +26,8 @@ public class HelloState : BaseState
         {
             if (lastExecutionResult is ErrorExecutionResult errorExecutionResult)
             {
-                AnsiConsole.WriteLine();
                 errorExecutionResult.DumpError();
+                AnsiConsole.WriteLine();
             }
 
             if (lastExecutionResult is ExitExecutionResult)

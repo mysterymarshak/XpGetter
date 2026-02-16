@@ -39,10 +39,18 @@ public class AuthenticaionState : BaseState
         var createAndAuthenticateSessionTasks = accounts.Select(CreateAndAuthenticateSession);
         var createAndAuthenticateSessionResults = await Task.WhenAll(createAndAuthenticateSessionTasks);
 
-        var panicExecutionResult = createAndAuthenticateSessionResults.FirstOrDefault(x => x.IsT2);
-        if (panicExecutionResult.TryPickT2(out var panicResult, out _))
+        var panicExecutionResultsCombined = createAndAuthenticateSessionResults
+            .Where(x => x.IsT2)
+            .Select(x => x.AsT2.Error)
+            .DefaultIfEmpty(null)
+            .Aggregate((x, y) => x.CombineOrCreate(y));
+
+        if (panicExecutionResultsCombined is not null)
         {
-            return new AuthenticationExecutionResult { Error = panicResult };
+            return new AuthenticationExecutionResult
+            {
+                Error = new PanicExecutionResult(panicExecutionResultsCombined.DumpErrorDelegate)
+            };
         }
 
         var combinedError = createAndAuthenticateSessionResults
@@ -81,8 +89,9 @@ public class AuthenticaionState : BaseState
         if (createSessionResult.TryPickT1(out var error, out var session))
         {
             authenticateTask.SetResult(account, Messages.Statuses.SessionCreationError);
-            error.DumpToConsole(Messages.Authentication.CannotCreateSteamSession);
-            return new PanicExecutionResult(string.Format(Messages.Session.FailedSessionCreation, error.ClientName));
+            var createSessionErrorResult = new ErrorExecutionResult(
+                () => error.DumpToConsole(Messages.Authentication.CannotCreateSteamSession));
+            return new PanicExecutionResult { Error = createSessionErrorResult };
         }
 
         ErrorExecutionResult? errorExecutionResult = null;

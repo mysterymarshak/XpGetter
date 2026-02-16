@@ -202,7 +202,7 @@ public class NewRankDropsService : INewRankDropsService
         if (!result.Deserialized.Success)
         {
             _logger.Error(
-                Messages.Activity.NotSuccessfulResultInLoadInventoryHistoryLogger.BindSession(session),
+                Messages.Activity.NotSuccessfulResultInLoadInventoryHistoryLog.BindSession(session),
                 result.Raw,
                 cursor);
 
