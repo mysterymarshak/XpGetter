@@ -32,9 +32,10 @@ public class PrintActivityState : BaseState
             AnsiConsole.MarkupLine($"Last drop time: {info.LastNewRankDrop.GetLastDropTime()}");
             AnsiConsole.MarkupLine($"Last drop: {newRankDrop.GetPreviousLoot()}");
             AnsiConsole.MarkupLine($"Drop is available: [{dropAvailableColor}]{isDropAvailableFormatted}[/]");
-            if (matchmakingData.CooldownData is { Exists: true })
+            if (matchmakingData.CooldownData is { Exists: true, ExpirationDate: var expirationDate }
+                && expirationDate > DateTimeOffset.Now)
             {
-                AnsiConsole.MarkupLine($"Cooldown: until [red]{matchmakingData.CooldownData.ExpirationDate?.ToString("dd.MM.yyyy HH:mm")}[/]");
+                AnsiConsole.MarkupLine($"Cooldown: until [red]{expirationDate.Value:dd.MM.yyyy HH:mm:ss}[/]");
             }
             if (info.AdditionalMessage is not null)
             {
