@@ -19,7 +19,7 @@ public static class Messages
         public const string ManageAccounts = "Manage accounts";
         public const string CheckForUpdates = "Check for updates";
         public const string Exited = "Exited.";
-        public const string SuccessAuthorization = "Authorization: [green]success[/]. Retrieving activity info...";
+        public const string SuccessAuthorization = "Authorization: [green]success[/]";
         public const string NoAuthenticatedAccounts = "[red]No authenticated accounts.[/]";
     }
 
@@ -72,19 +72,19 @@ public static class Messages
         public const string RetrievingNewRankDropsRateLimit = "Retrieving new rank drops: rate limit, please wait...";
         public const string RetrievingMatchmakingData = "Retrieving matchmaking data...";
         public const string RetrievingCooldownData = "Retrieving cooldown data...";
-        public const string RetrievingCooldownDataOk = "Retrieving cooldown data: got [green]:)[/]";
-        public const string RetrievingCooldownDataError = "Retrieving cooldown data: got [green]:)[/]";
-        public const string RetrievingMatchmakingDataError = "Retrieving matchmaking data: error [red]:([/]";
-        public const string RetrievingMatchmakingDataWarning = "Retrieving matchmaking data: got with warnings [yellow]-_-;[/]";
-        public const string RetrievingMatchmakingDataOk = "Retrieving matchmaking data: got! [green]:)[/]";
-        public const string RetrievingActivityError = "Retrieving activity info: error [red]:([/]";
-        public const string RetrievingActivityOk = "Retrieving activity info: got! [green]:)[/]";
-        public const string TooLongHistory = "New rank drop: too long inventory history! [red]:([/]";
+        public const string RetrievingCooldownDataOk = "Cooldown data: success [green]:)[/]";
+        public const string RetrievingCooldownDataError = "Cooldown data: error [red]:([/]";
+        public const string RetrievingMatchmakingDataError = "Matchmaking data: error [red]:([/]";
+        public const string RetrievingMatchmakingDataWarning = "Matchmaking data: got with warnings [yellow]-_-;[/]";
+        public const string RetrievingMatchmakingDataOk = "Matchmaking data: [green]:)[/]";
+        public const string RetrievingActivityError = "Activity info: error [red]:([/]";
+        public const string RetrievingActivityOk = "Activity info: success [green]:)[/]";
+        public const string TooLongHistory = "New rank drop: too long inventory history [red]:([/]";
         public const string TooBigGapInHistory = "New rank drops: too long gap between them; retrieved data up until {0} [red]:([/]";
         public const string NewRankDropError = "New rank drop: error [red]:([/]";
         public const string NewRankDropsError = "New rank drops: error [red]:([/]";
-        public const string NewRankDropOk = "New rank drop: got! [green]:)[/]";
-        public const string NewRankDropsOk = "New rank drops: got! [green]:)[/]";
+        public const string NewRankDropOk = "New rank drop: success [green]:)[/]";
+        public const string NewRankDropsOk = "New rank drops: success [green]:)[/]";
         public const string NewRankDropNoResultsOnPage = "New rank drop: fetching more history...";
         public const string NewRankDropGotOnlyOne = "New rank drop: got with warnings [yellow]-_-;[/]";
         public const string NewRankDropMispaged = "New rank drop: mispaged. You're lucky!";
@@ -92,13 +92,13 @@ public static class Messages
         public const string NewRankDropsNotFound = "New rank drops: not found; are you new in cs2? [green]:)[/]";
         public const string RetrievingItemsPriceNotStarted = "Retrieving items price: awaiting wallet info & items...";
         public const string RetrievingItemsPrice = "Retrieving items price...";
-        public const string RetrievingItemsPriceError = "Retrieving items price: error [red]:([/]";
-        public const string RetrievingItemsPriceWarning = "Retrieving items price: got with warnings [yellow]-_-;[/]";
-        public const string RetrievingItemsPriceOk = "Retrieving items price: got! [green]:)[/]";
+        public const string RetrievingItemsPriceError = "Items price: error [red]:([/]";
+        public const string RetrievingItemsPriceWarning = "Items price: got with warnings [yellow]-_-;[/]";
+        public const string RetrievingItemsPriceOk = "Items price: success [green]:)[/]";
         public const string RetrievingExchangeRate = "Retrieving exchange rate...";
-        public const string RetrievingExchangeRateOk = "Retrieving exchange rate: got! [green]:)[/]";
-        public const string RetrievingExchangeRateFallback = "Retrieving exchange rate: fail, trying fallback service...";
-        public const string RetrievingExchangeRateError = "Retrieving exchange rate: error! [red]:([/]";
+        public const string RetrievingExchangeRateOk = "Exchange rate: success [green]:)[/]";
+        public const string RetrievingExchangeRateFallback = "Exchange rate: fail, trying fallback service...";
+        public const string RetrievingExchangeRateError = "Exchange rate: error! [red]:([/]";
         public const string RetrievingLatestVersion = "Retrieving lastest version...";
     }
 
@@ -216,8 +216,8 @@ public static class Messages
     public static class Wallet
     {
         public const string RetrievingWalletInfo = "Retrieving wallet info...";
-        public const string RetrievingWalletInfoError = "Retrieving wallet info: error [red]:([/]";
-        public const string RetrievingWalletInfoOk = "Retrieving wallet info: got! [green]:)[/]";
+        public const string RetrievingWalletInfoError = "Wallet info: error [red]:([/]";
+        public const string RetrievingWalletInfoOk = "Wallet info: success [green]:)[/]";
         public const string GetWalletInfoException = "An exception was thrown while retrieving wallet info.";
         public const string InvalidCurrencyLog = "Looks like you didn't use steam wallet yet (or its a steam bug, response corruption or whatever). In that case steam provides 'invalid' currency code so for that specific account ('{Username}') 'USD' will be used as a default currency";
     }
