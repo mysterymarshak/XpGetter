@@ -25,6 +25,16 @@ public class ManageAccountsState : BaseState
             choicesEnumerable = choicesEnumerable.Append(Messages.ManageAccounts.AddNew);
         }
 
+        // TODO: edit mode like so:
+        // 'backspace' to fast delete
+        // arrows to change the selection
+        // shift+arrows to move in list
+        // 'e' for toggle enabling
+        // IsDisabled for account means that it's still saved but info wont be retrieved for it
+        // enter to see changes preview
+        // enter second time to commit
+        // 'c' for cancel (when editing - return to ManageAccountsState; when commiting - back to editing)
+
         var choices = choicesEnumerable
             .Append(Messages.Common.Back)
             .Append(Messages.Common.Exit)
