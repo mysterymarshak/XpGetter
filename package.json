@@ -1,0 +1,10 @@
+{
+  "name": "celectron-monorepo",
+  "private": true,
+  "scripts": {
+    "start:dev": "yarn --cwd src/XpGetter.Electron/app start:dev",
+    "build": "yarn --cwd src/XpGetter.Electron/app build",
+    "dev": "yarn --cwd src/XpGetter.Electron/app dev",
+    "install:app": "yarn --cwd src/XpGetter.Electron/app install"
+  }
+}

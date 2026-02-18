@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="XpGetter.Application\XpGetter.Application.csproj" />
   <Project Path="XpGetter.Cli/XpGetter.Cli.csproj" />
+  <Project Path="XpGetter.Electron\XpGetter.Electron.csproj" />
 </Solution>
