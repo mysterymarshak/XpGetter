@@ -57,3 +57,18 @@ nunit-*.xml
 
 .idea/
 *.DotSettings.user
+
+src/run/
+
+src/XpGetter.Electron/app/node_modules/
+src/XpGetter.Electron/app/dist/
+src/XpGetter.Electron/app/dist-electron/
+src/XpGetter.Electron/app/release/
+src/XpGetter.Electron/app/backend/publish/
+src/XpGetter.Electron/app/backend/run/
+src/XpGetter.Electron/app/backend/bin/
+src/XpGetter.Electron/app/backend/obj/
+src/XpGetter.Electron/app/*.log
+src/XpGetter.Electron/app/.DS_Store
+src/XpGetter.Electron/app/.env
+src/XpGetter.Electron/app/.env.local

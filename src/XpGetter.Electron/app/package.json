@@ -1,0 +1,54 @@
+{
+  "name": "c-electron-app",
+  "version": "1.0.0",
+  "description": "Electron + React + TypeScript + C# backend (no Electron.NET)",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "yarn build:backend && yarn build:react && yarn build:electron",
+    "build:react": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json && node scripts/copy-backend.js",
+    "build:backend": "dotnet publish ../XpGetter.Electron.csproj -c Release -o backend/publish",
+    "start": "electron .",
+    "start:dev": "yarn build:electron && concurrently \"yarn dev\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
+    "pack": "yarn build && electron-builder --dir",
+    "dist": "yarn build && electron-builder"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "chokidar": "^3.5.3",
+    "cross-env": "^7.0.3",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.celectron.app",
+    "productName": "CElectron",
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "backend/publish/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "backend/publish",
+        "to": "backend",
+        "filter": ["**/*"]
+      }
+    ],
+    "directories": {
+      "output": "release"
+    }
+  }
+}
