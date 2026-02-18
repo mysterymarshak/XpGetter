@@ -7,19 +7,22 @@ import { BACKEND_PORT, isDev } from './config'
 
 let backendProcess: ChildProcess | null = null
 
+const isWindows = platform() === 'win32'
+const backendBin = isWindows ? 'Backend.exe' : 'Backend'
+
 export function getBackendPath(): string {
   if (app.isPackaged) {
-    return path.join(process.resourcesPath, 'backend', 'Backend.exe')
+    return path.join(process.resourcesPath, 'backend', backendBin)
   }
   const appDir = path.join(__dirname, '..')
-  return path.join(appDir, 'backend', 'publish', 'Backend.exe')
+  return path.join(appDir, 'backend', 'publish', backendBin)
 }
 
-/** Убивает все зависшие Backend.exe. Только Windows, только в dev. */
+/** Убивает все зависшие процессы бэкенда. Только Windows, только в dev. */
 export function killStaleBackendProcesses(): void {
-  if (!isDev || platform() !== 'win32') return
+  if (!isDev || !isWindows) return
   try {
-    execSync('taskkill /IM Backend.exe /F', { stdio: 'ignore', windowsHide: true })
+    execSync(`taskkill /IM ${backendBin} /F`, { stdio: 'ignore', windowsHide: true })
   } catch {
     // Нет процесса — нормально
   }
@@ -27,7 +30,7 @@ export function killStaleBackendProcesses(): void {
 
 /** Освобождает порт 5050 на Windows. */
 export function releasePort5050(): void {
-  if (platform() !== 'win32') return
+  if (!isWindows) return
   try {
     const out = execSync('netstat -ano', { encoding: 'utf8', windowsHide: true })
     const lines = out.split('\n').filter((l) => l.includes(':5050') && (l.includes('LISTENING') || l.includes('ПРОСМОТР')))
@@ -81,7 +84,7 @@ export function stopBackend(): Promise<void> {
     const p = backendProcess
     backendProcess = null
     p.once('exit', () => resolve())
-    if (platform() === 'win32' && p.pid) {
+    if (isWindows && p.pid) {
       try {
         execSync(`taskkill /PID ${p.pid} /F /T`, { stdio: 'ignore', windowsHide: true })
       } catch {
@@ -96,7 +99,7 @@ export function stopBackend(): Promise<void> {
 
 /** В dev: несколько раз освобождаем порт с паузами. */
 export async function ensurePort5050Free(): Promise<void> {
-  if (platform() !== 'win32') return
+  if (!isWindows) return
   for (let i = 0; i < 5; i++) {
     releasePort5050()
     await new Promise((r) => setTimeout(r, 600))
@@ -109,11 +112,12 @@ export function buildBackendDev(): void {
   const electronProjectDir = path.join(appDir, '..')
   const csproj = path.join(electronProjectDir, 'XpGetter.Electron.csproj')
   const outDir = path.join(appDir, 'backend', 'run')
-  execSync(`dotnet build "${csproj}" -c Debug -o "${outDir}"`, {
+  const spawnOpts: { cwd: string; stdio: 'inherit'; windowsHide?: boolean } = {
     cwd: electronProjectDir,
     stdio: 'inherit',
-    windowsHide: true,
-  })
+  }
+  if (isWindows) spawnOpts.windowsHide = true
+  execSync(`dotnet build "${csproj}" -c Debug -o "${outDir}"`, spawnOpts)
 }
 
 export function startBackend(): Promise<number> {
@@ -122,12 +126,14 @@ export function startBackend(): Promise<number> {
 
     if (isDev) {
       buildBackendDev()
-      const exe = path.join(appDir, 'backend', 'run', 'Backend.exe')
-      backendProcess = spawn(exe, [], {
+      const exe = path.join(appDir, 'backend', 'run', backendBin)
+      const spawnOpts: { cwd: string; stdio: ('ignore' | 'pipe')[]; env: NodeJS.ProcessEnv; windowsHide?: boolean } = {
         cwd: appDir,
         stdio: ['ignore', 'pipe', 'pipe'],
         env: { ...process.env, ASPNETCORE_URLS: `http://localhost:${BACKEND_PORT}` },
-      })
+      }
+      if (isWindows) spawnOpts.windowsHide = true
+      backendProcess = spawn(exe, [], spawnOpts)
     } else {
       const exe = getBackendPath()
       backendProcess = spawn(exe, [], {
