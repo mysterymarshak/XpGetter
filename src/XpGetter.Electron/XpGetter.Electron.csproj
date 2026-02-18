@@ -8,6 +8,7 @@
     <AssemblyName>Backend</AssemblyName>
     <RootNamespace>XpGetter.Electron</RootNamespace>
     <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    <AllowMissingPrunePackageData>true</AllowMissingPrunePackageData>
   </PropertyGroup>
 
   <ItemGroup>
