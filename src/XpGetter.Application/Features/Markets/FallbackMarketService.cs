@@ -29,6 +29,7 @@ public class FallbackMarketService : IMarketService
             .Where(x => x.Value == 0)
             .Select(x => x.MarketName)
             .Concat(names.Where(x => result.All(y => y.MarketName != x)))
+            .Distinct()
             .ToList();
 
         if (failedItems.Count > 0)
@@ -36,7 +37,9 @@ public class FallbackMarketService : IMarketService
             _logger.Warning(Messages.Market.FallbackServiceUsedSteam, failedItems);
 
             var failedItemsResult = await _steam.GetItemsPriceAsync(failedItems, currency, session, ctx);
-            result = result.Concat(failedItemsResult);
+            result = result
+                .Where(x => x.Value > 0)
+                .Concat(failedItemsResult);
 
             _logger.Debug(Messages.Market.FallbackServiceResult, failedItemsResult);
         }
