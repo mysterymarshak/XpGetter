@@ -1,50 +1,62 @@
+using Autofac;
+using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Features.Activity;
-using XpGetter.Application.Utils.Progress;
 using XpGetter.Cli.Extensions;
+using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 
-public class RetrieveActivityState : BaseState
+public class RetrieveActivityState : AuthenticatedState
 {
-    private readonly IProgressContext _ctx;
-    private readonly List<SteamSession> _sessions;
     private readonly IActivityService _activityService;
 
-    public RetrieveActivityState(IProgressContext ctx, List<SteamSession> sessions,
-        IActivityService activityService, StateContext context) : base(context)
+    public RetrieveActivityState(IActivityService activityService,
+                                 StateContext context) : base(context)
     {
-        _ctx = ctx;
-        _sessions = sessions;
         _activityService = activityService;
     }
 
-    public override async ValueTask<StateExecutionResult> OnExecuted()
+    protected override async ValueTask<StateExecutionResult> OnAuthenticated(List<SteamSession> sessions)
     {
-        var tasks = _sessions.Select(x => _activityService.GetActivityInfoAsync(x, _ctx));
-        var results = await Task.WhenAll(tasks);
-
-        ErrorExecutionResult? errorResult = null;
-        foreach (var result in results)
-        {
-            if (result.TryPickT1(out var error, out _))
+        var retrieveResult = await AnsiConsole
+            .CreateProgressContext(async ansiConsoleCtx =>
             {
-                var errorDelegate = () => error.DumpToConsole(Messages.Activity.GetActivityError);
-                errorResult = errorResult.CombineOrCreate(new ErrorExecutionResult(errorDelegate));
-            }
+                var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
+
+                var tasks = sessions.Select(x => _activityService.GetActivityInfoAsync(x, ctx));
+                var results = await Task.WhenAll(tasks);
+
+                ErrorExecutionResult? errorResult = null;
+                foreach (var result in results)
+                {
+                    if (result.TryPickT1(out var error, out _))
+                    {
+                        var errorDelegate = () => error.DumpToConsole(Messages.Activity.GetActivityError);
+                        errorResult = errorResult.CombineOrCreate(new ErrorExecutionResult(errorDelegate));
+                    }
+                }
+
+                var successResults = results
+                    .Where(x => x.IsT0)
+                    .Select(x => x.AsT0)
+                    .ToList();
+
+                return new RetrieveActivityExecutionResult
+                {
+                    ActivityInfos = successResults,
+                    Error = errorResult
+                };
+            });
+
+        if (retrieveResult is { ActivityInfos: var activityInfos } && activityInfos.Count > 0)
+        {
+            await GoTo<PrintActivityState>(
+                new NamedParameter("activityInfos", activityInfos));
         }
 
-        var successResults = results
-            .Where(x => x.IsT0)
-            .Select(x => x.AsT0)
-            .ToList();
-
-        return new RetrieveActivityExecutionResult
-        {
-            ActivityInfos = successResults,
-            Error = errorResult
-        };
+        return retrieveResult;
     }
 }

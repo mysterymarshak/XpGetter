@@ -1,9 +1,5 @@
-using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
-using XpGetter.Application.Dto;
-using XpGetter.Cli.Extensions;
-using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
@@ -49,7 +45,7 @@ public class HelloState : BaseState
                         ", ",
                         Configuration.Accounts.Select(x => string.Format(
                                                            (string)Messages.Start.SavedAccountFormat,
-                                                           (object?)x.GetDisplayUsername())));
+                                                           x.GetDisplayUsername())));
                     AnsiConsole.MarkupLine(Messages.Start.SavedAccounts, savedAccounts);
                 }
                 else
@@ -62,7 +58,7 @@ public class HelloState : BaseState
 
             if (_skipToStart)
             {
-                lastExecutionResult = await GoToStartState();
+                lastExecutionResult = await GoTo<RetrieveActivityState>();
                 continue;
             }
 
@@ -82,39 +78,12 @@ public class HelloState : BaseState
 
             lastExecutionResult = choice switch
             {
-                Messages.Start.GetActivityInfo => await GoToStartState(),
+                Messages.Start.GetActivityInfo => await GoTo<RetrieveActivityState>(),
                 Messages.Start.Statistics => await GoTo<ChooseStatisticsPeriodState>(),
                 Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(),
                 Messages.Start.CheckForUpdates => await GoTo<CheckUpdatesState>(),
                 _ => new ExitExecutionResult()
             };
         }
-    }
-
-#pragma warning disable CS8974
-    private ValueTask<StateExecutionResult> GoToStartState()
-    {
-        return GoTo<StartState>(new NamedParameter("postAuthenticationDelegate", GetActivityInfoDelegate));
-    }
-#pragma warning restore CS8974
-
-    private async Task<StateExecutionResult> GetActivityInfoDelegate(List<SteamSession> sessions)
-    {
-        var retrieveActivityStateResult = await AnsiConsole
-            .CreateProgressContext(async ansiConsoleCtx =>
-            {
-                var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
-                return (RetrieveActivityExecutionResult)await GoTo<RetrieveActivityState>(
-                    new NamedParameter("sessions", sessions),
-                    new NamedParameter("ctx", ctx));
-            });
-
-        if (retrieveActivityStateResult.ActivityInfos.Any())
-        {
-            await GoTo<PrintActivityState>(
-                new NamedParameter("activityInfos", retrieveActivityStateResult.ActivityInfos));
-        }
-
-        return retrieveActivityStateResult;
     }
 }

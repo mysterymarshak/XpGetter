@@ -2,27 +2,19 @@ using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
-using XpGetter.Application.Features.Configuration;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
 
-public class StartState : BaseState
+public abstract class AuthenticatedState : BaseState
 {
-    private readonly IConfigurationService _configurationService;
-    private readonly Func<List<SteamSession>, Task<StateExecutionResult>> _postAuthenticationDelegate;
-
-    public StartState(IConfigurationService configurationService,
-                      Func<List<SteamSession>, Task<StateExecutionResult>> postAuthenticationDelegate,
-                      StateContext context) : base(context)
+    public AuthenticatedState(StateContext context) : base(context)
     {
-         _configurationService = configurationService;
-        _postAuthenticationDelegate = postAuthenticationDelegate;
     }
 
-    public override async ValueTask<StateExecutionResult> OnExecuted()
+    public sealed override async ValueTask<StateExecutionResult> OnExecuted()
     {
         if (!Configuration.Accounts.Any())
         {
@@ -42,7 +34,6 @@ public class StartState : BaseState
                     return authenticationExecutionResult.Error;
                 }
 
-                var authenticatedSessions = authenticationExecutionResult.AuthenticatedSessions;
                 return authenticationExecutionResult;
             });
 
@@ -75,7 +66,7 @@ public class StartState : BaseState
         if (familyViewPassedSessions.Count > 0)
         {
             AnsiConsole.MarkupLine(Messages.Start.SuccessAuthorization);
-            stateExecutionResult = await _postAuthenticationDelegate(familyViewPassedSessions);
+            stateExecutionResult = await OnAuthenticated(familyViewPassedSessions);
         }
         else
         {
@@ -98,4 +89,6 @@ public class StartState : BaseState
 
         return new SuccessExecutionResult();
     }
+
+    protected abstract ValueTask<StateExecutionResult> OnAuthenticated(List<SteamSession> session);
 }

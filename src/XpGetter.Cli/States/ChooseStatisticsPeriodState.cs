@@ -1,9 +1,7 @@
 using Autofac;
 using Spectre.Console;
 using XpGetter.Application;
-using XpGetter.Application.Dto;
 using XpGetter.Cli.Extensions;
-using XpGetter.Cli.Progress;
 using XpGetter.Cli.States.Results;
 
 namespace XpGetter.Cli.States;
@@ -46,29 +44,6 @@ public class ChooseStatisticsPeriodState : BaseState
             _ => throw new ArgumentOutOfRangeException(nameof(choice))
         };
 
-#pragma warning disable CS8974
-        return await GoTo<StartState>(new NamedParameter("postAuthenticationDelegate", StatisticsDelegate));
-#pragma warning restore CS8974
-    }
-
-    private async Task<StateExecutionResult> StatisticsDelegate(List<SteamSession> sessions)
-    {
-        var retrieveStatisticsStateResult = await AnsiConsole
-            .CreateProgressContext(async ansiConsoleCtx =>
-            {
-                var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
-                return (StatisticsExecutionResult)await GoTo<RetrieveStatisticsState>(
-                    new NamedParameter("sessions", sessions),
-                    new NamedParameter("timeSpan", _timeSpan),
-                    new NamedParameter("ctx", ctx));
-            });
-
-        if (retrieveStatisticsStateResult.Statistics.Any())
-        {
-            await GoTo<PrintStatisticsState>(
-                    new NamedParameter("statistics", retrieveStatisticsStateResult.Statistics));
-        }
-
-        return retrieveStatisticsStateResult;
+        return await GoTo<RetrieveStatisticsState>(new NamedParameter("timeSpan", _timeSpan));
     }
 }

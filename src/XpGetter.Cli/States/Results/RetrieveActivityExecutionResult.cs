@@ -4,5 +4,5 @@ namespace XpGetter.Cli.States.Results;
 
 public class RetrieveActivityExecutionResult : StateExecutionResult
 {
-    public IEnumerable<ActivityInfo> ActivityInfos { get; init; } = [];
+    public List<ActivityInfo> ActivityInfos { get; init; } = [];
 }
