@@ -2,6 +2,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using XpGetter.Application.Features.Io;
 
 namespace XpGetter.Application.Features.Configuration.Repositories.FileOperationStrategies;
 
@@ -11,12 +12,19 @@ public class EncryptedFileOperationStrategy : IFileOperationStrategy
     private const int NonceSize = 12;
     private const int TagSize = 16;
 
+    private readonly IFilesAccessor _filesAccessor;
+
+    public EncryptedFileOperationStrategy(IFilesAccessor filesAccessor)
+    {
+        _filesAccessor = filesAccessor;
+    }
+
     public string ReadFileContent(string filePath)
     {
         Span<byte> key = stackalloc byte[KeySize];
         GetKey(key);
 
-        var fileBytes = File.ReadAllBytes(filePath);
+        var fileBytes = _filesAccessor.ReadAllBytes(filePath);
         if (fileBytes.Length < NonceSize + TagSize)
         {
             return string.Empty;
@@ -58,7 +66,7 @@ public class EncryptedFileOperationStrategy : IFileOperationStrategy
         using var aes = new AesGcm(key, TagSize);
         aes.Encrypt(nonce, bytes, cipherBytes, tag);
 
-        using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+        using var stream = _filesAccessor.OpenStream(filePath, FileMode.Create, FileAccess.Write);
         stream.Write(nonce);
         stream.Write(tag);
         stream.Write(cipherBytes);
@@ -105,10 +113,13 @@ public class EncryptedFileOperationStrategy : IFileOperationStrategy
 
     private string GetLinuxHardwareId()
     {
-        const string machineIdPath = "/etc/machine-id";
-        if (File.Exists(machineIdPath))
+        using (var accessor = _filesAccessor.AbsolutePaths())
         {
-            return File.ReadAllText(machineIdPath).Trim();
+            const string machineIdPath = "/etc/machine-id";
+            if (accessor.Exists(machineIdPath))
+            {
+                return accessor.ReadAllText(machineIdPath).Trim();
+            }
         }
 
         return "Linux_ID_NotFound";

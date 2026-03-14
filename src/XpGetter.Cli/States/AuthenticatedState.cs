@@ -83,11 +83,15 @@ public abstract class AuthenticatedState : BaseState
         }
 
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine(Messages.Activity.AnyKeyToReturn);
-        Console.ReadKey();
-        AnsiConsole.MarkupLine(Messages.Common.Gap);
 
-        return new SuccessExecutionResult();
+        if (stateExecutionResult?.WaitAnyKey == true)
+        {
+            AnsiConsole.MarkupLine(Messages.Activity.AnyKeyToReturn);
+            Console.ReadKey();
+            AnsiConsole.MarkupLine(Messages.Common.Gap);
+        }
+
+        return stateExecutionResult ?? new SuccessExecutionResult();
     }
 
     protected abstract ValueTask<StateExecutionResult> OnAuthenticated(List<SteamSession> session);

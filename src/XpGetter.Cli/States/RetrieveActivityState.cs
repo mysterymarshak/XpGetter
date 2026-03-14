@@ -13,8 +13,7 @@ public class RetrieveActivityState : AuthenticatedState
 {
     private readonly IActivityService _activityService;
 
-    public RetrieveActivityState(IActivityService activityService,
-                                 StateContext context) : base(context)
+    public RetrieveActivityState(IActivityService activityService, StateContext context) : base(context)
     {
         _activityService = activityService;
     }

@@ -13,7 +13,8 @@ public static class AnsiConsoleExtensions
                 .AutoRefresh(true)
                 .AutoClear(autoClear)
                 .HideCompleted(false)
-                .Columns(new TaskDescriptionColumn { Alignment = Justify.Left }, new SpinnerColumn(Spinner.Known.Flip),
+                .Columns(new TaskDescriptionColumn { Alignment = Justify.Left },
+                    new SpinnerColumn(Spinner.Known.Flip),
                     new ElapsedTimeColumn())
                 .StartAsync(func);
         }

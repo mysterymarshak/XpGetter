@@ -27,8 +27,8 @@ public class FallbackMarketService : IMarketService
 
         var failedItems = result
             .Where(x => x.Value == 0)
-            .Select(x => x.MarketName)
-            .Concat(names.Where(x => result.All(y => y.MarketName != x)))
+            .Select(x => x.HashName)
+            .Concat(names.Where(x => result.All(y => y.HashName != x)))
             .Distinct()
             .ToList();
 

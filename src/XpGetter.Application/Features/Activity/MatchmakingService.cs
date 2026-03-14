@@ -92,7 +92,7 @@ public class MatchmakingService : IMatchmakingService
         var account = session.Account!;
         var result =
             await _steamHttpClient.GetJsonAsync<ActivityInfoResponse>(
-                $"profiles/{account.Id}/gcpd/730?tab={tabName}&ajax=1&l=english",
+                $"profiles/{account.Id}/gcpd/{Constants.Cs2AppId}?tab={tabName}&ajax=1&l=english",
                 session.AuthCookie);
 
         if (result.TryPickT1(out var httpClientError, out var response))

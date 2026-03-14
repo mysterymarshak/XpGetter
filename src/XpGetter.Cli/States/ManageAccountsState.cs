@@ -37,7 +37,6 @@ public class ManageAccountsState : BaseState
 
         var choices = choicesEnumerable
             .Append(Messages.Common.Back)
-            .Append(Messages.Common.Exit)
             .ToList();
 
         var choice = await AnsiConsole.PromptAsync(
@@ -51,7 +50,6 @@ public class ManageAccountsState : BaseState
         {
             Messages.ManageAccounts.AddNew => await GoTo<AddAccountState>(new NamedParameter("backOption", backOption)),
             Messages.Common.Back => SuccessExecutionResult.WithoutAccountsPrint(),
-            Messages.Common.Exit => new ExitExecutionResult(),
             _ when choices.IndexOf(choice) is var index and >= 0 => await GoTo<ManageAccountState>(
                 new NamedParameter("username", usernames.ElementAt(index))),
             _ => throw new ArgumentOutOfRangeException(nameof(choice))

@@ -15,6 +15,7 @@ public interface IWalletService
     Task<OneOf<WalletInfo, WalletServiceError>> GetWalletInfoAsync(SteamSession session, IProgressContext ctx);
 }
 
+// TODO: get rid of this
 public class WalletService : IWalletService
 {
     private readonly ILogger _logger;
@@ -28,9 +29,9 @@ public class WalletService : IWalletService
     {
         var task = ctx.AddTask(session, Messages.Wallet.RetrievingWalletInfo);
 
-        if (session.WalletInfo is null && RuntimeConfiguration.ForceCurrency is not null)
+        if (RuntimeConfiguration.ForceCurrency is not null)
         {
-            session.BindWalletInfo(new WalletInfo(RuntimeConfiguration.ForceCurrency.Value));
+            session.BindWalletInfo(new WalletInfo(null, RuntimeConfiguration.ForceCurrency.Value));
         }
 
         if (session.WalletInfo is not null)
@@ -53,7 +54,7 @@ public class WalletService : IWalletService
                 _logger.Warning(Messages.Wallet.InvalidCurrencyLog, session.Account!.Username);
             }
 
-            var walletInfo = new WalletInfo(currency);
+            var walletInfo = new WalletInfo(response.Body.has_wallet, currency);
             task.SetResult(session, Messages.Wallet.RetrievingWalletInfoOk);
             session.BindWalletInfo(walletInfo);
 

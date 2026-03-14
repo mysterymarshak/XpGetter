@@ -21,7 +21,7 @@ public static class StringExtensions
 
         public string ToDisplayUsername(bool ignoreConfiguration)
         {
-            return (ignoreConfiguration, RuntimeConfiguration.AnonymizeUsernames, RuntimeConfiguration.CensorUsernames) switch
+            return (ignoreConfiguration, AnonymizeUsernames: RuntimeConfiguration.AnonymizePersonalNames, RuntimeConfiguration.CensorUsernames) switch
             {
                 (true, _, _) => @string,
                 (_, true, true) => Messages.Common.AnonymousUsername.Censor(),
@@ -31,10 +31,11 @@ public static class StringExtensions
             };
         }
 
-        public string ToDisplayPersonalName(int accountNumber)
+        public string ToDisplayPersonalName(int? accountNumber)
         {
-            if (RuntimeConfiguration.AnonymizeUsernames)
+            if (RuntimeConfiguration.AnonymizePersonalNames)
             {
+                ThrowIfNull(accountNumber, Messages.Common.ShouldNotBeNull);
                 return string.Format(Messages.Common.AnonymousPersonalName, accountNumber);
             }
 
@@ -53,6 +54,11 @@ public static class StringExtensions
                 original.AsSpan()[..4].CopyTo(span);
                 span[4..].Fill('*');
             });
+        }
+
+        public ReadOnlySpan<char> TrimFirstChar(char @char)
+        {
+            return @string[0] == @char ? @string.AsSpan()[1..] : @string;
         }
     }
 }

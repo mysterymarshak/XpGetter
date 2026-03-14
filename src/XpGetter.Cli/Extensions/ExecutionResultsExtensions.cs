@@ -29,5 +29,11 @@ public static class SuccessExecutionResultExtensions
     {
         public static SuccessExecutionResult WithoutAccountsPrint() =>
             new SuccessExecutionResult { CheckAndPrintAccounts = false };
+
+        public static SuccessExecutionResult WithoutWaitingKey() =>
+            new SuccessExecutionResult { WaitAnyKey = false };
+
+        public static SuccessExecutionResult WithoutAccountsPrintAndWaitingKey() =>
+            new SuccessExecutionResult { CheckAndPrintAccounts = false, WaitAnyKey = false };
     }
 }

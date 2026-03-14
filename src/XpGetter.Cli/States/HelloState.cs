@@ -68,6 +68,7 @@ public class HelloState : BaseState
                 Messages.Start.GetActivityInfo,
                 Messages.Start.Statistics,
                 Messages.Start.ManageAccounts,
+                Messages.Start.ClaimWeeklyDrop,
                 Messages.Start.CheckForUpdates,
                 Messages.Common.Exit
             };
@@ -81,6 +82,7 @@ public class HelloState : BaseState
                 Messages.Start.GetActivityInfo => await GoTo<RetrieveActivityState>(),
                 Messages.Start.Statistics => await GoTo<ChooseStatisticsPeriodState>(),
                 Messages.Start.ManageAccounts => await GoTo<ManageAccountsState>(),
+                Messages.Start.ClaimWeeklyDrop => await GoTo<ClaimWeeklyDropState>(),
                 Messages.Start.CheckForUpdates => await GoTo<CheckUpdatesState>(),
                 _ => new ExitExecutionResult()
             };

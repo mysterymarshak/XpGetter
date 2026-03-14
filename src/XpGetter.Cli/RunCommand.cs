@@ -123,7 +123,7 @@ internal sealed class RunCommand : AsyncCommand<RunCommand.RuntimeArguments>
 
     private void InitializeRuntimeConfiguration(RuntimeArguments arguments)
     {
-        RuntimeConfiguration.AnonymizeUsernames = arguments.Anonymize;
+        RuntimeConfiguration.AnonymizePersonalNames = arguments.Anonymize;
         RuntimeConfiguration.CensorUsernames = arguments.Censor;
         RuntimeConfiguration.ForceCurrency = arguments.Currency;
         RuntimeConfiguration.PriceProvider = arguments.PriceProvider;

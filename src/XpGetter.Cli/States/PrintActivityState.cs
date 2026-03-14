@@ -17,6 +17,7 @@ public class PrintActivityState : BaseState
     public override ValueTask<StateExecutionResult> OnExecuted()
     {
         // TODO: formatting
+        // TODO: vac
 
         foreach (var (i, info) in _activityInfos.Index())
         {

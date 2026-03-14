@@ -2,7 +2,6 @@ using OneOf;
 using Serilog;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Errors;
-using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Activity.NewRankDrops;
 using XpGetter.Application.Features.Steam.Http.Parsers;
 using XpGetter.Application.Results;

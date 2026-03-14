@@ -5,12 +5,13 @@ public static class Constants
     public const string ProgramName = "XpGetter";
     public const string Author = "mysterymarshak";
     public const string MasterBranch = "master";
-    public const string Version = "0.2.4";
+    public const string Version = "0.3.0";
     public const string ConfigVersion = "1.3";
     public const int MaxInventoryHistoryPagesToLoad = 3;
     public const int MaxAccounts = 5;
+    public const int Cs2AppId = 730;
     public const string GitHubPageUrl = $"https://github.com/{Author}/{ProgramName}";
-    public const string GitHubReleasesPageUrl = $"https://github.com/{Author}/{ProgramName}/releases";
+    public const string GitHubReleasesPageUrl = $"{GitHubPageUrl}/releases";
 }
 
 // CONFIG VERSION CHANGES

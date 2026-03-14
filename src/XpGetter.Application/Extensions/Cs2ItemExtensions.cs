@@ -3,20 +3,20 @@ using XpGetter.Application.Dto;
 
 namespace XpGetter.Application.Extensions;
 
-public static class CsgoItemExtensions
+public static class Cs2ItemExtensions
 {
-    private static readonly StringBuilder _builder = new();
+    private static readonly StringBuilder Builder = new();
 
     private const string DefaultColor = "silver";
 
-    extension(CsgoItem item)
+    extension(Cs2Item item)
     {
         public string Format(bool includePrice = true, bool includeMarkup = true)
         {
-            item.FormatInternal(_builder, includePrice, includeMarkup);
+            item.FormatInternal(Builder, includePrice, includeMarkup);
 
-            var result = _builder.ToString();
-            _builder.Clear();
+            var result = Builder.ToString();
+            Builder.Clear();
 
             return result;
         }
@@ -43,7 +43,7 @@ public static class CsgoItemExtensions
 
             if (includeMarkup) builder.Append("[/]");
 
-            if (item is { Price: not null, IsMarketable: true } && includePrice)
+            if (item is { Price.Value: >0, IsMarketable: true } && includePrice)
             {
                 if (includeMarkup)
                 {

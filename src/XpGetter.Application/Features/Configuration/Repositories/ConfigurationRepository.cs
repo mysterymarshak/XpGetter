@@ -1,25 +1,25 @@
 using Newtonsoft.Json;
 using Serilog;
-using XpGetter.Application.Extensions;
 using XpGetter.Application.Features.Configuration.Entities;
 using XpGetter.Application.Features.Configuration.Repositories.FileOperationStrategies;
+using XpGetter.Application.Features.Io;
 
 namespace XpGetter.Application.Features.Configuration.Repositories;
 
 public class ConfigurationRepository : IConfigurationRepository
 {
-    private string FilePath => Path.GetFilePathWithinExecutableDirectory(FileName);
-
     private const string FileName = "configuration";
 
     private readonly IFileOperationStrategy _fileOperationStrategy;
+    private readonly IFilesAccessor _filesAccessor;
     private readonly ILogger _logger;
 
     private AppConfiguration? _configuration;
 
-    public ConfigurationRepository(IFileOperationStrategy fileOperationStrategy, ILogger logger)
+    public ConfigurationRepository(IFileOperationStrategy fileOperationStrategy, IFilesAccessor filesAccessor, ILogger logger)
     {
         _fileOperationStrategy = fileOperationStrategy;
+        _filesAccessor = filesAccessor;
         _logger = logger;
     }
 
@@ -38,14 +38,14 @@ public class ConfigurationRepository : IConfigurationRepository
 
     private AppConfiguration LoadFromDiskOrWriteDefaults()
     {
-        if (!File.Exists(FilePath))
+        if (!_filesAccessor.Exists(FileName))
         {
             var configuration = WriteDefaultToDisk();
             StoreConfigurationInstance(configuration);
             return _configuration!;
         }
 
-        var fileContent = _fileOperationStrategy.ReadFileContent(FilePath);
+        var fileContent = _fileOperationStrategy.ReadFileContent(FileName);
         var deserialized = JsonConvert.DeserializeObject<AppConfiguration>(fileContent);
 
         if (deserialized is null)
@@ -61,7 +61,7 @@ public class ConfigurationRepository : IConfigurationRepository
     public void Export(AppConfiguration configuration)
     {
         StoreConfigurationInstance(configuration);
-        _fileOperationStrategy.WriteFileContent(FilePath, JsonConvert.SerializeObject(configuration));
+        _fileOperationStrategy.WriteFileContent(FileName, JsonConvert.SerializeObject(configuration));
     }
 
     private AppConfiguration WriteDefaultToDisk()

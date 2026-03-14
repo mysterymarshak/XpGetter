@@ -36,11 +36,6 @@ public class QrCode : IQrCode
         }
     }
 
-    public void Reset()
-    {
-        _lastHeight = 0;
-    }
-
     private void Render(string url)
     {
         var generator = new QRCodeGenerator();

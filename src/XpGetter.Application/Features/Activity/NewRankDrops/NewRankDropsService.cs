@@ -93,7 +93,7 @@ public class NewRankDropsService : INewRankDropsService
                 var parseMispagedDropResult = parser.TryParseMispagedDrop(inventoryHistory.Deserialized);
                 if (parseMispagedDropResult.TryPickT0(out var secondItem, out var parserError))
                 {
-                    var items = new List<CsgoItem>(2) { mispagedDrop.FirstItem };
+                    var items = new List<Cs2Item>(2) { mispagedDrop.FirstItem };
                     if (secondItem is not null)
                     {
                         items.Add(secondItem);
@@ -185,7 +185,7 @@ public class NewRankDropsService : INewRankDropsService
         LoadInventoryHistoryAsync(SteamSession session, Action onRateLimit, CursorInfo? cursor = null)
     {
         var queryString =
-            $"l=english&ajax=1&app[]=730&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
+            $"l=english&ajax=1&app[]={Constants.Cs2AppId}&cursor[time]={cursor?.Timestamp ?? 0}&cursor[time_frac]={cursor?.TimeFrac ?? 0}&cursor[s]={cursor?.CursorId ?? "0"}";
         var getJsonResult = await _steamHttpClient.GetJsonAsync<InventoryHistoryResponse>(
             $"profiles/{session.Account!.Id}/inventoryhistory?{queryString}",
             session.AuthCookie,

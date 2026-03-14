@@ -1,0 +1,1 @@
+global using static XpGetter.Application.Errors.ErrorsHelper;

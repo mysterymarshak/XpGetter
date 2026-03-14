@@ -69,7 +69,7 @@ public class SteamMarketService : IMarketService
     private async Task<OneOf<(ItemPriceResponse Deserialized, string Raw), SteamHttpClientError>> GetItemPriceAsync(
         string name, ECurrencyCode currency)
     {
-        var queryString = $"currency={(int)currency}&appid=730&market_hash_name={HttpUtility.UrlEncode(name)}";
+        var queryString = $"currency={(int)currency}&appid={Constants.Cs2AppId}&market_hash_name={HttpUtility.UrlEncode(name)}";
         return await _steamHttpClient.GetJsonAsync<ItemPriceResponse>($"{Uri}?{queryString}");
     }
 }

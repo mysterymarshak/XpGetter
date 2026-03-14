@@ -43,7 +43,7 @@ public class PassFamilyViewState : BaseState
             if ((featureFlags & 0b1000) != 0) // (Profile, ..)
             {
                 if ((featureFlags & 0b100000000000) != 0 || // All games
-                    parentalSettings.applist_custom.FirstOrDefault(x => x.appid == 730)?.is_allowed == true) // or csgo allowed
+                    parentalSettings.applist_custom.FirstOrDefault(x => x.appid == Constants.Cs2AppId)?.is_allowed == true) // or cs2 allowed
                 {
                     passedSession.Add(session);
                     continue;

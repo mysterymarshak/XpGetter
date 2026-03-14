@@ -1,4 +1,5 @@
 using XpGetter.Application.Extensions;
+using XpGetter.Application.Features.Configuration;
 
 namespace XpGetter.Application.Dto;
 
@@ -13,12 +14,25 @@ public class AccountDto
     public string? WalletCurrency { get; set; }
     public ActivityInfo? ActivityInfo { get; set; }
 
-    public string GetDisplayUsername()
+    public string GetDisplayPersonalNameOrUsername()
     {
-        return Username.ToDisplayUsername(false);
+        if (RuntimeConfiguration.AnonymizePersonalNames)
+        {
+            return GetDisplayUsername();
+        }
+
+        var personalName = GetDisplayPersonalName(null);
+        ThrowIfNull(personalName, Messages.Session.CannotGetPersonalName, GetDisplayUsername());
+
+        return personalName;
     }
 
-    public string? GetDisplayPersonalName(int accountNumber)
+    public string GetDisplayUsername()
+    {
+        return Username.ToDisplayUsername(ignoreConfiguration: false);
+    }
+
+    public string? GetDisplayPersonalName(int? accountNumber)
     {
         return PersonalName?.ToDisplayPersonalName(accountNumber);
     }

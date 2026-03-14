@@ -3,7 +3,7 @@ using XpGetter.Application.Extensions;
 
 namespace XpGetter.Application.Dto;
 
-public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<CsgoItem> Items)
+public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<Cs2Item> Items)
 {
     private const string DefaultName = "<unknown>";
     private const string DefaultDate = "<unknown>";

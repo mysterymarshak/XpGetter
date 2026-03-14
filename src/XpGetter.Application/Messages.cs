@@ -17,6 +17,7 @@ public static class Messages
         public const string GetActivityInfo = "Get activity info";
         public const string Statistics = "Statistics";
         public const string ManageAccounts = "Manage accounts";
+        public const string ClaimWeeklyDrop = "Claim weekly drop";
         public const string CheckForUpdates = "Check for updates";
         public const string Exited = "Exited.";
         public const string SuccessAuthorization = "Authorization: [green]success[/]";
@@ -73,7 +74,7 @@ public static class Messages
         public const string RetrievingCooldownDataError = "Cooldown data: error [red]:([/]";
         public const string RetrievingMatchmakingDataError = "Matchmaking data: error [red]:([/]";
         public const string RetrievingMatchmakingDataWarning = "Matchmaking data: got with warnings [yellow]-_-;[/]";
-        public const string RetrievingMatchmakingDataOk = "Matchmaking data: [green]:)[/]";
+        public const string RetrievingMatchmakingDataOk = "Matchmaking data: success [green]:)[/]";
         public const string RetrievingActivityError = "Activity info: error [red]:([/]";
         public const string RetrievingActivityOk = "Activity info: success [green]:)[/]";
         public const string RetrievingActivityWarning = "Activity info: got with warnings [yellow]-_-;[/]";
@@ -96,8 +97,23 @@ public static class Messages
         public const string RetrievingExchangeRate = "Retrieving exchange rate...";
         public const string RetrievingExchangeRateOk = "Exchange rate: success [green]:)[/]";
         public const string RetrievingExchangeRateFallback = "Exchange rate: fail, trying fallback service...";
-        public const string RetrievingExchangeRateError = "Exchange rate: error! [red]:([/]";
+        public const string RetrievingExchangeRateError = "Exchange rate: error [red]:([/]";
         public const string RetrievingLatestVersion = "Retrieving lastest version...";
+        public const string ConnectingToGc = "Connecting to GC...";
+        public const string ConnectingToGcOk = "GC: connected [green]:)[/]";
+        public const string ConnectingToGcError = "GC: error [red]:([/]";
+        public const string ValidatingCache = "{0}: Validating cache...";
+        public const string CacheIsUpToDate = "{0}: cache hit [green]:)[/]";
+        public const string CacheIsOutdated = "{0}: Updating cache...";
+        public const string Downloading = "{0}: Downloading...";
+        public const string DownloadingOk = "{0}: success [green]:)[/]";
+        public const string DownloadingError = "{0}: error [red]:([/]";
+        public const string ParsingKvs = "{0}: Parsing...";
+        public const string ParsingKvsOk = "{0}: parsed [green]:)[/]";
+        public const string ParsingKvsError = "{0}: parsing error [red]:([/]";
+        public const string RedeemingRewards = "Redeeming rewards...";
+        public const string RedeemRewardsOk = "Redeem rewards: success [green]:)[/]";
+        public const string RedeemRewardsError = "Redeem rewards: error [red]:([/]";
     }
 
     public static class Session
@@ -105,20 +121,24 @@ public static class Messages
         public const string ClientNameFormat = "Client '{0}'";
         public const string BoundedSessionLogFormat = $"{ClientNameFormat}: {{1}}";
         public const string Connecting = "Connecting to Steam...";
-        public const string ConnectingException = "An exception was thrown while connecting to Steam.";
-        public const string Reconnect = "Trying to reconnect ({0})";
+        public const string Reconnect = "Trying to reconnect ({RetryNumber})";
         public const string TooManyRetryAttempts = "Cannot connect to steam.";
         public const string Connected = "Connected to Steam.";
-        public const string Disconnected = "Disconnected from Steam.";
+        public const string DisconnectedLog = "Disconnected from Steam.";
+        public const string Disconnected = "[red]Disconnected from Steam.[/]";
         public const string UnauthenticatedAccountBind = "Attempt to bind unauthenticated account.";
         public const string FailedSessionCreation = "[red]Error while creating session for client '{0}'[/]";
         public const string DuplicatedSession = "Attempt to authenticate session that already exists. SteamID: '{0}'";
+        public const string UnknownGcMessageTypeLog = "Unknown EMsg: {@Message}";
+        public const string ExceptionInMessagesFetcherLog = "Exception while receiving callbacks in MessagesFetcher";
+        public const string CannotGetPersonalName = "Attempt to return null PersonalName for username '{0}'";
     }
 
     public static class Http
     {
         public const string Error = "[red]Http client error.[/]";
         public const string ErrorLog = "Http client error.";
+        public const string CannotGetContentLength = "Cannot get content length out of headers";
         public const string HtmlError = "[red]Http client/invalid html error.[/]";
         public const string DeserializationError = "Cannot deserialize json. See details in logs.";
         public const string DeserializationErrorLog = "Cannot deserialize json. Raw: {Json}";
@@ -127,17 +147,18 @@ public static class Messages
     public static class Authentication
     {
         public const string LoggingIn = "Logging in...";
-        public const string LoggingInPassword = "Logging in via password...";
+        public const string BeginAuthSessionPassword = "Beginning auth session with password...";
+        public const string BeginAuthSessionQrCode = "Beginning auth session with qr code...";
         public const string AuthenticateViaTokenException = "An exception was thrown while trying to authenticate session via token.";
         public const string AuthenticateViaPasswordException = "An exception was thrown while trying to authenticate session via password.";
         public const string AuthenticateViaQrException = "An exception was thrown while trying to authenticate session via qr code.";
         public const string LogOnNotOk = "Unable to logon to Steam: {0} / {1}";
-        public const string LogOnNotOkTimeout = "Unable to logon to Steam (possible timeout): {0} / {1}";
+        public const string LogOnNotOkProbablyTimeout = "Unable to logon to Steam (probably timeout): {0} / {1}";
         public const string LogOnOk = "Successfully logged on.";
         public const string QrCodeRefreshed = "Steam has refreshed the qr code.";
-        public const string RefreshTokenExpirationDate = "Refresh token expiration date: {0}";
+        public const string RefreshTokenExpirationDate = "Refresh token expiration date: {Date}";
         public const string RefreshTokenExpired = "Refresh token is expired.";
-        public const string AccessTokenExpirationDate = "Access token expiration date: {0}";
+        public const string AccessTokenExpirationDate = "Access token expiration date: {Date}";
         public const string AccessTokenExpired = "Access token is expired.";
         public const string AccessTokenRenewed = "Access token has successfully renewed.";
         public const string AccessRenewingException = "An exception was thrown while renewing access token.";
@@ -256,6 +277,39 @@ public static class Messages
         public const string FallbackServiceResult = "Got exchange rate for source {Source} and target {Target}: {@ExchangeRate}";
     }
 
+    public static class Gc
+    {
+        public const string ChooseAccountToClaimRewards = "Choose account to claim weekly drop:";
+        public const string ChooseTwoItems = "Choose [green]two[/] items to redeem:";
+        public const string RetrievingWeeklyDrop = "Retrieving weekly drop for '[steelblue1]{0}[/]':";
+        public const string ParsingKvsError = "An exception was thrown due to parsing kvs";
+        public const string ConnectedToGc = "Connected to GC";
+        public const string DisconnectedFromGc = "Disconnected from GC";
+        public const string NotPlayingCs2 = "Somewhy playing state didn't change";
+        public const string PlayingCs2 = "Successfully started playing cs2";
+        public const string AnotherClientPlayingCs2 = "Another client playing cs2";
+        public const string CannotShutDownPlayingSession = "Attempt to shutdown playing session but PlayingApp still is not 0. {@PlayingStateCallback}";
+        public const string ConnectionException = "An exception was thrown due to connection to GC";
+        public const string FreeRewardsNotFound = "CSOAccountItemPersonalStore wasn't in GC response";
+        public const string FreeRewardsCountMismatch = "CSOAccountItemPersonalStore.items.Count() was not equal to expected value";
+        public const string RewardsAlreadyClaimed = "Your weekly rewards already claimed. See you next week";
+        public const string OtherClientNoLongerPlayingCs2 = "Cs2 was closed, continuing the execution...";
+        public const string ShutdownSessionDisclaimer1 = "You already playing cs2 from another device";
+        public const string ShutdownSessionDisclaimer2 = "To continue the other instance should be closed";
+        public const string ShutdownSessionDisclaimer3 = "You have two options:";
+        public const string ShutdownSessionDisclaimer4 = "1) Close cs2 manually and execution will go further automatically; dont answer to prompt below";
+        public const string ShutdownSessionDisclaimer5 = $"2) Let {Constants.ProgramName} close your cs2 instance forcefully (you may be logged of from your steam desktop client; just relaunch it later)";
+        public const string ShutdownSessionPrompt = "Shutdown your other session forcefully? (N for cancel)";
+        public const string TryingShutdownOtherClient = "Retrying to connect to GC with force shutdowning cs2 instance...";
+        public const string CannotConnectToGc = "[red]Cannot connect to GC.[/]";
+        public const string RedeemItemsCount = "Attempt to redeem invalid items count";
+        public const string ClaimedItemsIdsMismatch = "Claimed items ids doesn't match received ones";
+        public const string CannotClaimRewards = "[red]Cannot claim weekly drop[/]";
+        public const string SuccessfullyClaimed = "[green]Successfully claimed[/]";
+        public const string GotAvailableWeeklyDrop = "Weekly drop: [green]got[/]";
+        public const string InventoryNotFoundLog = "Cached inventory not found. Raw client welcome: {@ClientWelcome}";
+    }
+
     public static class Common
     {
         public const string AnonymousUsername = "testswag";
@@ -264,9 +318,12 @@ public static class Messages
         public const string ChoiceOption = "Choice option:";
         public const string Back = "Back";
         public const string Exit = "Exit";
+        public const string OperationCancelled = "Operation cancelled";
+        public const string ShouldNotBeNull = "Should never be null";
         public const string ImpossibleMethodCase = "Impossible case. {0}()";
         public const string FatalError =
             $"[red]Some errors occurred. Read their descriptions to understand what happened. The program cannot continue execution. Check your internet connection or report a bug to the developer. Also, see the [link={Constants.GitHubPageUrl}]GitHub page[/] for similar issues or the FAQ.[/]";
+        public const string TimeoutException = "An exception was thrown due to task timeout";
         public const string AnyKeyToExit = "Press any key to exit...";
         public const string Gap = "[slateblue3_1]===============[/]";
         public const string NothingToDo = "Nothing to do.";

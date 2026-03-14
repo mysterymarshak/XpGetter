@@ -5,6 +5,7 @@ using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Steam;
 using XpGetter.Cli.Extensions;
 using XpGetter.Cli.States.Results;
+using XpGetter.Cli.Utils;
 
 namespace XpGetter.Cli.States;
 
@@ -38,7 +39,8 @@ public class AddAccountViaQrState : BaseState
             return new RetryExecutionResult();
         }
 
-        var authenticationResult = await _authenticationService.AuthenticateByQrCodeAsync(session);
+        var qrCode = new QrCode();
+        var authenticationResult = await _authenticationService.AuthenticateByQrCodeAsync(qrCode, session);
 
         if (authenticationResult.TryPickT2(out var steamKitFail, out _))
         {

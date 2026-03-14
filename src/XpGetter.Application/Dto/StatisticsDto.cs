@@ -6,10 +6,10 @@ public record StatisticsDto(IEnumerable<NewRankDrop> NewRankDrops)
     public required TimeSpan TimeSpan { get; init; }
 
     public int ItemsCount => field = field > 0 ? field : (field = NewRankDrops.SelectMany(x => x.Items).Count());
-    public IEnumerable<IGrouping<CsgoItem, CsgoItem>> GroupedItems => field ??= NewRankDrops
+    public IEnumerable<IGrouping<Cs2Item, Cs2Item>> GroupedItems => field ??= NewRankDrops
                 .SelectMany(x => x.Items)
                 .OrderByDescending(x => x?.Price?.Value)
-                .GroupBy(x => x, new CsgoItemByNameComparer());
+                .GroupBy(x => x, new Cs2ItemByNameComparer());
     public int GroupedItemsCount => field = field > 0 ? field : (field = GroupedItems.Count());
 
     public double GetTotalItemPrice()

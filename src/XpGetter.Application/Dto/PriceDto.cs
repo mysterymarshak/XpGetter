@@ -9,7 +9,7 @@ public enum PriceProvider
     Steam
 }
 
-public record PriceDto(string MarketName, double Value, string ProviderRaw, ECurrencyCode Currency)
+public record PriceDto(string HashName, double Value, string ProviderRaw, ECurrencyCode Currency)
 {
     public PriceProvider Provider => ProviderRaw switch
     {

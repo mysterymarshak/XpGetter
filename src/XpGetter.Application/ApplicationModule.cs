@@ -11,9 +11,11 @@ using XpGetter.Application.Features.Activity.NewRankDrops;
 using XpGetter.Application.Features.Configuration;
 using XpGetter.Application.Features.Configuration.Repositories;
 using XpGetter.Application.Features.Configuration.Repositories.FileOperationStrategies;
+using XpGetter.Application.Features.Cs2;
 using XpGetter.Application.Features.ExchangeRates;
 using XpGetter.Application.Features.ExchangeRates.ExchangeRateApi;
 using XpGetter.Application.Features.ExchangeRates.HexaRateApi;
+using XpGetter.Application.Features.Io;
 using XpGetter.Application.Features.Markets;
 using XpGetter.Application.Features.Markets.CsgoMarket;
 using XpGetter.Application.Features.Markets.SteamMarket;
@@ -141,5 +143,16 @@ public class ApplicationModule : Module
         builder.RegisterType<StatisticsService>()
             .As<IStatisticsService>()
             .SingleInstance();
+
+        builder.RegisterType<RestrictedFilesAccessor>()
+            .As<IFilesAccessor>()
+            .SingleInstance();
+
+        builder.RegisterType<KvsProvider>()
+            .As<IKvsProvider>()
+            .SingleInstance();
+
+        builder.RegisterType<Cs2Client>()
+            .AsSelf();
     }
 }

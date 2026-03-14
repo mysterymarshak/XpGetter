@@ -4,7 +4,9 @@ public static class PathExtensions
 {
     extension(Path)
     {
-        public static string GetFilePathWithinExecutableDirectory(string fileName)
-            => Path.Combine(AppContext.BaseDirectory, fileName);
+        public static string ExecutableDirectory => AppContext.BaseDirectory;
+
+        public static string GetFilePathWithinExecutableDirectory(string filePath)
+            => Path.GetFullPath(Path.Combine(Path.ExecutableDirectory, filePath));
     }
 }

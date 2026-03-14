@@ -29,6 +29,11 @@ public class AnsiConsoleProgressTaskWrapper : IProgressTask
         _task.SetResult(account, description);
     }
 
+    public void Description(string description)
+    {
+        _task.Description(description);
+    }
+
     public void Description(SteamSession session, string description)
     {
         _task.Description(session, description);

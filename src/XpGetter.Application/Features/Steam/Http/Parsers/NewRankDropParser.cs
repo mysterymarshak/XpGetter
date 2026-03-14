@@ -70,9 +70,9 @@ public class NewRankDropParser
                 continue;
             }
 
-            var dropItems = new List<CsgoItem>();
+            var dropItems = new List<Cs2Item>();
 
-            var parseDropItemResult = TryParseCsgoItemFromRow(response, row);
+            var parseDropItemResult = TryParseCs2ItemFromRow(response, row);
             if (parseDropItemResult.DateTime is null)
             {
                 _logger.Warning(Messages.ActivityParsers.Drop.CannotParseDateTimeEntry, row.InnerHtml);
@@ -93,7 +93,7 @@ public class NewRankDropParser
             }
 
             var nextDropItemNode = rows[nextRowIndex];
-            var parseSecondDropItemResult = TryParseCsgoItemFromRow(response, nextDropItemNode);
+            var parseSecondDropItemResult = TryParseCs2ItemFromRow(response, nextDropItemNode);
             if (parseSecondDropItemResult.DateTime is null || parseSecondDropItemResult.DropItem is null)
             {
                 _logger.Warning(Messages.ActivityParsers.Drop.CannotParseSecondItem,
@@ -126,9 +126,9 @@ public class NewRankDropParser
         return newRankDrops;
     }
 
-    public OneOf<CsgoItem?, NewRankDropParserError> TryParseMispagedDrop(InventoryHistoryResponse response)
+    public OneOf<Cs2Item?, NewRankDropParserError> TryParseMispagedDrop(InventoryHistoryResponse response)
     {
-        CsgoItem? result = null;
+        Cs2Item? result = null;
 
         var html = response.Html;
         if (html is null)
@@ -150,7 +150,7 @@ public class NewRankDropParser
         }
 
         var row = rows.First();
-        var parseDropItemResult = TryParseCsgoItemFromRow(response, row);
+        var parseDropItemResult = TryParseCs2ItemFromRow(response, row);
         if (parseDropItemResult.DateTime is null || parseDropItemResult.DropItem is null)
         {
             _logger.Warning(Messages.ActivityParsers.Drop.CannotParseMispagedDropLog, row.InnerHtml);
@@ -163,7 +163,7 @@ public class NewRankDropParser
         return result;
     }
 
-    private (CsgoItem? DropItem, DateTimeOffset? DateTime) TryParseCsgoItemFromRow(
+    private (Cs2Item? DropItem, DateTimeOffset? DateTime) TryParseCs2ItemFromRow(
         InventoryHistoryResponse response, HtmlNode row)
     {
         var parsedDateTime = TryParseDateTimeFromRow(row);
@@ -187,7 +187,7 @@ public class NewRankDropParser
         }
 
         var item = ExtractCsgoItemFromNode(response, earnedItemNode);
-        if (item.MarketName == MarketNameDefault)
+        if (item.HashName == MarketNameDefault)
         {
             _logger.Warning(Messages.ActivityParsers.Drop.CannotParseMarketName, earnedItemNode.InnerHtml);
             return (null, parsedDateTime);
@@ -218,29 +218,28 @@ public class NewRankDropParser
         return parsedDateTime;
     }
 
-    private CsgoItem ExtractCsgoItemFromNode(InventoryHistoryResponse response, HtmlNode node)
+    private Cs2Item ExtractCsgoItemFromNode(InventoryHistoryResponse response, HtmlNode node)
     {
         var attributes = node.Attributes;
+
         var classId = ulong.Parse(attributes["data-classid"].Value);
         var instanceId = ulong.Parse(attributes["data-instanceid"].Value);
+
         var nameNode = node.SelectSingleNode(".//span[@class='history_item_name']");
         var name = HtmlEntity.DeEntitize(nameNode?.InnerText ?? "<unknown>");
         var color = nameNode?.GetAttributeValue("style", string.Empty).Split("color: ")[1];
-        var imgNode = node?.SelectSingleNode(".//img[@class='tradehistory_received_item_img']");
-        var imgUrl = imgNode?.GetAttributeValue("src", null!);
 
         var description = GetItemDescription(response, classId, instanceId);
         var marketName = description?.MarketName ?? MarketNameDefault;
         var isMarketable = description?.Marketable ?? false;
 
-        return new CsgoItem(
+        return new Cs2Item(
             name,
             marketName,
             isMarketable,
-            imgUrl,
             color);
     }
 
     private ItemDescription? GetItemDescription(InventoryHistoryResponse response, ulong classId, ulong instanceId)
-        => response.Descriptions?["730"][$"{classId}_{instanceId}"];
+        => response.Descriptions?[$"{Constants.Cs2AppId}"][$"{classId}_{instanceId}"];
 }

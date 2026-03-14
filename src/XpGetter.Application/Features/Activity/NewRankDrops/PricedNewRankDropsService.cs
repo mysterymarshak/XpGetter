@@ -81,8 +81,6 @@ public class PricedNewRankDropsService : INewRankDropsService
     public async Task<OneOf<NewRankDrop, TooLongHistory, NoDropHistoryFound, NewRankDropServiceError>>
         GetLastNewRankDropAsync(SteamSession session, IProgressContext ctx)
     {
-        var account = session.Account!;
-
         var getItemsPriceTask = ctx.AddTask(session, Messages.Statuses.RetrievingItemsPriceNotStarted);
 
         var tasks = new List<Task>
@@ -122,13 +120,13 @@ public class PricedNewRankDropsService : INewRankDropsService
         return getNewRankDropResult;
     }
 
-    private async Task BindPricesAsync(IEnumerable<CsgoItem> items, SteamSession session,
+    private async Task BindPricesAsync(IEnumerable<Cs2Item> items, SteamSession session,
                                    IProgressTask task, IProgressContext ctx)
     {
         var walletInfo = session.WalletInfo;
         var marketableItems = items
             .Where(x => x.IsMarketable)
-            .Select(x => x.MarketName)
+            .Select(x => x.HashName)
             .Distinct()
             .ToList();
         var itemPrices = await _marketService.GetItemsPriceAsync(marketableItems, walletInfo!.CurrencyCode,
@@ -138,11 +136,11 @@ public class PricedNewRankDropsService : INewRankDropsService
             .ToList();
 
         var getItemsPriceResultIsWarning = itemPrices.Any(x => x.Value == 0) ||
-            items.Where(x => x.IsMarketable).Any(x => itemPrices.All(y => y.MarketName != x.MarketName));
+            items.Where(x => x.IsMarketable).Any(x => itemPrices.All(y => y.HashName != x.HashName));
 
         foreach (var price in itemPrices)
         {
-            var itemsToBind = items.Where(x => x.MarketName == price.MarketName);
+            var itemsToBind = items.Where(x => x.HashName == price.HashName);
             var anyItemsFound = false;
             foreach (var item in itemsToBind)
             {
@@ -152,7 +150,7 @@ public class PricedNewRankDropsService : INewRankDropsService
 
             if (!anyItemsFound)
             {
-                _logger.Warning(Messages.Market.CannotFindItemForPrice, price.MarketName, items.Select(x => x.MarketName));
+                _logger.Warning(Messages.Market.CannotFindItemForPrice, price.HashName, items.Select(x => x.HashName));
                 getItemsPriceResultIsWarning = true;
             }
         }
