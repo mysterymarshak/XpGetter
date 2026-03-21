@@ -290,8 +290,11 @@ public static class Messages
         public const string AnotherClientPlayingCs2 = "Another client playing cs2";
         public const string CannotShutDownPlayingSession = "Attempt to shutdown playing session but PlayingApp still is not 0. {@PlayingStateCallback}";
         public const string ConnectionException = "An exception was thrown due to connection to GC";
-        public const string FreeRewardsNotFound = "CSOAccountItemPersonalStore wasn't in GC response";
+        public const string EconGameAccountClientNotFound = "CSOEconGameAccountClient wasn't found in GC response";
+        public const string FreeRewardsNotFound = "CSOAccountItemPersonalStore wasn't found in GC response";
         public const string FreeRewardsCountMismatch = "CSOAccountItemPersonalStore.items.Count() was not equal to expected value";
+        public const string NeedRankUp = "You need to earn a new rank first";
+        public const string NoPrimeStatus = "[red]You cannot obtain weekly drop since you don't have a prime status[/]";
         public const string RewardsAlreadyClaimed = "Your weekly rewards already claimed. See you next week";
         public const string OtherClientNoLongerPlayingCs2 = "Cs2 was closed, continuing the execution...";
         public const string ShutdownSessionDisclaimer1 = "You already playing cs2 from another device";

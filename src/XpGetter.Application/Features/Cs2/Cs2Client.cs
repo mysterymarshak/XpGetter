@@ -39,7 +39,7 @@ public class Cs2Client
         _logger = logger;
     }
 
-    public async Task<OneOf<List<Cs2InventoryItem>, AlreadyPlayingCs2, RewardsAlreadyClaimed, Cs2ClientError>>
+    public async Task<OneOf<List<Cs2InventoryItem>, AlreadyPlayingCs2, NeedRankUp, RewardsAlreadyClaimed, NoPrimeStatus, Cs2ClientError>>
         GetAvailableRewardsAsync(IProgressContext ctx, bool forceKickOtherSession = false)
     {
         var tasks = new List<Task>
@@ -80,18 +80,20 @@ public class Cs2Client
         var inventoryParser = new Cs2InventoryParser(clientWelcome, _itemsGame, _english, _logger);
         var inventory = inventoryParser.Parse();
 
+        var isRewardsAvailableResult = IsRewardsAvailable(clientWelcome);
+        if (!isRewardsAvailableResult.TryPickT0(out _, out var remainder1))
+        {
+            return remainder1.Match<OneOf<List<Cs2InventoryItem>, AlreadyPlayingCs2, NeedRankUp, RewardsAlreadyClaimed, NoPrimeStatus, Cs2ClientError>>(
+                needRankUp => needRankUp,
+                noPrimeStatus => noPrimeStatus,
+                error => error);
+        }
+
         var getAvailableRewardsResult = GetAvailableRewardsList(inventory, clientWelcome);
-        if (getAvailableRewardsResult.TryPickT1(out var alreadyClaimed, out var remainder1))
-        {
-            return alreadyClaimed;
-        }
-
-        if (remainder1.TryPickT1(out error, out var availableRewards))
-        {
-            return error;
-        }
-
-        return OneOf<List<Cs2InventoryItem>, AlreadyPlayingCs2, RewardsAlreadyClaimed, Cs2ClientError>.FromT0(availableRewards);
+        return getAvailableRewardsResult.Match<OneOf<List<Cs2InventoryItem>, AlreadyPlayingCs2, NeedRankUp, RewardsAlreadyClaimed, NoPrimeStatus, Cs2ClientError>>(
+            availableRewards => availableRewards,
+            alreadyClaimed => alreadyClaimed,
+            error => error);
     }
 
     public async Task<OneOf<Success, Cs2ClientError>> RedeemRewardsAsync(
@@ -314,7 +316,7 @@ public class Cs2Client
                 return new AlreadyPlayingCs2();
             }
 
-            if (!Assert(_session.IsPlayingCs2, Messages.Gc.NotPlayingCs2, _session, out Cs2ClientError? error))
+            if (!Assert(_session.IsPlayingCs2, Messages.Gc.NotPlayingCs2, out Cs2ClientError? error))
             {
                 return error;
             }
@@ -338,8 +340,38 @@ public class Cs2Client
         }
     }
 
-    private OneOf<List<Cs2InventoryItem>, RewardsAlreadyClaimed, Cs2ClientError> GetAvailableRewardsList(
-        Dictionary<ulong, Cs2InventoryItem> inventory, CMsgClientWelcome clientWelcome)
+    private OneOf<True, NeedRankUp, NoPrimeStatus, Cs2ClientError> IsRewardsAvailable(CMsgClientWelcome clientWelcome)
+    {
+        var econGameAccountClient = clientWelcome
+            .outofdate_subscribed_caches
+            .FirstOrDefault()?
+            .objects
+            .FirstOrDefault(x => x.type_id == (uint)SoCacheType.EconGameAccountClient);
+
+        if (FailIfNull(econGameAccountClient, Messages.Gc.EconGameAccountClientNotFound, out Cs2ClientError? error))
+        {
+            return error;
+        }
+
+        var econGameAccountClientBytes = econGameAccountClient.object_data.Single();
+        var econGameAccountClientObject = Serializer.Deserialize<CSOEconGameAccountClient>(econGameAccountClientBytes);
+
+        const int hasPrimeState = 5;
+        if (econGameAccountClientObject.elevated_state != hasPrimeState)
+        {
+            return new NoPrimeStatus();
+        }
+
+        if ((econGameAccountClientObject.bonus_xp_usedflags & 0b11) == 0)
+        {
+            return new NeedRankUp();
+        }
+
+        return new True();
+    }
+
+    private OneOf<List<Cs2InventoryItem>, RewardsAlreadyClaimed, Cs2ClientError>
+        GetAvailableRewardsList(Dictionary<ulong, Cs2InventoryItem> inventory, CMsgClientWelcome clientWelcome)
     {
         var freeRewards = clientWelcome
             .outofdate_subscribed_caches
@@ -347,13 +379,13 @@ public class Cs2Client
             .objects
             .FirstOrDefault(x => x.type_id == (uint)SoCacheType.WeeklyDrop);
 
-        if (FailIfNull(freeRewards, Messages.Gc.FreeRewardsNotFound, _session, out Cs2ClientError? error))
+        if (FailIfNull(freeRewards, Messages.Gc.FreeRewardsNotFound, out Cs2ClientError? error))
         {
             return error;
         }
 
-        var storeObject = freeRewards.object_data.Single();
-        _cachedStore = Serializer.Deserialize<CSOAccountItemPersonalStore>(storeObject);
+        var storeBytes = freeRewards.object_data.Single();
+        _cachedStore = Serializer.Deserialize<CSOAccountItemPersonalStore>(storeBytes);
         if (_cachedStore.redeemable_balance < RewardsCount)
         {
             return new RewardsAlreadyClaimed();
@@ -364,7 +396,7 @@ public class Cs2Client
             .ToList();
 
         // TODO: print available items
-        if (FailIf(availableItems.Count != 4, Messages.Gc.FreeRewardsCountMismatch, _session, out error))
+        if (FailIf(availableItems.Count != 4, Messages.Gc.FreeRewardsCountMismatch, out error))
         {
             return error;
         }

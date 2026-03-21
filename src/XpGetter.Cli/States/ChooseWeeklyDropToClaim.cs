@@ -30,6 +30,9 @@ public class ChooseWeeklyDropToClaim : BaseState
 
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
+        // TODO: clickable items
+        // TODO: float patterns
+
         var cs2Items = await AnsiConsole.CreateProgressContext(async ansiConsoleCtx =>
         {
             var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);

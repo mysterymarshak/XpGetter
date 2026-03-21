@@ -43,11 +43,23 @@ public class RetrieveWeeklyDrop : BaseState
 
         if (getAvailableRewardsResult.TryPickT2(out _, out var remainder))
         {
+            AnsiConsole.MarkupLine(Messages.Gc.NeedRankUp);
+            return new RetrieveWeeklyDropExecutionResult();
+        }
+
+        if (remainder.TryPickT2(out _, out var remainder1))
+        {
             AnsiConsole.MarkupLine(Messages.Gc.RewardsAlreadyClaimed);
             return new RetrieveWeeklyDropExecutionResult();
         }
 
-        if (remainder.TryPickT1(out _, out var remainder1))
+        if (remainder1.TryPickT2(out _, out var remainder2))
+        {
+            AnsiConsole.MarkupLine(Messages.Gc.NoPrimeStatus);
+            return new RetrieveWeeklyDropExecutionResult();
+        }
+
+        if (remainder2.TryPickT1(out _, out var remainder3))
         {
             AnsiConsole.MarkupLine(Messages.Gc.ShutdownSessionDisclaimer1);
             AnsiConsole.MarkupLine(Messages.Gc.ShutdownSessionDisclaimer2);
@@ -115,7 +127,7 @@ public class RetrieveWeeklyDrop : BaseState
             return await OnExecuted();
         }
 
-        if (remainder1.TryPickT1(out var error, out var availableRewards))
+        if (remainder3.TryPickT1(out var error, out var availableRewards))
         {
             return new RetrieveWeeklyDropExecutionResult
             {
