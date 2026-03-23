@@ -43,7 +43,7 @@ public class ClaimWeeklyDropState : AuthenticatedState
 
         var session = sessions[sessionIndex];
 
-        var retrieveWeeklyDropResult = (RetrieveWeeklyDropExecutionResult)await GoTo<RetrieveWeeklyDrop>(
+        var retrieveWeeklyDropResult = (RetrieveWeeklyDropExecutionResult)await GoTo<RetrieveWeeklyDropState>(
             new NamedParameter("session", session));
 
         if (retrieveWeeklyDropResult is { Error: not null } or { AvailableItems: [] })
@@ -54,7 +54,7 @@ public class ClaimWeeklyDropState : AuthenticatedState
         AnsiConsole.MarkupLine(Messages.Gc.GotAvailableWeeklyDrop);
 
         var cs2Client = retrieveWeeklyDropResult.Cs2Client!;
-        var chooseResult = (ChooseWeeklyDropToClaimExecutionResult)await GoTo<ChooseWeeklyDropToClaim>(
+        var chooseResult = (ChooseWeeklyDropToClaimExecutionResult)await GoTo<ChooseWeeklyDropToClaimState>(
             new NamedParameter("session", session),
             new NamedParameter("retrieveResult", retrieveWeeklyDropResult));
 

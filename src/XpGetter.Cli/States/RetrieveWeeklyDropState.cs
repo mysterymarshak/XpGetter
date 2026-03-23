@@ -10,7 +10,7 @@ using XpGetter.Cli.States.Results;
 namespace XpGetter.Cli.States;
 
 // TODO: i should rewrite this ugly ass shit
-public class RetrieveWeeklyDrop : BaseState
+public class RetrieveWeeklyDropState : BaseState
 {
     private readonly SteamSession _session;
     private readonly Func<SteamSession, Cs2Client> _resolveCs2Client;
@@ -18,7 +18,7 @@ public class RetrieveWeeklyDrop : BaseState
     private bool _forceKickOtherSession;
     private Cs2Client? _cs2Client;
 
-    public RetrieveWeeklyDrop(SteamSession session, Func<SteamSession, Cs2Client> resolveCs2Client,
+    public RetrieveWeeklyDropState(SteamSession session, Func<SteamSession, Cs2Client> resolveCs2Client,
         StateContext context) : base(context)
     {
         _session = session;

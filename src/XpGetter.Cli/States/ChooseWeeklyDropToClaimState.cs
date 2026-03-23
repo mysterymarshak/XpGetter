@@ -12,7 +12,7 @@ using XpGetter.Cli.States.Results;
 namespace XpGetter.Cli.States;
 
 // TODO: i should rewrite this
-public class ChooseWeeklyDropToClaim : BaseState
+public class ChooseWeeklyDropToClaimState : BaseState
 {
     private const int RewardsToClaim = 2;
 
@@ -20,7 +20,7 @@ public class ChooseWeeklyDropToClaim : BaseState
     private readonly SteamSession _session;
     private readonly IMarketService _marketService;
 
-    public ChooseWeeklyDropToClaim(RetrieveWeeklyDropExecutionResult retrieveResult, SteamSession session,
+    public ChooseWeeklyDropToClaimState(RetrieveWeeklyDropExecutionResult retrieveResult, SteamSession session,
         IMarketService marketService, StateContext context) : base(context)
     {
         _retrieveResult = retrieveResult;
