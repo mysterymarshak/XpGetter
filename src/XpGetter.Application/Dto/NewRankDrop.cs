@@ -89,10 +89,11 @@ public record NewRankDrop(DateTimeOffset? LastDateTime, IReadOnlyList<Cs2Item> I
     private static DateTimeOffset GetLastDropResetTime()
     {
         var utcNow = DateTime.UtcNow;
-        var date = new DateTimeOffset(utcNow.Year, utcNow.Month, utcNow.Day, 2, 0, 0, TimeSpan.Zero);
+        var hoursOffset = new TimeSpan(1, 0, 0); // every Wednesday at 1:00 UTC
+        var date = new DateTimeOffset(utcNow.Year, utcNow.Month, utcNow.Day, 0, 0, 0, hoursOffset);
 
         var daysSinceWednesday = ((int)date.DayOfWeek - (int)DayOfWeek.Wednesday + 7) % 7;
-        if (daysSinceWednesday == 0 && utcNow.TimeOfDay < TimeSpan.FromHours(2))
+        if (daysSinceWednesday == 0 && utcNow.TimeOfDay < hoursOffset)
         {
             daysSinceWednesday = 7;
         }
