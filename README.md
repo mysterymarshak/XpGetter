@@ -2,7 +2,10 @@
 ### CLI tool for retrieving your CS2 weekly drop information & statistics
 
 **Usage Demo:**  
-![XpGetter_demo_activity_info](https://github.com/user-attachments/assets/625dd22e-e412-4d46-b542-7fa3d9571267)
+![xpgetter_demo_activity_info](https://github.com/user-attachments/assets/625dd22e-e412-4d46-b542-7fa3d9571267)
+
+Since version `0.3.0` you can claim your current weekly drop!
+![xpgetter_demo_claim_rewards](https://github.com/user-attachments/assets/a919938a-8314-4399-b3a7-f32b5ba809f9)
 
 Since version `0.2.0` you can also see all of your new rank drops by some period (30, 90, 180, 365 days)
 ![xpgetter_demo_statistics](https://github.com/user-attachments/assets/c069b48e-b5c9-44f7-974e-10a641655165)
@@ -40,6 +43,22 @@ If you encounter non-OK statuses, check the log files automatically generated in
 ### 4. The Result
 In this section, you can see the "activity info" for each saved account  
 The output is formatted to be easily readable (but I have plans to add custom formatting)
+
+## Claiming weekly drop
+You can claim your current weekly drop!  
+> [!IMPORTANT]
+> You need to close your cs2 instance first if there one
+
+> [!NOTE]
+> How XpGetter does it (simplified):
+> 1) downloads `items_game.txt` & `csgo_english.txt` files next to executable (cache)
+> 2) establishes cs2 GC connection
+> 3) retrieves your weekly drop
+> 4) parses econ items & retrieves prices
+> 5) you select a drop and claim it
+
+The real demo of picking drop:
+<img width="1071" height="702" alt="image" src="https://github.com/user-attachments/assets/2e6f67aa-e8e4-4ec0-8f45-aecdbb56d348" />
 
 ## Statistics
 You can get your new rank drops statistics by some period for all of your accounts!  
