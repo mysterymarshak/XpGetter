@@ -1,5 +1,5 @@
 # XpGetter
-### CLI tool for retrieving your CS2 weekly drop information & statistics
+### TUI tool for retrieving your CS2 weekly drop information & statistics
 
 **Usage Demo:**  
 ![xpgetter_demo_activity_info](https://github.com/user-attachments/assets/625dd22e-e412-4d46-b542-7fa3d9571267)
@@ -121,20 +121,20 @@ Then depends on your system and dotnet installation run:
 ### Linux
 Framework Dependent build:
 ```
-dotnet publish -p:PublishSingleFile=true -p:SelfContained=false -r linux-x64 -p:EnableCompressionInSingleFile=false src/XpGetter.Cli/XpGetter.Cli.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
+dotnet publish -p:PublishSingleFile=true -p:SelfContained=false -r linux-x64 -p:EnableCompressionInSingleFile=false src/XpGetter.Tui/XpGetter.Tui.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
 ```
 Self Contained build:
 ```
-dotnet publish -p:PublishSingleFile=true -p:SelfContained=true -r linux-x64 -p:EnableCompressionInSingleFile=true src/XpGetter.Cli/XpGetter.Cli.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
+dotnet publish -p:PublishSingleFile=true -p:SelfContained=true -r linux-x64 -p:EnableCompressionInSingleFile=true src/XpGetter.Tui/XpGetter.Tui.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
 ```
 ### Windows
 Framework Dependent build:
 ```
-dotnet publish -p:PublishSingleFile=true -p:SelfContained=false -r win-x64 -p:EnableCompressionInSingleFile=false src/XpGetter.Cli/XpGetter.Cli.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
+dotnet publish -p:PublishSingleFile=true -p:SelfContained=false -r win-x64 -p:EnableCompressionInSingleFile=false src/XpGetter.Tui/XpGetter.Tui.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
 ```
 Self Contained build:
 ```
-dotnet publish -p:PublishSingleFile=true -p:SelfContained=true -r win-x64 -p:EnableCompressionInSingleFile=true src/XpGetter.Cli/XpGetter.Cli.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
+dotnet publish -p:PublishSingleFile=true -p:SelfContained=true -r win-x64 -p:EnableCompressionInSingleFile=true src/XpGetter.Tui/XpGetter.Tui.csproj -p:DebugType=None -p:DebugSymbols=false -o artifacts/
 ```
 \
 You will find your executables in `artifacts` folder:
