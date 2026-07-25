@@ -80,19 +80,11 @@ public class Cs2Client
         var inventoryParser = new Cs2InventoryParser(clientWelcome, _itemsGame, _english, _logger);
         var inventory = inventoryParser.Parse();
 
-        var isRewardsAvailableResult = IsRewardsAvailable(clientWelcome);
-        if (!isRewardsAvailableResult.TryPickT0(out _, out var remainder1))
-        {
-            return remainder1.Match<OneOf<List<Cs2InventoryItem>, AlreadyPlayingCs2, NeedRankUp, RewardsAlreadyClaimed, NoPrimeStatus, Cs2ClientError>>(
-                needRankUp => needRankUp,
-                noPrimeStatus => noPrimeStatus,
-                error => error);
-        }
-
         var getAvailableRewardsResult = GetAvailableRewardsList(inventory, clientWelcome);
         return getAvailableRewardsResult.Match<OneOf<List<Cs2InventoryItem>, AlreadyPlayingCs2, NeedRankUp, RewardsAlreadyClaimed, NoPrimeStatus, Cs2ClientError>>(
             availableRewards => availableRewards,
             alreadyClaimed => alreadyClaimed,
+            noPrimeStatus => noPrimeStatus,
             error => error);
     }
 
@@ -340,39 +332,20 @@ public class Cs2Client
         }
     }
 
-    private OneOf<True, NeedRankUp, NoPrimeStatus, Cs2ClientError> IsRewardsAvailable(CMsgClientWelcome clientWelcome)
+    private OneOf<List<Cs2InventoryItem>, RewardsAlreadyClaimed, NoPrimeStatus, Cs2ClientError>
+        GetAvailableRewardsList(Dictionary<ulong, Cs2InventoryItem> inventory, CMsgClientWelcome clientWelcome)
     {
-        var econGameAccountClient = clientWelcome
-            .outofdate_subscribed_caches
-            .FirstOrDefault()?
-            .objects
-            .FirstOrDefault(x => x.type_id == (uint)SoCacheType.EconGameAccountClient);
-
-        if (FailIfNull(econGameAccountClient, Messages.Gc.EconGameAccountClientNotFound, out Cs2ClientError? error))
-        {
-            return error;
-        }
-
-        var econGameAccountClientBytes = econGameAccountClient.object_data.Single();
-        var econGameAccountClientObject = Serializer.Deserialize<CSOEconGameAccountClient>(econGameAccountClientBytes);
-
-        const int hasPrimeState = 5;
-        if (econGameAccountClientObject.elevated_state != hasPrimeState)
+        var primeStatusResult = IsPrimeStatus(clientWelcome);
+        if (primeStatusResult.IsT1)
         {
             return new NoPrimeStatus();
         }
 
-        if ((econGameAccountClientObject.bonus_xp_usedflags & 0b11) == 0)
+        if (primeStatusResult.IsT2)
         {
-            return new NeedRankUp();
+            return primeStatusResult.AsT2;
         }
 
-        return new True();
-    }
-
-    private OneOf<List<Cs2InventoryItem>, RewardsAlreadyClaimed, Cs2ClientError>
-        GetAvailableRewardsList(Dictionary<ulong, Cs2InventoryItem> inventory, CMsgClientWelcome clientWelcome)
-    {
         var freeRewards = clientWelcome
             .outofdate_subscribed_caches
             .FirstOrDefault()?
@@ -401,7 +374,32 @@ public class Cs2Client
             return error;
         }
 
-        return OneOf<List<Cs2InventoryItem>, RewardsAlreadyClaimed, Cs2ClientError>.FromT0(availableItems);
+        return OneOf<List<Cs2InventoryItem>, RewardsAlreadyClaimed, NoPrimeStatus, Cs2ClientError>.FromT0(availableItems);
+    }
+
+    private OneOf<True, False, Cs2ClientError> IsPrimeStatus(CMsgClientWelcome clientWelcome)
+    {
+        var econGameAccountClient = clientWelcome
+            .outofdate_subscribed_caches
+            .FirstOrDefault()?
+            .objects
+            .FirstOrDefault(x => x.type_id == (uint)SoCacheType.EconGameAccountClient);
+
+        if (FailIfNull(econGameAccountClient, Messages.Gc.EconGameAccountClientNotFound, out Cs2ClientError? error))
+        {
+            return error;
+        }
+
+        var econGameAccountClientBytes = econGameAccountClient.object_data.Single();
+        var econGameAccountClientObject = Serializer.Deserialize<CSOEconGameAccountClient>(econGameAccountClientBytes);
+
+        const int hasPrimeState = 5;
+        if (econGameAccountClientObject.elevated_state != hasPrimeState)
+        {
+            return new False();
+        }
+
+        return new True();
     }
 
     // private void RequestPlayerProfile(uint accountId, SteamGameCoordinator gameCoordinator)
