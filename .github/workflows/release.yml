@@ -49,7 +49,7 @@ jobs:
 
     - name: Publish App
       run: >
-        dotnet publish src/XpGetter.Cli/XpGetter.Cli.csproj
+        dotnet publish src/XpGetter.Tui/XpGetter.Tui.csproj
         -c Release
         -r ${{ matrix.rid }}
         -p:SelfContained=${{ matrix.is_self_contained }}
