@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="XpGetter.Application\XpGetter.Application.csproj" />
+  <Project Path="XpGetter.Application/XpGetter.Application.csproj" />
   <Project Path="XpGetter.Tui/XpGetter.Tui.csproj" />
 </Solution>

@@ -218,10 +218,10 @@ public class Cs2Client
     {
         var task = ctx.AddTask(Messages.Statuses.ConnectingToGc);
 
-        if (_session.IsPlayingCs2)
+        if (_session.IsPlayingCs2 && _cachedWelcome is not null)
         {
             task.SetResult(Messages.Statuses.ConnectingToGcOk);
-            return _cachedWelcome!;
+            return _cachedWelcome;
         }
 
         var playCs2Result = await TryPlayCs2(forceKickOtherSession);

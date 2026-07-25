@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Spectre.Console;
 using SteamKit2;
 using XpGetter.Application;
@@ -44,18 +45,21 @@ public class RetrieveWeeklyDropState : BaseState
         if (getAvailableRewardsResult.TryPickT2(out _, out var remainder))
         {
             AnsiConsole.MarkupLine(Messages.Gc.NeedRankUp);
+            _cs2Client!.Dispose();
             return new RetrieveWeeklyDropExecutionResult();
         }
 
         if (remainder.TryPickT2(out _, out var remainder1))
         {
             AnsiConsole.MarkupLine(Messages.Gc.RewardsAlreadyClaimed);
+            _cs2Client!.Dispose();
             return new RetrieveWeeklyDropExecutionResult();
         }
 
         if (remainder1.TryPickT2(out _, out var remainder2))
         {
             AnsiConsole.MarkupLine(Messages.Gc.NoPrimeStatus);
+            _cs2Client!.Dispose();
             return new RetrieveWeeklyDropExecutionResult();
         }
 
@@ -98,6 +102,7 @@ public class RetrieveWeeklyDropState : BaseState
 
             if (completedTask == tasks[0])
             {
+                _cs2Client!.Dispose();
                 return new RetrieveWeeklyDropExecutionResult
                 {
                     Error = new ErrorExecutionResult(() => AnsiConsole.MarkupLine(Messages.Session.Disconnected))
@@ -120,6 +125,7 @@ public class RetrieveWeeklyDropState : BaseState
             if (goBack)
             {
                 AnsiConsole.MarkupLine(Messages.Common.OperationCancelled);
+                _cs2Client!.Dispose();
                 return new RetrieveWeeklyDropExecutionResult { WaitAnyKey = false };
             }
 
@@ -129,6 +135,7 @@ public class RetrieveWeeklyDropState : BaseState
 
         if (remainder3.TryPickT1(out var error, out var availableRewards))
         {
+            _cs2Client!.Dispose();
             return new RetrieveWeeklyDropExecutionResult
             {
                 Error = new ErrorExecutionResult(() => error.DumpToConsole(Messages.Gc.CannotConnectToGc))

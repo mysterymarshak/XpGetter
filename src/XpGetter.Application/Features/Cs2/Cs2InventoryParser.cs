@@ -23,7 +23,7 @@ public class Cs2InventoryItem
 // TODO: optimize memory
 public record ItemDefinition(uint DefIndex, string Name, bool IsBaseItem, string RarityColor, bool IsTradeable);
 public record Quality(uint Index, string Name, string Color);
-public record PaintKit(uint Index, string DescriptionTag, string RarityColor, float? Wear);
+public record PaintKit(uint Index, string DescriptionTag, string RarityColor, float? Wear, uint Pattern);
 public record StickerKit(string Name, string RarityColor);
 
 public readonly ref struct Cs2InventoryParser
@@ -89,7 +89,7 @@ public readonly ref struct Cs2InventoryParser
 
         var paintIndex = cs2InventoryItemRaw.PaintIndex;
         var paintIndexSpan = paintIndex.FormatInto(digitsBuffer);
-        var paintKit = QueryPaint(paintIndex, cs2InventoryItemRaw.Wear, paintIndexSpan);
+        var paintKit = QueryPaint(paintIndex, cs2InventoryItemRaw.Wear, cs2InventoryItemRaw.Pattern, paintIndexSpan);
 
         var hashName = GetHashName(in cs2InventoryItemRaw, itemDefinition, quality, paintKit, digitsBuffer, sb, out var name);
 
@@ -168,6 +168,7 @@ public readonly ref struct Cs2InventoryParser
 
         attributes.GetValueOrDefault(ItemAttribute.TexturePrefab, out uint paint);
         attributes.GetValueOrDefault(ItemAttribute.TextureWear, out float floatWear, -1f);
+        attributes.GetValueOrDefault(ItemAttribute.TextureSeed, out uint pattern);
         attributes.GetValueOrDefault(ItemAttribute.KillEater, out uint stattrakCount, defaultValue: uint.MaxValue);
         attributes.GetValueOrDefault(ItemAttribute.TintId, out uint tintId);
 
@@ -181,7 +182,7 @@ public readonly ref struct Cs2InventoryParser
         float? wear = floatWear == -1f ? null : floatWear;
         var isStattrak = stattrakCount != uint.MaxValue;
 
-        return new Cs2InventoryItemRaw(item.def_index, item.quality, paint, sprayId, tintId, wear, isStattrak);
+        return new Cs2InventoryItemRaw(item.def_index, item.quality, paint, sprayId, tintId, wear, pattern, isStattrak);
     }
 
     private string GetHashName(
@@ -264,7 +265,7 @@ public readonly ref struct Cs2InventoryParser
         return QueryName(wearName);
     }
 
-    private PaintKit? QueryPaint(uint paintIndex, float? wear, ReadOnlySpan<char> paintIndexSpan)
+    private PaintKit? QueryPaint(uint paintIndex, float? wear, uint pattern, ReadOnlySpan<char> paintIndexSpan)
     {
         if (paintIndex == 0)
         {
@@ -282,7 +283,8 @@ public readonly ref struct Cs2InventoryParser
             paintIndex,
             GetStringValue(in descriptionTag, _itemsGameNodesValues),
             rarityColorString,
-            wear);
+            wear,
+            pattern);
     }
 
     // stickers and graffities literally have the same parent "sticker_kits"
@@ -413,10 +415,11 @@ public readonly ref struct Cs2InventoryParser
         public readonly uint SprayId;
         public readonly uint TintId;
         public readonly float? Wear;
+        public readonly uint Pattern;
         public readonly bool IsStattrak;
 
         public Cs2InventoryItemRaw(uint defIndex, uint quality, uint paintIndex, uint sprayId,
-            uint tintId, float? wear, bool isStattrak)
+            uint tintId, float? wear, uint pattern, bool isStattrak)
         {
             DefIndex = defIndex;
             Quality = quality;
@@ -424,6 +427,7 @@ public readonly ref struct Cs2InventoryParser
             SprayId = sprayId;
             TintId = tintId;
             Wear = wear;
+            Pattern = pattern;
             IsStattrak = isStattrak;
         }
     }

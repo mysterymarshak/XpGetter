@@ -4,6 +4,7 @@ using SteamKit2;
 using XpGetter.Application;
 using XpGetter.Application.Dto;
 using XpGetter.Application.Extensions;
+using XpGetter.Application.Features.Cs2;
 using XpGetter.Application.Features.Markets;
 using XpGetter.Tui.Extensions;
 using XpGetter.Tui.Progress;
@@ -31,39 +32,39 @@ public class ChooseWeeklyDropToClaimState : BaseState
     public override async ValueTask<StateExecutionResult> OnExecuted()
     {
         // TODO: clickable items
-        // TODO: float patterns
 
-        var cs2Items = await AnsiConsole.CreateProgressContext(async ansiConsoleCtx =>
+        var inventoryItems = _retrieveResult.AvailableItems;
+        var marketItems = await AnsiConsole.CreateProgressContext(async ansiConsoleCtx =>
         {
             var ctx = new AnsiConsoleProgressContextWrapper(ansiConsoleCtx);
 
             var task = ctx.AddTask(_session, Messages.Statuses.RetrievingItemsPrice);
 
-            var items = _retrieveResult.AvailableItems;
             var prices = await _marketService.GetItemsPriceAsync(
-                items.Where(x => x.IsTradeable).Select(x => x.HashName).Distinct().ToList(),
+                inventoryItems.Where(x => x.IsTradeable).Select(x => x.HashName).Distinct().ToList(),
                 _session.WalletInfo?.CurrencyCode ?? ECurrencyCode.USD,
                 _session,
                 ctx);
 
             var result = new List<Cs2Item>(4);
             var isWarning = false;
-            foreach (var item in items)
+            foreach (var inventoryItem in inventoryItems)
             {
-                var priceToBind = prices.FirstOrDefault(x => x.HashName == item.HashName);
-                var cs2Item = new Cs2Item(item.Name, item.HashName, item.IsTradeable, item.RarityColor);
+                var priceToBind = prices.FirstOrDefault(x => x.HashName == inventoryItem.HashName);
+                var marketItem = new Cs2Item(inventoryItem.Name, inventoryItem.HashName, inventoryItem.IsTradeable,
+                                          inventoryItem.RarityColor);
 
                 if (priceToBind is not null)
                 {
-                    cs2Item.BindPrice(priceToBind);
+                    marketItem.BindPrice(priceToBind);
                 }
 
-                if (priceToBind is null && item.IsTradeable)
+                if (priceToBind is null && inventoryItem.IsTradeable)
                 {
                     isWarning = true;
                 }
 
-                result.Add(cs2Item);
+                result.Add(marketItem);
             }
 
             task.SetResult(isWarning ? Messages.Statuses.RetrievingItemsPriceWarning : Messages.Statuses.RetrievingItemsPriceOk);
@@ -72,19 +73,23 @@ public class ChooseWeeklyDropToClaimState : BaseState
 
         AnsiConsole.MarkupLine(Messages.Gc.ChooseTwoItems);
 
-        var selectedItems = RunLiveMenu(cs2Items);
+        var weeklyDropItems = inventoryItems
+            .Join(marketItems, x => x.HashName, y => y.HashName,
+                  (x, y) => new WeeklyDropItem(x, y))
+            .ToList();
+        var selectedItems = RunLiveMenu(weeklyDropItems);
         var selectedInventoryItems = selectedItems?
-            .Select((_, i) => _retrieveResult.AvailableItems[i])
+            .Select(x => x.InventoryItem)
             .ToList();
 
         return new ChooseWeeklyDropToClaimExecutionResult { SelectedItems = selectedInventoryItems };
     }
 
-    private List<Cs2Item>? RunLiveMenu(List<Cs2Item> items)
+    private List<WeeklyDropItem>? RunLiveMenu(List<WeeklyDropItem> items)
     {
         var currentIndex = 0;
         var selectedIndices = new HashSet<int>();
-        List<Cs2Item>? result = null;
+        List<WeeklyDropItem>? result = null;
         var exit = false;
 
         AnsiConsole.Cursor.Hide();
@@ -143,26 +148,39 @@ public class ChooseWeeklyDropToClaimState : BaseState
         return result;
     }
 
-    private IRenderable RenderMenu(List<Cs2Item> items, int currentIndex, HashSet<int> selectedIndices)
+    private IRenderable RenderMenu(List<WeeklyDropItem> items, int currentIndex, HashSet<int> selectedIndices)
     {
         var grid = new Grid();
         grid.AddColumn(new GridColumn().NoWrap()); // > cursor
         grid.AddColumn(new GridColumn().NoWrap()); // [[ X ]] marker
         grid.AddColumn(new GridColumn()); // hashname
+        grid.AddColumn(new GridColumn()); // float
+        grid.AddColumn(new GridColumn()); // pattern
         grid.AddColumn(new GridColumn()); // price
+
+        grid.AddRow(
+            new Text(""),
+            new Text(""),
+            new Text("Market name"),
+            new Text("Float"),
+            new Text("Pattern"),
+            new Text("Price"));
+        grid.AddEmptyRow();
 
         var limitReached = selectedIndices.Count == RewardsToClaim;
 
         for (var i = 0; i < items.Count; i++)
         {
-            var item = items[i];
+            var inventoryItem = items[i].InventoryItem;
+            var marketItem = items[i].MarketItem;
+
             var isHovered = i == currentIndex;
             var isSelected = selectedIndices.Contains(i);
 
             var cursor = isHovered ? "> " : "  ";
             var selectionMarker = isSelected ? "[[X]] " : "[[ ]] ";
 
-            var textColor = Color.FromHex(item.Color ?? "#ded6cc");
+            var textColor = Color.FromHex(marketItem.Color ?? "#ded6cc");
             var style = new Style(foreground: textColor);
 
             if (limitReached && !isSelected)
@@ -185,7 +203,9 @@ public class ChooseWeeklyDropToClaimState : BaseState
                 }
             }
 
-            var itemPrice = item.Price;
+            var itemPrice = marketItem.Price;
+            var itemWear = inventoryItem.PaintKit?.Wear?.ToString() ?? "-";
+            var itemPattern = inventoryItem.PaintKit?.Pattern.ToString() ?? "-";
             var priceStyle = new Style(foreground: itemPrice is null ? Color.Wheat1 : Color.LightGreen);
             var priceString = itemPrice is null ? "-" : itemPrice.Currency.FormatValue(itemPrice.Value);
             if (!isHovered && !isSelected || (isHovered && !isSelected && limitReached))
@@ -196,7 +216,9 @@ public class ChooseWeeklyDropToClaimState : BaseState
             grid.AddRow(
                 new Text(cursor, new Style(foreground: isHovered ? Color.White : Color.Black)),
                 new Text(selectionMarker, style),
-                new Text(item.HashName, style),
+                new Text(marketItem.HashName, style),
+                new Text(itemWear, style),
+                new Text(itemPattern, style),
                 new Text(priceString, priceStyle) { Justification = Justify.Center }
             );
         }
@@ -212,16 +234,18 @@ public class ChooseWeeklyDropToClaimState : BaseState
         var summaryPrice =
             Math.Round(
                 selectedIndices
-                    .Select(x => items[x].Price)
+                    .Select(x => items[x].MarketItem.Price)
                     .Where(x => x is not null)
                     .Sum(x => x!.Value), 2);
 
-        var currency = items.First(x => x.Price?.Currency is not null).Price!.Currency;
+        var currency = items.First(x => x.MarketItem.Price?.Currency is not null).MarketItem.Price!.Currency;
         var summaryPriceString = currency.FormatValue(summaryPrice);
 
         grid.AddRow(
             new Text(""),
             new Text("Summary:"),
+            new Text(""),
+            new Text(""),
             new Text(""),
             new Text(summaryPriceString, summaryStyle));
 
@@ -255,4 +279,6 @@ public class ChooseWeeklyDropToClaimState : BaseState
             return _resolveRenderable().Render(options, maxWidth);
         }
     }
+
+    private record WeeklyDropItem(Cs2InventoryItem InventoryItem, Cs2Item MarketItem);
 }
