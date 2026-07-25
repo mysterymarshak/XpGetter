@@ -5,7 +5,7 @@
 ![xpgetter_demo_activity_info](https://github.com/user-attachments/assets/625dd22e-e412-4d46-b542-7fa3d9571267)
 
 Since version `0.3.0` you can claim your current weekly drop!
-![xpgetter_demo_claim_rewards](https://github.com/user-attachments/assets/a919938a-8314-4399-b3a7-f32b5ba809f9)
+![xpgetter_demo_claim_rewards](https://github.com/user-attachments/assets/7a8a890e-2f6b-45e1-897c-a486d878c90a)
 
 Since version `0.2.0` you can also see all of your new rank drops by some period (30, 90, 180, 365 days)
 ![xpgetter_demo_statistics](https://github.com/user-attachments/assets/c069b48e-b5c9-44f7-974e-10a641655165)
