@@ -205,7 +205,6 @@ public class ChooseWeeklyDropToClaimState : BaseState
             var itemWear = inventoryItem.PaintKit?.Wear?.ToString() ?? "-";
             var itemPattern = inventoryItem.PaintKit?.Pattern.ToString() ?? "-";
             var priceStyle = new Style(foreground: itemPrice is null ? Color.Wheat1 : Color.LightGreen);
-            var hashNameStyle = style.Link($"https://steamcommunity.com/market/listings/730/{Uri.EscapeDataString(marketItem.HashName)}");
             var priceString = itemPrice is null ? "-" : itemPrice.Currency.FormatValue(itemPrice.Value);
             if (!isHovered && !isSelected || (isHovered && !isSelected && limitReached))
             {
@@ -213,12 +212,12 @@ public class ChooseWeeklyDropToClaimState : BaseState
             }
 
             grid.AddRow(
-                new Text(cursor, new Style(foreground: isHovered ? Color.White : Color.Black)),
-                new Text(selectionMarker, style),
-                new Text(marketItem.HashName, hashNameStyle),
-                new Text(itemWear, style),
-                new Text(itemPattern, style),
-                new Text(priceString, priceStyle) { Justification = Justify.Center }
+                new Markup(cursor, new Style(foreground: isHovered ? Color.White : Color.Black)),
+                new Markup(selectionMarker, style),
+                new Markup(marketItem.Format(includePrice: false), style),
+                new Markup(itemWear, style),
+                new Markup(itemPattern, style),
+                new Markup(priceString, priceStyle) { Justification = Justify.Center }
             );
         }
 
