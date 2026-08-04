@@ -31,9 +31,14 @@ public static class Cs2ItemExtensions
             if (includeMarkup) builder.Append('[');
             builder.Append(item.Color ?? DefaultColor);
             if (includeMarkup) builder.Append(']');
-            if (includeMarkup) builder.Append("[link=https://steamcommunity.com/market/listings/730/");
-            if (includeMarkup) builder.Append(Uri.EscapeDataString(item.HashName));
-            if (includeMarkup) builder.Append(']');
+
+            if (includeMarkup && item.IsMarketable)
+            {
+                builder.Append("[link=https://steamcommunity.com/market/listings/730/");
+                builder.Append(Uri.EscapeDataString(item.HashName));
+                builder.Append(']');
+            }
+
             builder.Append(item.Name);
 
             var quality = item.GetItemQuality();
@@ -45,7 +50,7 @@ public static class Cs2ItemExtensions
             }
 
             if (includeMarkup) builder.Append("[/]");
-            if (includeMarkup) builder.Append("[/]");
+            if (includeMarkup && item.IsMarketable) builder.Append("[/]");
 
             if (item is { Price.Value: >0, IsMarketable: true } && includePrice)
             {
